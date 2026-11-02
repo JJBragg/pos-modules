@@ -1,0 +1,11 @@
+query ($assignee_id: String!, $categories: [String!]) {
+  records(
+    per_page: 1
+    filter: {
+      table: { value: "modules/support/ticket" }
+      properties: [{ name: "assignee_id", value: $assignee_id }, { name: "category", value_in: $categories }]
+    }
+  ) {
+    total_entries
+  }
+}
