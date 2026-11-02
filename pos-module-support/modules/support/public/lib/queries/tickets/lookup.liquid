@@ -11,22 +11,42 @@
   assign lookup = { "contacts": {}, "organizations": {}, "profiles": {}, "departments": {}, "statuses": {} }
   assign lookup.statuses = statuses.by_id
 
+  # the board concatenates every lane, so it refers to more ids than one page
+  # can return; each table is fetched in batches the page size can hold
   if contact_ids.size > 0
-    graphql c = 'modules/support/contacts/search', ids: contact_ids, limit: 100
-    for item in c.records.results
-      assign lookup.contacts[item.id] = item
+    assign contact_batches = contact_ids | array_in_groups_of: 100
+    for contact_batch in contact_batches
+      assign batch_ids = contact_batch | array_compact
+      # platformos-check-disable NestedGraphQLQuery
+      graphql c = 'modules/support/contacts/search', ids: batch_ids, limit: 100
+      # platformos-check-enable NestedGraphQLQuery
+      for item in c.records.results
+        assign lookup.contacts[item.id] = item
+      endfor
     endfor
   endif
   if organization_ids.size > 0
-    graphql o = 'modules/support/organizations/search', ids: organization_ids, limit: 100
-    for item in o.records.results
-      assign lookup.organizations[item.id] = item
+    assign organization_batches = organization_ids | array_in_groups_of: 100
+    for organization_batch in organization_batches
+      assign batch_ids = organization_batch | array_compact
+      # platformos-check-disable NestedGraphQLQuery
+      graphql o = 'modules/support/organizations/search', ids: batch_ids, limit: 100
+      # platformos-check-enable NestedGraphQLQuery
+      for item in o.records.results
+        assign lookup.organizations[item.id] = item
+      endfor
     endfor
   endif
   if profile_ids.size > 0
-    graphql p = 'modules/user/profiles/search', ids: profile_ids, limit: 100
-    for item in p.records.results
-      assign lookup.profiles[item.id] = item
+    assign profile_batches = profile_ids | array_in_groups_of: 100
+    for profile_batch in profile_batches
+      assign batch_ids = profile_batch | array_compact
+      # platformos-check-disable NestedGraphQLQuery
+      graphql p = 'modules/user/profiles/search', ids: batch_ids, limit: 100
+      # platformos-check-enable NestedGraphQLQuery
+      for item in p.records.results
+        assign lookup.profiles[item.id] = item
+      endfor
     endfor
   endif
   graphql d = 'modules/support/departments/search', limit: 100
