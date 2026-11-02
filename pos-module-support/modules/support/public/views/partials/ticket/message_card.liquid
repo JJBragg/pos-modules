@@ -38,10 +38,13 @@
   {% if attachments.size > 0 %}
     <ul class="pos-support-attachments" aria-label="{{ 'modules/support/ticket.attachments' | t }}">
       {% for attachment in attachments %}
+        {% liquid
+          function size_label = 'modules/support/helpers/filesize', bytes: attachment.size
+        %}
         {% if attachment.file.url == blank %}
-          <li>{% render 'modules/support/icon', name: 'paperclip', size: 'sm' %}{{ attachment.filename }} <span class="pos-support-muted">{{ attachment.size | divided_by: 1024 }} KB · {{ 'modules/support/ticket.attachment_not_stored' | t }}</span></li>
+          <li>{% render 'modules/support/icon', name: 'paperclip', size: 'sm' %}{{ attachment.filename }} <span class="pos-support-muted">{{ size_label }} · {{ 'modules/support/ticket.attachment_not_stored' | t }}</span></li>
         {% else %}
-          <li><a href="/support-desk/attachments/{{ attachment.id }}" rel="noopener">{% render 'modules/support/icon', name: 'paperclip', size: 'sm' %}{{ attachment.filename }} <span class="pos-support-muted">{{ attachment.size | divided_by: 1024 }} KB</span></a></li>
+          <li><a href="/support-desk/attachments/{{ attachment.id }}" rel="noopener">{% render 'modules/support/icon', name: 'paperclip', size: 'sm' %}{{ attachment.filename }} <span class="pos-support-muted">{{ size_label }}</span></a></li>
         {% endif %}
       {% endfor %}
     </ul>

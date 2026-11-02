@@ -1,0 +1,26 @@
+{% doc %}
+  Formats a byte count the way the desk shows attachment sizes: bytes below
+  one kilobyte, whole kilobytes up to a megabyte, then megabytes to one
+  decimal. Integer division alone reported every file under 1024 bytes as
+  "0 KB", which reads as an empty or broken file.
+  Keep in step with the same format in assets/js/pos-support-ticket.js.
+  @param {number} bytes - Size in bytes
+{% enddoc %}
+{% liquid
+  assign size = bytes | plus: 0
+  if size < 1024
+    assign label = size | append: ' B'
+    return label
+  endif
+  assign kb = size | divided_by: 1024.0
+  # decided on the rounded figure, so 1023.6 KB reads as 1.0 MB and never
+  # as the nonsensical "1024 KB" sitting just under a megabyte
+  assign whole_kb = kb | round
+  if whole_kb < 1024
+    assign label = whole_kb | append: ' KB'
+    return label
+  endif
+  assign mb = kb | divided_by: 1024.0
+  assign label = mb | round: 1 | append: ' MB'
+  return label
+%}
