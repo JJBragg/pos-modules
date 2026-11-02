@@ -1,0 +1,12 @@
+name: ticket_stat
+properties:
+  - name: key
+    type: string
+  - name: department_id
+    type: string
+  - name: assignee_id
+    type: string
+  - name: counts
+    type: text
+  - name: counted_at
+    type: datetime

@@ -10,6 +10,7 @@
   if ticket == blank
     return null
   endif
+  assign before = ticket
   function policy = 'modules/support/queries/sla/policy_for', ticket: ticket
   if policy == blank
     return null
@@ -36,6 +37,7 @@
   assign values.sla_version = version
   function props = 'modules/support/helpers/props', values: values
   graphql r = 'modules/support/records/update', id: ticket.id, properties: props
+  function _ = 'modules/support/commands/ticket_stats/schedule', ticket: before, values: values
 
   for item in computed.running
     assign quarter = item.target | divided_by: 4

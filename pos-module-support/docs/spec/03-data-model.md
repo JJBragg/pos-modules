@@ -296,6 +296,18 @@ properties:
   - { name: current, type: integer }
 ```
 
+### ticket_stat.yml — stored ticket counts for the rail
+```yaml
+name: ticket_stat
+properties:
+  - { name: key, type: string }                  # department_id, or "department_id|assignee_id"
+  - { name: department_id, type: string }
+  - { name: assignee_id, type: string }          # absent on the department row
+  - { name: counts, type: text }                 # JSON; department row: open, needs_reply, unassigned, all_open, waiting, awaiting_confirmation, sla_at_risk, deploy, closed; assignee row: mine
+  - { name: counted_at, type: datetime }         # when the counting job started; an older job never overwrites a newer row
+```
+Every ticket write that changes `category`, `status_id`, `assignee_id`, `department_id`, `needs_reply` or `sla_state` (`commands/tickets/{create,save}`, `commands/sla/{update,check}`) schedules `commands/ticket_stats/recount` in the background for the department and the department|assignee pair before and after the change. The job counts those tickets again rather than adding or subtracting, so a retried or lost job cannot leave a row off for good. `commands/ticket_stats/reconcile` counts everything again from the install migration and from the sweep once an hour, and stores `setting.ticket_stats_counted_at`. The rail, the attention strip and department counts read these rows in one query (`queries/ticket_stats/rail`). Until the first full count, and for department counts of a view narrowed by a filter, `queries/tickets/rail_counts` counts live and caches for a minute.
+
 ## 2. Indexing and querying
 
 - Every queue query filters `table`, `category` (not `closed`), and department scope, sorted by `sla_*_due_at` ascending through `sort: [{ properties: [{ name: "…", order: ASC }] }]`.

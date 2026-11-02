@@ -1,0 +1,38 @@
+{% doc %}
+  Creates or updates one ticket_stat row, unless a job that started later
+  already wrote it.
+  @param {string} key - department_id, or "department_id|assignee_id"
+  @param {string} department_id - The department
+  @param {string} assignee_id - The assignee's profile id, null for the department row
+  @param {object} counts - Totals by name
+  @param {string} started_at - When the counting job started
+{% enddoc %}
+{% liquid
+  graphql f = 'modules/support/ticket_stats/find', key: key
+  assign existing = f.records.results.first
+  if existing and existing.counted_at != blank
+    assign stored = existing.counted_at | to_time | strftime: '%s.%L' | plus: 0
+    assign mine = started_at | to_time | strftime: '%s.%L' | plus: 0
+    if stored > mine
+      return false
+    endif
+  endif
+
+  assign values = { "counts": null, "counted_at": null }
+  assign values.counts = counts | json
+  assign values.counted_at = started_at | to_time
+  if existing
+    function props = 'modules/support/helpers/props', values: values
+    graphql _ = 'modules/support/records/update', id: existing.id, properties: props
+  else
+    assign values.key = key
+    assign values.department_id = department_id
+    # the department row has no assignee_id at all: rows are told apart with exists
+    if assignee_id != blank
+      assign values.assignee_id = assignee_id
+    endif
+    function props = 'modules/support/helpers/props', values: values
+    graphql _ = 'modules/support/records/create_one', table: 'modules/support/ticket_stat', properties: props
+  endif
+  return true
+%}

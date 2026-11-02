@@ -45,6 +45,12 @@
     assign summary.rechecked = summary.rechecked | plus: 1
   endfor
 
+  # ticket counts (ticket_stat) are counted again once an hour, in their own job
+  assign hour_ago = 'now' | add_to_time: -1, 'h' | strftime: '%Y-%m-%dT%H:%M:%SZ'
+  if settings.ticket_stats_counted_at == blank or settings.ticket_stats_counted_at < hour_ago
+    background _ = 'modules/support/commands/ticket_stats/reconcile', delay: 0, source_name: 'support_ticket_stats_reconcile', priority: 'low'
+  endif
+
   assign heartbeat = { "at": null, "summary": null }
   assign heartbeat.at = now_iso
   assign heartbeat.summary = summary

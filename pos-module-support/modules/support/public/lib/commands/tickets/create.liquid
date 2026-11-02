@@ -50,6 +50,7 @@
   endif
   function props = 'modules/support/helpers/props', values: values
   graphql r = 'modules/support/records/create_one', table: 'modules/support/ticket', properties: props
+  function _ = 'modules/support/commands/ticket_stats/schedule', ticket: null, values: values
   assign ticket = values
   assign ticket.id = r.record.id
   assign ticket.valid = true

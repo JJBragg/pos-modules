@@ -1,9 +1,11 @@
 {% doc %}
-  Counts for the rail and the attention strip (queries/tickets/counts) and
-  per department (queries/tickets/department_counts), cached for a minute.
-  The cache key includes the time of the last change to any ticket, so any
-  ticket write shows up on the next page; the minute bounds other changes
-  (departments, membership).
+  Counts for the rail and the attention strip and per department. They come
+  from the stored totals (queries/ticket_stats/rail) once those exist. Until
+  then, and for department counts of a filtered view, they are counted live
+  (queries/tickets/counts, queries/tickets/department_counts) and cached for
+  a minute. The cache key includes the time of the last change to any
+  ticket, so any ticket write shows up on the next page; the minute bounds
+  other changes (departments, membership).
   Returns { counts, departments }.
   @param {object} member - The acting team_member
   @param {string} view - Queue view key
@@ -11,6 +13,11 @@
   @param {boolean} include_waiting - Same meaning as in queries/tickets/search
 {% enddoc %}
 {% liquid
+  function stored = 'modules/support/queries/ticket_stats/rail', member: member, view: view, filters: filters, include_waiting: include_waiting
+  if stored.departments
+    return stored
+  endif
+
   graphql last = 'modules/support/tickets/last_change'
   assign stamp = last.records.results.first.updated_at | append: '/' | append: last.records.total_entries
   assign scope = member.department_ids | default: [] | join: ','
@@ -29,5 +36,8 @@
     endcache
   endcapture
   assign result = cached | parse_json
+  if stored.counts
+    assign result.counts = stored.counts
+  endif
   return result
 %}

@@ -33,6 +33,7 @@
   assign values.sla_state = state
   function props = 'modules/support/helpers/props', values: values
   graphql r = 'modules/support/records/update', id: ticket.id, properties: props
+  function _ = 'modules/support/commands/ticket_stats/schedule', ticket: ticket, values: values
 
   if state == 'due_soon' or state == 'overdue'
     assign event_type = 'sla_due_soon'

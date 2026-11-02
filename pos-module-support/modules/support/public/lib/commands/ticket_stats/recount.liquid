@@ -1,0 +1,47 @@
+{% doc %}
+  Background job: counts the tickets of the given departments, and of the
+  given department|assignee pairs, and stores the totals in ticket_stat
+  rows the rail reads. Counting again instead of adding and subtracting
+  keeps the rows right after a retried or lost job. A row written by a job
+  that started later is not overwritten.
+  @param {array} [department_ids] - Departments to count
+  @param {array} [pairs] - "department_id|assignee_id" pairs to count (open tickets per assignee)
+{% enddoc %}
+{% liquid
+  assign started_at = 'now' | to_time | strftime: '%Y-%m-%dT%H:%M:%S.%LZ'
+  function statuses = 'modules/support/queries/statuses/all'
+  assign deploy_ids = []
+  assign deploy_ids << statuses.by_key.deploy.id
+  assign keys = "open,needs_reply,unassigned,all_open,waiting,awaiting_confirmation,sla_at_risk,deploy,closed" | split: ','
+
+  # one small count query per department and per pair: a save touches one or two of each
+  # platformos-check-disable NestedGraphQLQuery
+  assign department_ids = department_ids | default: [] | uniq
+  for department_id in department_ids
+    if department_id == blank
+      continue
+    endif
+    graphql r = 'modules/support/ticket_stats/department_counts', department_id: department_id, deploy_status_ids: deploy_ids
+    assign counts = {}
+    for key in keys
+      assign counts[key] = r[key].total_entries
+    endfor
+    function _ = 'modules/support/commands/ticket_stats/store', key: department_id, department_id: department_id, assignee_id: null, counts: counts, started_at: started_at
+  endfor
+
+  assign pairs = pairs | default: [] | uniq
+  for pair in pairs
+    assign parts = pair | split: '|'
+    assign department_id = parts[0]
+    assign assignee_id = parts[1]
+    if department_id == blank or assignee_id == blank
+      continue
+    endif
+    graphql r = 'modules/support/ticket_stats/assignee_count', department_id: department_id, assignee_id: assignee_id
+    assign counts = { "mine": 0 }
+    assign counts.mine = r.mine.total_entries
+    function _ = 'modules/support/commands/ticket_stats/store', key: pair, department_id: department_id, assignee_id: assignee_id, counts: counts, started_at: started_at
+  endfor
+  # platformos-check-enable NestedGraphQLQuery
+  return true
+%}

@@ -1,0 +1,98 @@
+{% doc %}
+  Rail, attention-strip and department counts read from the stored totals
+  (ticket_stat) in one query, whatever the number of tickets. Returns null
+  until the first full count has run. Department counts are left null when
+  a filter (priority, status, assignee, organization, search) narrows the
+  view: the totals are not kept per filter.
+  Returns { counts, departments }, the shape of queries/tickets/rail_counts.
+  @param {object} member - The acting team_member
+  @param {string} view - Queue view key
+  @param {object} filters - Current filters; department_id is ignored
+  @param {boolean} include_waiting - In all_open, count pending and on-hold tickets too (the board)
+{% enddoc %}
+{% liquid
+  function settings = 'modules/support/helpers/settings'
+  if settings.ticket_stats_counted_at == blank
+    return null
+  endif
+
+  function scope = 'modules/support/queries/tickets/scope', member: member, department_id: null
+  graphql s = 'modules/support/ticket_stats/search', department_ids: scope, me: member.profile_id
+
+  assign keys = "needs_reply,unassigned,all_open,waiting,awaiting_confirmation,sla_at_risk,deploy" | split: ','
+  assign counts = { "mine": 0 }
+  for key in keys
+    assign counts[key] = 0
+  endfor
+  for row in s.departments.results
+    for key in keys
+      assign counts[key] = counts[key] | plus: row.counts[key]
+    endfor
+  endfor
+  assign mine_by_department = {}
+  for row in s.mine.results
+    assign counts.mine = counts.mine | plus: row.counts.mine
+    assign mine_by_department[row.department_id] = row.counts.mine
+  endfor
+
+  assign result = { "counts": null, "departments": null }
+  assign result.counts = counts
+
+  assign views = "mine,needs_reply,unassigned,all_open,waiting,awaiting_confirmation,sla_at_risk,deploy,closed" | split: ','
+  assign filtered = false
+  assign filter_names = "priority,status_key,assignee_id,organization_id,q" | split: ','
+  for name in filter_names
+    assign value = filters[name] | strip
+    if value != blank
+      assign filtered = true
+    endif
+  endfor
+  unless views contains view
+    assign filtered = true
+  endunless
+  if filtered
+    return result
+  endif
+
+  assign column = view
+  if view == 'all_open' and include_waiting
+    assign column = 'open'
+  endif
+  assign by_department = {}
+  assign all = 0
+  if view == 'mine'
+    assign by_department = mine_by_department
+    assign all = counts.mine
+  else
+    for row in s.departments.results
+      assign n = row.counts[column] | default: 0
+      assign by_department[row.department_id] = n
+      assign all = all | plus: n
+    endfor
+  endif
+
+  function permissions = 'modules/support/queries/team/role_permissions'
+  assign all_departments = false
+  if permissions[member.role] contains 'support.tickets.manage.all'
+    assign all_departments = true
+  endif
+  graphql d = 'modules/support/departments/search', limit: 100
+  assign departments = { "all": 0, "departments": [] }
+  assign departments.all = all
+  for department in d.records.results
+    unless department.active
+      continue
+    endunless
+    unless all_departments or member.department_ids contains department.id
+      continue
+    endunless
+    assign item = { "id": null, "name": null, "short_code": null, "count": 0 }
+    assign item.id = department.id
+    assign item.name = department.name
+    assign item.short_code = department.short_code
+    assign item.count = by_department[department.id] | default: 0
+    assign departments.departments << item
+  endfor
+  assign result.departments = departments
+  return result
+%}

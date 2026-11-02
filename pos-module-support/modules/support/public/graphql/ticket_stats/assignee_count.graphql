@@ -1,0 +1,15 @@
+query ($department_id: String!, $assignee_id: String!) {
+  mine: records(
+    per_page: 1
+    filter: {
+      table: { value: "modules/support/ticket" }
+      properties: [
+        { name: "department_id", value: $department_id }
+        { name: "assignee_id", value: $assignee_id }
+        { name: "category", value_in: ["new", "open", "pending", "on_hold"] }
+      ]
+    }
+  ) {
+    total_entries
+  }
+}

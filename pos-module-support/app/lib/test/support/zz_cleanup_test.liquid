@@ -11,6 +11,9 @@
   endif
   assign scope = []
   assign scope << department_id
+  if department_id
+    function _ = 'modules/support/commands/ticket_stats/recount', department_ids: scope, pairs: null
+  endif
   graphql left = 'modules/support/tickets/search', department_ids: scope, limit: 1
   function contract = 'modules/tests/assertions/equal', contract: contract, given: left.records.total_entries, expected: 0, field_name: 'fixture tickets removed'
 %}
