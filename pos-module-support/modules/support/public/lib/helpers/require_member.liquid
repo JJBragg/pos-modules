@@ -20,9 +20,14 @@
     break
   endif
 
+  # Emails are built in background jobs that have no request host, so the desk
+  # address has to be stored. It is learned once, from the first desk page
+  # anyone loads, and never rewritten afterwards: comparing it to the current
+  # host meant a desk reachable on two hostnames rewrote the row on every
+  # request and made a GET non-idempotent. Settings -> Integrations changes it.
   function support_settings = 'modules/support/helpers/settings'
-  assign base_url = 'https://' | append: context.location.host
-  if support_settings.base_url != base_url
+  if support_settings.base_url == blank
+    assign base_url = 'https://' | append: context.location.host
     function _ = 'modules/support/commands/settings/set', key: 'base_url', value: base_url
   endif
 
