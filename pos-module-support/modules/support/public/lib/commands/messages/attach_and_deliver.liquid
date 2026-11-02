@@ -9,12 +9,27 @@
 {% enddoc %}
 {% liquid
   assign outgoing = []
+  assign unstored = 0
   for file in attachments
     function stored = 'modules/support/commands/attachments/store', ticket_id: ticket_id, message_id: message_id, file: file
-    if stored
-      assign outgoing << file
+    if stored == blank
+      continue
     endif
+    # the bytes are in hand either way, so the customer still gets the file;
+    # a failed upload only means the desk kept no copy, and the attachment
+    # row carries that so the agent can see it on the reply
+    assign outgoing << file
+    unless stored.stored
+      assign unstored = unstored | plus: 1
+    endunless
   endfor
+  if unstored > 0
+    assign detail = { "unstored": null, "message_id": null, "ticket_id": null }
+    assign detail.unstored = unstored
+    assign detail.message_id = message_id
+    assign detail.ticket_id = ticket_id
+    log detail, type: 'ERROR modules/support/commands/messages/attach_and_deliver: files sent but not stored'
+  endif
   function _ = 'modules/support/commands/messages/deliver', message_id: message_id, attempt: 1, attachments: outgoing
   return outgoing.size
 %}
