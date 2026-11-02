@@ -51,10 +51,19 @@
     input.value = value;
     return input;
   };
+  // keep in step with lib/helpers/filesize.liquid, which labels the same
+  // files once they are on the ticket
+  const filesize = (bytes) => {
+    if (bytes < 1024) return `${bytes} B`;
+    const kb = bytes / 1024;
+    const wholeKb = Math.round(kb);
+    if (wholeKb < 1024) return `${wholeKb} KB`;
+    return `${(kb / 1024).toFixed(1)} MB`;
+  };
   const chip = (file) => {
     const item = document.createElement('span');
     item.className = 'pos-support-chip';
-    item.textContent = `${file.name} · ${Math.max(1, Math.round(file.size / 1024))} KB`;
+    item.textContent = `${file.name} · ${filesize(file.size)}`;
     return item;
   };
 
