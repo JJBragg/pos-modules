@@ -1,6 +1,10 @@
 {% doc %}
   Uploads one base64 file to the private attachment storage and creates the
-  attachment record (04 §2.3). Returns the record or null.
+  attachment record (04 §2.3). A transient upload failure is retried; if the
+  upload still fails the record is created without a file, so the attachment
+  is visible on the ticket rather than disappearing.
+  Returns the record (record.stored says whether the file reached storage),
+  or null when there is nothing to store.
   @param {string} ticket_id - The ticket
   @param {string} message_id - The message
   @param {object} file - { filename, content_type, content_base64, content_id, inline }
@@ -13,46 +17,78 @@
   assign content_type = file.content_type | default: 'application/octet-stream'
   assign stored_name = filename | replace_regex: '[^A-Za-z0-9._-]', '_'
 
-  graphql p = 'modules/support/uploads/presign'
-  assign form_data = []
-  for pair in p.presign.upload_url_payload
-    assign part = { "name": null, "value": null }
-    assign part.name = pair[0]
-    assign part.value = pair[1] | append: ''
-    assign form_data << part
-  endfor
-  assign file_part = { "name": "file", "file": {} }
-  assign file_part.file.content_base64 = file.content_base64
-  assign file_part.file.filename = stored_name
-  assign file_part.file.content_type = content_type
-  assign form_data << file_part
-  graphql sent = 'modules/support/uploads/send', url: p.presign.upload_url, form_data: form_data
-  assign status = sent.api_call_send.response.status
-  if status < 200 or status >= 300
-    log status, type: 'ERROR modules/support/commands/attachments/store: upload failed'
-    return null
-  endif
+  # a presigned POST is single use, so each attempt asks for a fresh one
+  assign file_url = null
+  for attempt in (1..3)
+    # platformos-check-disable NestedGraphQLQuery
+    graphql p = 'modules/support/uploads/presign'
+    assign form_data = []
+    for pair in p.presign.upload_url_payload
+      assign part = { "name": null, "value": null }
+      assign part.name = pair[0]
+      assign part.value = pair[1] | append: ''
+      assign form_data << part
+    endfor
+    assign file_part = { "name": "file", "file": {} }
+    assign file_part.file.content_base64 = file.content_base64
+    assign file_part.file.filename = stored_name
+    assign file_part.file.content_type = content_type
+    assign form_data << file_part
+    graphql sent = 'modules/support/uploads/send', url: p.presign.upload_url, form_data: form_data
+    # platformos-check-enable NestedGraphQLQuery
+    assign status = sent.api_call_send.response.status
 
-  assign key = p.presign.upload_url_payload.key | replace: '${filename}', stored_name
-  assign file_url = p.presign.upload_url | append: '/' | append: key
-  assign size = file.content_base64 | size | times: 3 | divided_by: 4
+    if status >= 200 and status < 300
+      assign key = p.presign.upload_url_payload.key | replace: '${filename}', stored_name
+      assign file_url = p.presign.upload_url | append: '/' | append: key
+      break
+    endif
+    # 4xx is the request itself — the same bytes and the same form will be
+    # rejected again, so only 5xx and transport failures are worth a retry
+    if status >= 400 and status < 500
+      assign detail = { "status": null, "filename": null }
+      assign detail.status = status
+      assign detail.filename = filename
+      log detail, type: 'ERROR modules/support/commands/attachments/store: upload rejected'
+      break
+    endif
+    assign detail = { "status": null, "filename": null, "attempt": null }
+    assign detail.status = status
+    assign detail.filename = filename
+    assign detail.attempt = attempt
+    log detail, type: 'WARN modules/support/commands/attachments/store: upload failed, retrying'
+  endfor
+
+  if file_url == blank
+    assign detail = { "filename": null, "ticket_id": null, "message_id": null }
+    assign detail.filename = filename
+    assign detail.ticket_id = ticket_id
+    assign detail.message_id = message_id
+    log detail, type: 'ERROR modules/support/commands/attachments/store: storing the file failed, recording the attachment without it'
+  endif
 
   assign values = { "inline": false }
   assign values.ticket_id = ticket_id
   assign values.message_id = message_id
   assign values.filename = filename
   assign values.content_type = content_type
-  assign values.size = size
+  assign values.size = file.content_base64 | size | times: 3 | divided_by: 4
   assign values.content_id = file.content_id
   if file.inline
     assign values.inline = true
   endif
   function props = 'modules/support/helpers/props', values: values
-  assign file_prop = { "name": "file" }
-  assign file_prop.value = file_url
-  assign props << file_prop
+  if file_url != blank
+    assign file_prop = { "name": "file" }
+    assign file_prop.value = file_url
+    assign props << file_prop
+  endif
   graphql r = 'modules/support/records/create_one', table: 'modules/support/attachment', properties: props
   assign record = values
   assign record.id = r.record.id
+  assign record.stored = false
+  if file_url != blank
+    assign record.stored = true
+  endif
   return record
 %}

@@ -449,6 +449,7 @@ en:
     unsnooze: Unsnooze
     original_title: Original email
     attachments: Attachments
+    attachment_not_stored: not stored
     not_delivered: "Not delivered:"
     delivery_queued: Sending…
     delivery_sent: Sent
