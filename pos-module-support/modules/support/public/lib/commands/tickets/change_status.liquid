@@ -1,7 +1,8 @@
 {% doc %}
-  Moves a ticket to another status (05 §1). Refuses an unknown status,
-  moving to New, and an agent closing someone else's ticket. Copies the
-  category, stamps solved_at/closed_at, clears needs_reply when solved.
+  Moves a ticket to another status (05 §1). Refuses an unknown status and
+  moving to New. Copies the category, stamps solved_at/closed_at, clears
+  needs_reply when solved. Any member who can reach the ticket may close
+  it: the close is reversible and the activity log records who did it.
   @param {object} ticket - Ticket loaded through queries/tickets/find
   @param {string} status_key - Target status key
   @param {object} actor - { type, id, member }
@@ -16,10 +17,6 @@
   endif
   if status.category == 'new'
     assign result.errors.status = 'modules/support/tickets.errors.to_new'
-    return result
-  endif
-  if status.category == 'closed' and actor.member.role == 'agent' and ticket.assignee_id != blank and ticket.assignee_id != actor.id
-    assign result.errors.status = 'modules/support/tickets.errors.close_others'
     return result
   endif
   if status.id == ticket.status_id

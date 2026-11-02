@@ -9,7 +9,7 @@ Each is `lib/commands/<resource>/<action>.liquid` with `build.liquid` and `check
 | Command | Input | Check (refuse when) | Execute | Event |
 |---|---|---|---|---|
 | `tickets/create` | subject, department_id, requester_id, channel, priority?, first message | subject blank (use "(no subject)"), department missing | next number (counter), status New, category new, priority default p2, `search_text` | `support_ticket_created` |
-| `tickets/change_status` | ticket, status_key, actor | unknown status; moving to `new`; non-manager closing someone else's | copy category; set `solved_at`/`closed_at`; SLA pause/resume (06 §3); clear `needs_reply` on solved | `support_ticket_status_changed` |
+| `tickets/change_status` | ticket, status_key, actor | unknown status; moving to `new` | copy category; set `solved_at`/`closed_at`; SLA pause/resume (06 §3); clear `needs_reply` on solved | `support_ticket_status_changed` |
 | `tickets/assign` | ticket, assignee_id, reason, actor | assignee not an agent of the department; cap reached (manual assignment may exceed with a warning) | set `assignee_id`, `assigned_at`, `assignment_reason`; team_member.last_assigned_at | `support_ticket_assigned` |
 | `tickets/set_priority` | ticket, priority | not p0–p3 | set; recompute SLA deadlines (06) | `support_ticket_priority_changed` |
 | `tickets/update_fields` | ticket, subject?, department_id?, tags? | | | `support_ticket_updated` |

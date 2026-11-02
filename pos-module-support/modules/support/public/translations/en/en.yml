@@ -349,7 +349,6 @@ en:
     errors:
       unknown_status: That status doesn't exist.
       to_new: A ticket can't be moved back to New.
-      close_others: Only a manager can close a ticket assigned to someone else.
       not_member: That person isn't an active support team member.
       not_in_department: That agent doesn't work in this ticket's department.
       assign_others: Only a manager can assign tickets to other people.
