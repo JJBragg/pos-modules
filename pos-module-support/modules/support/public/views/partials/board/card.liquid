@@ -1,6 +1,7 @@
 {% doc %}
   A board card with a "Move to" form that works without JavaScript; with
-  JavaScript the form shows only while the card has keyboard focus.
+  JavaScript the form is revealed on hover or focus, since dragging only
+  reaches statuses that are columns and the form reaches all of them.
   @param {object} ticket - Ticket record
   @param {object} lookup - From queries/tickets/lookup
   @param {object[]} statuses - Statuses offered in "Move to"
