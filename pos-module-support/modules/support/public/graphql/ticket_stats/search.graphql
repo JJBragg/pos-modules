@@ -1,0 +1,28 @@
+query ($department_ids: [String!], $me: String!) {
+  departments: records(
+    per_page: 500
+    filter: {
+      table: { value: "modules/support/ticket_stat" }
+      properties: [{ name: "department_id", value_in: $department_ids }, { name: "assignee_id", exists: false }]
+    }
+  ) {
+    total_entries
+    results {
+      department_id: property(name: "department_id")
+      counts: property_object(name: "counts")
+    }
+  }
+  mine: records(
+    per_page: 500
+    filter: {
+      table: { value: "modules/support/ticket_stat" }
+      properties: [{ name: "department_id", value_in: $department_ids }, { name: "assignee_id", value: $me }]
+    }
+  ) {
+    total_entries
+    results {
+      department_id: property(name: "department_id")
+      counts: property_object(name: "counts")
+    }
+  }
+}

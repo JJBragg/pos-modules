@@ -1,0 +1,14 @@
+query ($key: String!) {
+  records(
+    per_page: 1
+    filter: {
+      table: { value: "modules/support/ticket_stat" }
+      properties: [{ name: "key", value: $key }]
+    }
+  ) {
+    results {
+      id
+      counted_at: property(name: "counted_at")
+    }
+  }
+}

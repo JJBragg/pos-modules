@@ -25,6 +25,13 @@ mutation ($department_id: String!) {
   ) {
     count
   }
+  stats: records_delete_all(
+    table: "modules/support/ticket_stat"
+    sync: true
+    filter: { properties: [{ name: "assignee_id", starts_with: "test-" }] }
+  ) {
+    count
+  }
   delivery: records_delete_all(
     table: "modules/support/ticket"
     sync: true

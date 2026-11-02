@@ -1,0 +1,48 @@
+{% doc %}
+  Counts every department, and every department each active member can
+  see, again and stores the totals (ticket_stat), so rows a lost job left
+  behind are corrected. Rows of members who left are counted again too,
+  which brings them to zero. Run by the install migration and by the sweep
+  once an hour; marks the counts ready for the rail when done.
+{% enddoc %}
+{% liquid
+  graphql d = 'modules/support/departments/search', limit: 100
+  assign department_ids = d.records.results | map: 'id'
+
+  assign pairs = []
+  function members = 'modules/support/queries/team_members/all_active'
+  for member in members
+    if member.profile_id == blank
+      continue
+    endif
+    assign visible = department_ids
+    if member.role == 'agent'
+      assign visible = member.department_ids | default: []
+    endif
+    for department_id in visible
+      assign pair = department_id | append: '|' | append: member.profile_id
+      assign pairs << pair
+    endfor
+  endfor
+
+  graphql k = 'modules/support/ticket_stats/keys', page: 1
+  assign rows = k.records.results
+  if k.records.total_pages > 1
+    # one request per page of 500 rows
+    # platformos-check-disable NestedGraphQLQuery
+    for page in (2..k.records.total_pages)
+      graphql more = 'modules/support/ticket_stats/keys', page: page
+      assign rows = rows | concat: more.records.results
+    endfor
+    # platformos-check-enable NestedGraphQLQuery
+  endif
+  for row in rows
+    assign pair = row.department_id | append: '|' | append: row.assignee_id
+    assign pairs << pair
+  endfor
+
+  function _ = 'modules/support/commands/ticket_stats/recount', department_ids: department_ids, pairs: pairs
+  assign done = 'now' | to_time | strftime: '%Y-%m-%dT%H:%M:%SZ'
+  function _ = 'modules/support/commands/settings/set', key: 'ticket_stats_counted_at', value: done
+  return pairs.size
+%}

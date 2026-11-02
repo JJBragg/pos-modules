@@ -8,6 +8,7 @@
   assign values.last_activity_at = 'now' | to_time
   function props = 'modules/support/helpers/props', values: values
   graphql r = 'modules/support/records/update', id: ticket.id, properties: props
+  function _ = 'modules/support/commands/ticket_stats/schedule', ticket: ticket, values: values
   assign saved = ticket | hash_merge: values
   return saved
 %}

@@ -1,0 +1,66 @@
+{% doc %}
+  @param {object} contract - The test contract object
+{% enddoc %}
+{% liquid
+  # Stored ticket counts (ticket_stat) match a live count after a recount,
+  # follow a status and assignee change, and are what the rail reads.
+  function f = 'support_test_helpers/ticket_fixture', label: 'stats'
+  assign department_id = f.department_id
+  assign agent_id = f.actor.id
+  assign scope = []
+  assign scope << department_id
+  assign pair = department_id | append: '|' | append: agent_id
+  assign pairs = []
+  assign pairs << pair
+
+  assign before = f.ticket
+  assign values = { "subject": "Renamed" }
+  function scheduled = 'modules/support/commands/ticket_stats/schedule', ticket: before, values: values
+  function contract = 'modules/tests/assertions/not_true', contract: contract, value: scheduled, field_name: 'subject change does not recount', object: null
+
+  function _ = 'modules/support/commands/ticket_stats/recount', department_ids: scope, pairs: pairs
+  graphql s = 'modules/support/ticket_stats/search', department_ids: scope, me: agent_id
+  assign row = s.departments.results.first
+  assign open_categories = ["new", "open"]
+  graphql live = 'modules/support/tickets/search', department_ids: scope, categories: open_categories, limit: 1
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: row.counts.all_open, expected: live.records.total_entries, field_name: 'all_open matches a live count'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: s.mine.results.first.counts.mine, expected: 0, field_name: 'nothing assigned yet'
+
+  function statuses = 'modules/support/queries/statuses/all'
+  assign values = { "assignee_id": null, "category": "pending", "status_id": null }
+  assign values.assignee_id = agent_id
+  assign values.status_id = statuses.by_key.pending.id
+  function scheduled = 'modules/support/commands/ticket_stats/schedule', ticket: before, values: values
+  function contract = 'modules/tests/assertions/true', contract: contract, value: scheduled, field_name: 'status and assignee change recounts', object: null
+  function _ = 'modules/support/commands/tickets/save', ticket: before, values: values
+
+  function _ = 'modules/support/commands/ticket_stats/recount', department_ids: scope, pairs: pairs
+  graphql s = 'modules/support/ticket_stats/search', department_ids: scope, me: agent_id
+  assign row = s.departments.results.first
+  assign waiting_categories = ["pending", "on_hold"]
+  graphql live = 'modules/support/tickets/search', department_ids: scope, categories: waiting_categories, limit: 1
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: row.counts.waiting, expected: live.records.total_entries, field_name: 'waiting matches a live count after the change'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: s.mine.results.first.counts.mine, expected: 1, field_name: 'assigned ticket counted for the agent'
+
+  # a job that started earlier does not overwrite a newer row
+  assign stale = { "open": -1 }
+  assign long_ago = 'now' | add_to_time: -1, 'h' | strftime: '%Y-%m-%dT%H:%M:%S.%LZ'
+  function _ = 'modules/support/commands/ticket_stats/store', key: department_id, department_id: department_id, assignee_id: null, counts: stale, started_at: long_ago
+  graphql s = 'modules/support/ticket_stats/search', department_ids: scope, me: agent_id
+  assign kept = true
+  if s.departments.results.first.counts.open == -1
+    assign kept = false
+  endif
+  function contract = 'modules/tests/assertions/true', contract: contract, value: kept, field_name: 'older job does not overwrite', object: null
+
+  # the rail reads the stored totals once a full count has run
+  function settings = 'modules/support/helpers/settings'
+  if settings.ticket_stats_counted_at == blank
+    assign now_iso = 'now' | to_time | strftime: '%Y-%m-%dT%H:%M:%SZ'
+    function _ = 'modules/support/commands/settings/set', key: 'ticket_stats_counted_at', value: now_iso
+  endif
+  assign no_filters = {}
+  function rail = 'modules/support/queries/ticket_stats/rail', member: f.actor.member, view: 'waiting', filters: no_filters, include_waiting: false
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: rail.counts.mine, expected: 1, field_name: 'rail mine count'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: rail.departments.all, expected: live.records.total_entries, field_name: 'rail waiting total'
+%}

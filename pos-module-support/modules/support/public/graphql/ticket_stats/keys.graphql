@@ -1,0 +1,17 @@
+query ($page: Int = 1) {
+  records(
+    page: $page
+    per_page: 500
+    filter: {
+      table: { value: "modules/support/ticket_stat" }
+      properties: [{ name: "assignee_id", exists: true }]
+    }
+    sort: [{ created_at: { order: ASC } }]
+  ) {
+    total_pages
+    results {
+      department_id: property(name: "department_id")
+      assignee_id: property(name: "assignee_id")
+    }
+  }
+}

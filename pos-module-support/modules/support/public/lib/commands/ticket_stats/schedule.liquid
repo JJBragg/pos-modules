@@ -1,0 +1,42 @@
+{% doc %}
+  After a ticket write: when a value the counts depend on changed, recounts
+  the ticket's department and assignee before and after the change in a
+  background job, so the save itself does not wait.
+  @param {object} [ticket] - The ticket before the change (blank for a new ticket)
+  @param {object} values - The values written
+{% enddoc %}
+{% liquid
+  assign counted = "category,status_id,assignee_id,department_id,needs_reply,sla_state" | split: ','
+  assign written = values | hash_keys
+  assign changed = false
+  for name in counted
+    if written contains name and values[name] != ticket[name]
+      assign changed = true
+      break
+    endif
+  endfor
+  unless changed
+    return false
+  endunless
+
+  assign after = ticket | default: {} | hash_merge: values
+  assign department_ids = []
+  assign pairs = []
+  assign versions = []
+  assign versions << ticket
+  assign versions << after
+  for version in versions
+    if version.department_id == blank
+      continue
+    endif
+    assign department_ids << version.department_id
+    if version.assignee_id != blank
+      assign pair = version.department_id | append: '|' | append: version.assignee_id
+      assign pairs << pair
+    endif
+  endfor
+  assign department_ids = department_ids | uniq
+  assign pairs = pairs | uniq
+  background _ = 'modules/support/commands/ticket_stats/recount', delay: 0, max_attempts: 3, source_name: 'support_ticket_stats', priority: 'high', department_ids: department_ids, pairs: pairs
+  return true
+%}
