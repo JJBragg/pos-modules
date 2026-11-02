@@ -55,9 +55,21 @@
   when 'branding'
     function result = 'modules/support/commands/settings_sections/branding', params: params
   when 'integrations'
-    function _ = 'modules/support/commands/maintenance/start_sweep'
-    assign result.valid = true
-    assign result.notice = 'modules/support/settings.sweep_restarted'
+    # the section has two forms; the desk address one marks itself
+    if params.only == 'base_url'
+      assign value = params.base_url | strip
+      assign valid = value | matches: '^https://[^\s"<>/]+$'
+      unless valid
+        assign result.error = 'modules/support/settings.errors.base_url'
+        return result
+      endunless
+      function _ = 'modules/support/commands/settings/set', key: 'base_url', value: value
+      assign result.valid = true
+    else
+      function _ = 'modules/support/commands/maintenance/start_sweep'
+      assign result.valid = true
+      assign result.notice = 'modules/support/settings.sweep_restarted'
+    endif
   else
     assign result.error = 'modules/support/settings.errors.section'
   endcase
