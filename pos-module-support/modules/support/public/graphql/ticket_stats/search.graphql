@@ -5,6 +5,7 @@ query ($department_ids: [String!], $me: String!) {
       table: { value: "modules/support/ticket_stat" }
       properties: [{ name: "department_id", value_in: $department_ids }, { name: "assignee_id", exists: false }]
     }
+    sort: [{ properties: [{ name: "counted_at", order: DESC }] }]
   ) {
     total_entries
     results {
@@ -18,6 +19,7 @@ query ($department_ids: [String!], $me: String!) {
       table: { value: "modules/support/ticket_stat" }
       properties: [{ name: "department_id", value_in: $department_ids }, { name: "assignee_id", value: $me }]
     }
+    sort: [{ properties: [{ name: "counted_at", order: DESC }] }]
   ) {
     total_entries
     results {

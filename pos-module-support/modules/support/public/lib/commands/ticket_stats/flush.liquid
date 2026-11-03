@@ -1,0 +1,18 @@
+{% doc %}
+  Ends ticket_stats/defer: queues one recount job for every department and
+  assignee collected since then, if any. Returns true when a job was queued.
+{% enddoc %}
+{% liquid
+  assign state = context.exports.support_ticket_stats.state | default: {}
+  assign department_ids = state.department_ids | default: []
+  assign pairs = state.pairs | default: []
+  assign state.deferred = false
+  assign state.department_ids = []
+  assign state.pairs = []
+  export state, namespace: 'support_ticket_stats'
+  if department_ids.size == 0 and pairs.size == 0
+    return false
+  endif
+  background _ = 'modules/support/commands/ticket_stats/recount', delay: 0, max_attempts: 3, source_name: 'support_ticket_stats', priority: 'high', department_ids: department_ids, pairs: pairs
+  return true
+%}

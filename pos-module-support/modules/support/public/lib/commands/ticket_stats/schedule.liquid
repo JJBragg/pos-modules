@@ -2,6 +2,11 @@
   After a ticket write: when a value the counts depend on changed, recounts
   the ticket's department and assignee before and after the change in a
   background job, so the save itself does not wait.
+  One request queues each set of departments and assignees once: a save that
+  also updates the SLA does not queue a second, identical job. Between
+  ticket_stats/defer and ticket_stats/flush (a bulk chunk) nothing is queued;
+  the sets are collected and flush queues one job for all of them.
+  Returns false (nothing counted changed), 'queued', 'already_queued' or 'deferred'.
   @param {object} [ticket] - The ticket before the change (blank for a new ticket)
   @param {object} values - The values written
 {% enddoc %}
@@ -35,8 +40,25 @@
       assign pairs << pair
     endif
   endfor
-  assign department_ids = department_ids | uniq
-  assign pairs = pairs | uniq
+  assign department_ids = department_ids | uniq | sort
+  assign pairs = pairs | uniq | sort
+
+  assign state = context.exports.support_ticket_stats.state | default: {}
+  if state.deferred
+    assign state.department_ids = state.department_ids | default: [] | concat: department_ids | uniq
+    assign state.pairs = state.pairs | default: [] | concat: pairs | uniq
+    export state, namespace: 'support_ticket_stats'
+    return 'deferred'
+  endif
+
+  assign signature = department_ids | join: ',' | append: ';' | append: pairs | join: ','
+  assign queued = state.queued | default: []
+  if queued contains signature
+    return 'already_queued'
+  endif
   background _ = 'modules/support/commands/ticket_stats/recount', delay: 0, max_attempts: 3, source_name: 'support_ticket_stats', priority: 'high', department_ids: department_ids, pairs: pairs
-  return true
+  assign queued << signature
+  assign state.queued = queued
+  export state, namespace: 'support_ticket_stats'
+  return 'queued'
 %}

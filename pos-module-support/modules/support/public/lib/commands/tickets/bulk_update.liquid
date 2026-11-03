@@ -25,6 +25,8 @@
     assign assignee_id = assignee
   endif
 
+  # one recount for the whole chunk instead of one or two per ticket
+  function _ = 'modules/support/commands/ticket_stats/defer'
   for id in ids
     function ticket = 'modules/support/queries/tickets/find', id: id, number: null, member: member
     if ticket == blank
@@ -68,5 +70,6 @@
       assign result.failed_numbers << ticket.number
     endif
   endfor
+  function _ = 'modules/support/commands/ticket_stats/flush'
   return result
 %}

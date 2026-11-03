@@ -1,0 +1,15 @@
+{% doc %}
+  Starts collecting recounts instead of queuing them: until
+  ticket_stats/flush, ticket_stats/schedule only remembers the departments
+  and assignees a write touched. Used by work that changes many tickets in
+  one request or job (a bulk chunk), so it queues one recount, not one per
+  ticket.
+{% enddoc %}
+{% liquid
+  assign state = context.exports.support_ticket_stats.state | default: {}
+  assign state.deferred = true
+  assign state.department_ids = []
+  assign state.pairs = []
+  export state, namespace: 'support_ticket_stats'
+  return true
+%}

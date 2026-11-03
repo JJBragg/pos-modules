@@ -1,0 +1,5 @@
+mutation ($ids: [ID!]!) {
+  records_delete_all(table: "modules/support/ticket_stat", filter: { id: { value_in: $ids } }, sync: true) {
+    count
+  }
+}

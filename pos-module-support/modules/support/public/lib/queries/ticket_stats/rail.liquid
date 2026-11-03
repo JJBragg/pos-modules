@@ -18,19 +18,37 @@
 
   function scope = 'modules/support/queries/tickets/scope', member: member, department_id: null
   graphql s = 'modules/support/ticket_stats/search', department_ids: scope, me: member.profile_id
+  # newest row first: a duplicate row of a department, until store or the
+  # hourly reconcile removes it, is never counted twice
+  assign department_rows = []
+  assign seen = []
+  for row in s.departments.results
+    unless seen contains row.department_id
+      assign seen << row.department_id
+      assign department_rows << row
+    endunless
+  endfor
+  assign mine_rows = []
+  assign seen = []
+  for row in s.mine.results
+    unless seen contains row.department_id
+      assign seen << row.department_id
+      assign mine_rows << row
+    endunless
+  endfor
 
   assign keys = "needs_reply,unassigned,all_open,waiting,awaiting_confirmation,sla_at_risk,deploy" | split: ','
   assign counts = { "mine": 0 }
   for key in keys
     assign counts[key] = 0
   endfor
-  for row in s.departments.results
+  for row in department_rows
     for key in keys
       assign counts[key] = counts[key] | plus: row.counts[key]
     endfor
   endfor
   assign mine_by_department = {}
-  for row in s.mine.results
+  for row in mine_rows
     assign counts.mine = counts.mine | plus: row.counts.mine
     assign mine_by_department[row.department_id] = row.counts.mine
   endfor
@@ -64,7 +82,7 @@
     assign by_department = mine_by_department
     assign all = counts.mine
   else
-    for row in s.departments.results
+    for row in department_rows
       assign n = row.counts[column] | default: 0
       assign by_department[row.department_id] = n
       assign all = all | plus: n

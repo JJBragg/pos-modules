@@ -1,6 +1,7 @@
 {% doc %}
   Creates or updates one ticket_stat row, unless a job that started later
-  already wrote it.
+  already wrote it. Duplicate rows of the key, left by two jobs that created
+  it at the same time, are removed first; a create checks again afterwards.
   @param {string} key - department_id, or "department_id|assignee_id"
   @param {string} department_id - The department
   @param {string} assignee_id - The assignee's profile id, null for the department row
@@ -9,30 +10,33 @@
 {% enddoc %}
 {% liquid
   graphql f = 'modules/support/ticket_stats/find', key: key
-  assign existing = f.records.results.first
-  if existing and existing.counted_at != blank
-    assign stored = existing.counted_at | to_time | strftime: '%s.%L' | plus: 0
-    assign mine = started_at | to_time | strftime: '%s.%L' | plus: 0
-    if stored > mine
-      return false
-    endif
+  function existing = 'modules/support/commands/ticket_stats/dedupe', rows: f.records.results
+  assign mine = started_at | to_time | strftime: '%s.%L' | plus: 0
+  if existing.row and existing.counted_at > mine
+    return false
   endif
 
   assign values = { "counts": null, "counted_at": null }
   assign values.counts = counts | json
   assign values.counted_at = started_at | to_time
-  if existing
+  if existing.row
     function props = 'modules/support/helpers/props', values: values
-    graphql _ = 'modules/support/records/update', id: existing.id, properties: props
-  else
-    assign values.key = key
-    assign values.department_id = department_id
-    # the department row has no assignee_id at all: rows are told apart with exists
-    if assignee_id != blank
-      assign values.assignee_id = assignee_id
-    endif
-    function props = 'modules/support/helpers/props', values: values
-    graphql _ = 'modules/support/records/create_one', table: 'modules/support/ticket_stat', properties: props
+    graphql _ = 'modules/support/records/update', id: existing.row.id, properties: props
+    return true
+  endif
+
+  assign values.key = key
+  assign values.department_id = department_id
+  # the department row has no assignee_id at all: rows are told apart with exists
+  if assignee_id != blank
+    assign values.assignee_id = assignee_id
+  endif
+  function props = 'modules/support/helpers/props', values: values
+  graphql _ = 'modules/support/records/create_one', table: 'modules/support/ticket_stat', properties: props
+  # another job may have created the same key meanwhile
+  graphql f = 'modules/support/ticket_stats/find', key: key
+  if f.records.results.size > 1
+    function _ = 'modules/support/commands/ticket_stats/dedupe', rows: f.records.results
   endif
   return true
 %}

@@ -31,7 +31,20 @@
   assign values.assignee_id = agent_id
   assign values.status_id = statuses.by_key.pending.id
   function scheduled = 'modules/support/commands/ticket_stats/schedule', ticket: before, values: values
-  function contract = 'modules/tests/assertions/true', contract: contract, value: scheduled, field_name: 'status and assignee change recounts', object: null
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: scheduled, expected: 'queued', field_name: 'status and assignee change recounts'
+  function scheduled = 'modules/support/commands/ticket_stats/schedule', ticket: before, values: values
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: scheduled, expected: 'already_queued', field_name: 'the same recount is queued once per request'
+
+  # a bulk chunk collects its recounts and queues one at the end
+  function _ = 'modules/support/commands/ticket_stats/defer'
+  assign other = { "category": "on_hold", "assignee_id": null }
+  function scheduled = 'modules/support/commands/ticket_stats/schedule', ticket: before, values: other
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: scheduled, expected: 'deferred', field_name: 'deferred while a bulk chunk runs'
+  function flushed = 'modules/support/commands/ticket_stats/flush'
+  function contract = 'modules/tests/assertions/true', contract: contract, value: flushed, field_name: 'flush queues the collected recount', object: null
+  function flushed = 'modules/support/commands/ticket_stats/flush'
+  function contract = 'modules/tests/assertions/not_true', contract: contract, value: flushed, field_name: 'a second flush has nothing to queue', object: null
+
   function _ = 'modules/support/commands/tickets/save', ticket: before, values: values
 
   function _ = 'modules/support/commands/ticket_stats/recount', department_ids: scope, pairs: pairs
@@ -53,6 +66,19 @@
   endif
   function contract = 'modules/tests/assertions/true', contract: contract, value: kept, field_name: 'older job does not overwrite', object: null
 
+  # a second row for the same key (two jobs created it at once) is removed by the next store
+  assign dup = { "key": null, "department_id": null, "counts": "{\"open\":500,\"waiting\":500}", "counted_at": null }
+  assign dup.key = department_id
+  assign dup.department_id = department_id
+  assign dup.counted_at = long_ago | to_time
+  function props = 'modules/support/helpers/props', values: dup
+  graphql _ = 'modules/support/records/create_one', table: 'modules/support/ticket_stat', properties: props
+  graphql k = 'modules/support/ticket_stats/find', key: department_id
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: k.records.results.size, expected: 2, field_name: 'duplicate row exists before the fix'
+  function _ = 'modules/support/commands/ticket_stats/recount', department_ids: scope, pairs: pairs
+  graphql k = 'modules/support/ticket_stats/find', key: department_id
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: k.records.results.size, expected: 1, field_name: 'store removes the duplicate row'
+
   # the rail reads the stored totals once a full count has run
   function settings = 'modules/support/helpers/settings'
   if settings.ticket_stats_counted_at == blank
@@ -63,4 +89,9 @@
   function rail = 'modules/support/queries/ticket_stats/rail', member: f.actor.member, view: 'waiting', filters: no_filters, include_waiting: false
   function contract = 'modules/tests/assertions/equal', contract: contract, given: rail.counts.mine, expected: 1, field_name: 'rail mine count'
   function contract = 'modules/tests/assertions/equal', contract: contract, given: rail.departments.all, expected: live.records.total_entries, field_name: 'rail waiting total'
+
+  # until it is removed, an older duplicate row is not counted by the rail
+  graphql _ = 'modules/support/records/create_one', table: 'modules/support/ticket_stat', properties: props
+  function rail = 'modules/support/queries/ticket_stats/rail', member: f.actor.member, view: 'waiting', filters: no_filters, include_waiting: false
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: rail.departments.all, expected: live.records.total_entries, field_name: 'rail ignores a duplicate row'
 %}

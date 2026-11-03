@@ -1,0 +1,45 @@
+{% doc %}
+  Keeps one ticket_stat row per key. Two jobs that count a new key at the
+  same time can both create its row; the oldest row is kept, the others are
+  deleted, and the kept row takes the newest totals among them.
+  Returns { row, counted_at } (the kept row and its count time in seconds),
+  or a blank row when there are none.
+  @param {array} rows - The rows of one key, oldest first (ticket_stats/find)
+{% enddoc %}
+{% liquid
+  assign result = { "row": null, "counted_at": 0 }
+  if rows == blank or rows.size == 0
+    return result
+  endif
+  assign keep = rows.first
+  assign newest = keep
+  assign newest_at = 0
+  for row in rows
+    if row.counted_at == blank
+      continue
+    endif
+    assign at = row.counted_at | to_time | strftime: '%s.%L' | plus: 0
+    if at > newest_at
+      assign newest_at = at
+      assign newest = row
+    endif
+  endfor
+
+  if rows.size > 1
+    assign extra_ids = []
+    for row in rows offset: 1
+      assign extra_ids << row.id
+    endfor
+    graphql _ = 'modules/support/ticket_stats/delete', ids: extra_ids
+    if newest.id != keep.id
+      assign values = { "counts": null, "counted_at": null }
+      assign values.counts = newest.counts
+      assign values.counted_at = newest.counted_at | to_time
+      function props = 'modules/support/helpers/props', values: values
+      graphql _ = 'modules/support/records/update', id: keep.id, properties: props
+    endif
+  endif
+  assign result.row = keep
+  assign result.counted_at = newest_at
+  return result
+%}
