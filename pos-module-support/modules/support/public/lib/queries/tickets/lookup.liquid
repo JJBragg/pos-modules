@@ -1,6 +1,9 @@
 {% doc %}
   Loads the records a list of tickets refers to: contacts, organizations and
   departments in one request (tickets/lookup), profiles from the user module.
+  The board concatenates every lane, so a list can refer to more ids than one
+  page returns: ids go in batches of 100, and a list under 100 needs one
+  request for contacts, organizations and departments together.
   Returns { contacts, organizations, profiles, departments, statuses } keyed by id.
   @param {object[]} tickets - Ticket records
 {% enddoc %}
@@ -12,21 +15,39 @@
   assign lookup = { "contacts": {}, "organizations": {}, "profiles": {}, "departments": {}, "statuses": {} }
   assign lookup.statuses = statuses.by_id
 
-  graphql r = 'modules/support/tickets/lookup', contact_ids: contact_ids, organization_ids: organization_ids
-  for item in r.contacts.results
-    assign lookup.contacts[item.id] = item
+  # array_in_groups_of pads the last group with null, which [ID!] rejects
+  assign contact_batches = contact_ids | array_in_groups_of: 100
+  assign organization_batches = organization_ids | array_in_groups_of: 100
+  assign rounds = contact_batches.size | at_least: organization_batches.size | at_least: 1
+  assign last_round = rounds | minus: 1
+  # platformos-check-disable NestedGraphQLQuery
+  for round in (0..last_round)
+    assign batch_contacts = contact_batches[round] | default: [] | array_compact
+    assign batch_organizations = organization_batches[round] | default: [] | array_compact
+    graphql r = 'modules/support/tickets/lookup', contact_ids: batch_contacts, organization_ids: batch_organizations
+    for item in r.contacts.results
+      assign lookup.contacts[item.id] = item
+    endfor
+    for item in r.organizations.results
+      assign lookup.organizations[item.id] = item
+    endfor
+    if round == 0
+      for item in r.departments.results
+        assign lookup.departments[item.id] = item
+      endfor
+    endif
   endfor
-  for item in r.organizations.results
-    assign lookup.organizations[item.id] = item
-  endfor
-  for item in r.departments.results
-    assign lookup.departments[item.id] = item
-  endfor
+
   if profile_ids.size > 0
-    graphql p = 'modules/user/profiles/search', ids: profile_ids, limit: 100
-    for item in p.records.results
-      assign lookup.profiles[item.id] = item
+    assign profile_batches = profile_ids | array_in_groups_of: 100
+    for profile_batch in profile_batches
+      assign batch_ids = profile_batch | array_compact
+      graphql p = 'modules/user/profiles/search', ids: batch_ids, limit: 100
+      for item in p.records.results
+        assign lookup.profiles[item.id] = item
+      endfor
     endfor
   endif
+  # platformos-check-enable NestedGraphQLQuery
   return lookup
 %}

@@ -349,7 +349,6 @@ en:
     errors:
       unknown_status: That status doesn't exist.
       to_new: A ticket can't be moved back to New.
-      close_others: Only a manager can close a ticket assigned to someone else.
       not_member: That person isn't an active support team member.
       not_in_department: That agent doesn't work in this ticket's department.
       assign_others: Only a manager can assign tickets to other people.
@@ -450,6 +449,7 @@ en:
     unsnooze: Unsnooze
     original_title: Original email
     attachments: Attachments
+    attachment_not_stored: not stored
     not_delivered: "Not delivered:"
     delivery_queued: Sending…
     delivery_sent: Sent
@@ -679,6 +679,9 @@ en:
     sweep_never: The maintenance job has not run yet.
     sweep_stale: The maintenance job has not run for over 15 minutes. Restart it.
     sweep_restart: Restart maintenance job
+    desk_address: Desk address
+    desk_address_hint: The address emails link back to. Learned from the first desk page that was opened; change it here if the desk moves to another domain.
+    base_url: "Desk address (https, no trailing slash)"
     brand_sources: Where the branding comes from
     host_theme_found: Host stylesheet found (headscripts hook); host colours and fonts apply.
     host_theme_missing: No host stylesheet; the desk uses the default look.
@@ -734,6 +737,7 @@ en:
       confirmation_days: The confirmation period is 1 to 28 days.
       color: Colours must look like #1d4f91.
       image_url: Image links must start with https://.
+      base_url: The desk address must look like https://support.example.com, with no path or trailing slash.
   customer_emails:
     ack_intro: "Thank you for contacting %{brand}. We have received your request:"
     ack_expected: "We aim to reply by %{when}."

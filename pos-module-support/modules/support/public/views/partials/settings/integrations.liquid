@@ -1,5 +1,5 @@
 {% doc %}
-  Settings → Integrations: maintenance job health.
+  Settings → Integrations: the desk address and maintenance job health.
   @param {object} data - From queries/settings/section_data
 {% enddoc %}
 {% render 'modules/support/settings/nav', current: 'integrations' %}
@@ -17,6 +17,20 @@
       <input type="hidden" name="authenticity_token" value="{{ context.authenticity_token }}">
       <input type="hidden" name="section" value="integrations">
       <button type="submit" class="pos-button">{{ 'modules/support/settings.sweep_restart' | t }}</button>
+    </form>
+  </section>
+  <section class="pos-card pos-support-step" aria-labelledby="in-base-url">
+    <h2 id="in-base-url" class="pos-heading-3">{{ 'modules/support/settings.desk_address' | t }}</h2>
+    <p class="pos-supplementary">{{ 'modules/support/settings.desk_address_hint' | t }}</p>
+    <form action="/support-desk/settings/save" method="post" class="pos-form pos-support-settings-form">
+      <input type="hidden" name="authenticity_token" value="{{ context.authenticity_token }}">
+      <input type="hidden" name="section" value="integrations">
+      <input type="hidden" name="only" value="base_url">
+      <fieldset>
+        <label for="in-base">{{ 'modules/support/settings.base_url' | t }}</label>
+        <input id="in-base" name="base_url" value="{{ data.settings.base_url }}" placeholder="https://{{ context.location.host }}" inputmode="url">
+      </fieldset>
+      <button type="submit" class="pos-button">{{ 'modules/support/settings.save' | t }}</button>
     </form>
   </section>
 </div>

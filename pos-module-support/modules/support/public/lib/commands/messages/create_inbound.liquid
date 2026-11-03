@@ -36,7 +36,7 @@
   assign html = email.html
   for file in email.attachments
     function stored = 'modules/support/commands/attachments/store', ticket_id: ticket.id, message_id: message.id, file: file
-    if stored and file.content_id != blank
+    if stored.stored and file.content_id != blank
       assign cid = 'cid:' | append: file.content_id
       assign local_url = '/support-desk/attachments/' | append: stored.id
       assign html = html | replace: cid, local_url

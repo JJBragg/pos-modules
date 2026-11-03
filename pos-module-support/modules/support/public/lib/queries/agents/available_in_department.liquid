@@ -9,23 +9,26 @@
 {% liquid
   function members = 'modules/support/queries/team_members/all_active'
   assign candidates = []
-  assign profile_ids = []
   for member in members
     if member.role != 'admin' and member.department_ids contains department_id
       assign candidates << member
-      assign profile_ids << member.profile_id
     endif
   endfor
   if candidates.size == 0
     return candidates
   endif
 
+  # one count per candidate rather than one fetch of every open ticket they
+  # hold between them: that fetch was capped at 500 records, so a department
+  # past 500 open tickets tallied only the first 500 and an agent already over
+  # max_open could be picked as the least loaded one
   assign open_categories = ["new", "open"]
-  graphql open = 'modules/support/tickets/search', assignee_ids: profile_ids, categories: open_categories, limit: 500
   assign counts = {}
-  for ticket in open.records.results
-    assign current = counts[ticket.assignee_id] | default: 0
-    assign counts[ticket.assignee_id] = current | plus: 1
+  for member in candidates
+    # platformos-check-disable NestedGraphQLQuery
+    graphql c = 'modules/support/tickets/assignee_open_count', assignee_id: member.profile_id, categories: open_categories
+    # platformos-check-enable NestedGraphQLQuery
+    assign counts[member.profile_id] = c.records.total_entries
   endfor
 
   assign agents = []

@@ -2548,6 +2548,7 @@
   }
 
   .pos-support-card {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 0.375rem;
@@ -2635,9 +2636,26 @@
     --pos-support-control-height-small: 1.875rem;
   }
 
-  /* with JS cards move by dragging; the form appears for keyboard users */
-  .pos-support-js .pos-support-card:not(:focus-within) .pos-support-move {
-    display: none;
+  /* With JS cards move by dragging, but a drag can only reach a status that is
+     a column, and Closed and Spam never are — so the form is the only way to
+     them. It is revealed on hover as well as on focus, and laid over the card's
+     last meta row instead of being inserted into the flow, so revealing it
+     never moves the cards below. */
+  .pos-support-js .pos-support-card .pos-support-move {
+    position: absolute;
+    inset-inline: 0.75rem;
+    inset-block-end: 0.625rem;
+    padding-block-start: 0;
+    border-radius: var(--pos-support-radius-card);
+    background: var(--pos-support-bg);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 120ms var(--pos-support-ease);
+  }
+
+  .pos-support-js .pos-support-card:is(:hover, :focus-within) .pos-support-move {
+    opacity: 1;
+    visibility: visible;
   }
 
   /* ================================================================
@@ -2893,6 +2911,15 @@
     .pos-support label:has(> input[type="checkbox"]),
     .pos-support label:has(> input[type="radio"]) {
       min-block-size: 2.75rem;
+    }
+
+    /* no hover on a touch screen, and tapping the card navigates, so the move
+       form stays in the flow and visible rather than waiting to be revealed */
+    .pos-support-js .pos-support-card .pos-support-move {
+      position: static;
+      padding-block-start: 0.25rem;
+      opacity: 1;
+      visibility: visible;
     }
 
     /* components that use a compact height on desktop get the full touch height */

@@ -88,11 +88,15 @@
     function contract = 'modules/tests/assertions/equal', contract: contract, given: lane_ids, expected: alone_ids, field_name: label
   endfor
 
-  # a refused move leaves the ticket where it was
+  # a refused move (to New) leaves the ticket where it was
   function a = 'modules/support/commands/tickets/assign', ticket: f.ticket, assignee_id: f.other_agent_id, reason: null, actor: f.manager_actor
   function before = 'modules/support/queries/tickets/find', id: f.ticket.id, number: null, member: manager
-  function refused = 'modules/support/commands/tickets/change_status', ticket: before, status_key: 'closed', actor: f.actor
-  function contract = 'modules/tests/assertions/equal', contract: contract, given: refused.valid, expected: false, field_name: 'agent cannot close a ticket assigned to someone else'
+  function refused = 'modules/support/commands/tickets/change_status', ticket: before, status_key: 'new', actor: f.actor
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: refused.valid, expected: false, field_name: 'a move back to New is refused'
   function after = 'modules/support/queries/tickets/find', id: f.ticket.id, number: null, member: manager
   function contract = 'modules/tests/assertions/equal', contract: contract, given: after.status_id, expected: before.status_id, field_name: 'refused move keeps status'
+
+  # any member may close a ticket assigned to someone else; the activity log records who did
+  function closed = 'modules/support/commands/tickets/change_status', ticket: after, status_key: 'closed', actor: f.actor
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: closed.valid, expected: true, field_name: 'agent can close a ticket assigned to someone else'
 %}

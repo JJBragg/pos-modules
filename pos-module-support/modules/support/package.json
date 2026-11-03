@@ -1,0 +1,8 @@
+{
+  "name": "support",
+  "version": "0.0.1",
+  "description": "A white-label support desk for platformOS apps.",
+  "peerDependencies": {
+    "yeoman-generator": "^10.2.0"
+  }
+}
