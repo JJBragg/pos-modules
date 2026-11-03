@@ -14,7 +14,7 @@
   assign actor = { "type": "user" }
   assign actor.id = member.profile_id
   assign actor.member = member
-  function permissions = 'modules/support/queries/team/role_permissions'
+  function can_manage = 'modules/support/queries/team/can', member: member, do: 'support.tickets.manage.all'
 
   case params.change
   when 'properties'
@@ -109,7 +109,7 @@
     endunless
 
   when 'merge'
-    unless permissions[member.role] contains 'support.tickets.manage.all'
+    unless can_manage
       assign result.valid = false
       assign result.error = 'modules/support/tickets.errors.merge_permission'
       return result
@@ -130,7 +130,7 @@
     endif
 
   when 'unmerge'
-    unless permissions[member.role] contains 'support.tickets.manage.all'
+    unless can_manage
       assign result.valid = false
       assign result.error = 'modules/support/tickets.errors.merge_permission'
       return result

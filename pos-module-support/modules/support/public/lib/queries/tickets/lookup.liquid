@@ -1,5 +1,6 @@
 {% doc %}
-  Loads the records a list of tickets refers to, one query per table.
+  Loads the records a list of tickets refers to: contacts, organizations and
+  departments in one request (tickets/lookup), profiles from the user module.
   Returns { contacts, organizations, profiles, departments, statuses } keyed by id.
   @param {object[]} tickets - Ticket records
 {% enddoc %}
@@ -11,27 +12,21 @@
   assign lookup = { "contacts": {}, "organizations": {}, "profiles": {}, "departments": {}, "statuses": {} }
   assign lookup.statuses = statuses.by_id
 
-  if contact_ids.size > 0
-    graphql c = 'modules/support/contacts/search', ids: contact_ids, limit: 100
-    for item in c.records.results
-      assign lookup.contacts[item.id] = item
-    endfor
-  endif
-  if organization_ids.size > 0
-    graphql o = 'modules/support/organizations/search', ids: organization_ids, limit: 100
-    for item in o.records.results
-      assign lookup.organizations[item.id] = item
-    endfor
-  endif
+  graphql r = 'modules/support/tickets/lookup', contact_ids: contact_ids, organization_ids: organization_ids
+  for item in r.contacts.results
+    assign lookup.contacts[item.id] = item
+  endfor
+  for item in r.organizations.results
+    assign lookup.organizations[item.id] = item
+  endfor
+  for item in r.departments.results
+    assign lookup.departments[item.id] = item
+  endfor
   if profile_ids.size > 0
     graphql p = 'modules/user/profiles/search', ids: profile_ids, limit: 100
     for item in p.records.results
       assign lookup.profiles[item.id] = item
     endfor
   endif
-  graphql d = 'modules/support/departments/search', limit: 100
-  for item in d.records.results
-    assign lookup.departments[item.id] = item
-  endfor
   return lookup
 %}

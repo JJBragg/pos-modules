@@ -66,6 +66,9 @@
   <div class="pos-support-ticket-layout">
     <div class="pos-support-ticket-main">
       <section class="pos-support-thread" aria-label="{{ 'modules/support/ticket.conversation' | t }}">
+        {% if data.earlier_messages > 0 %}
+          <p class="pos-support-thread-earlier"><a class="pos-button pos-button-small" href="/support-desk/tickets/{{ ticket.id }}?thread=all{% if neighbors.query != blank %}&amp;{{ neighbors.query }}{% endif %}#message-{{ data.messages.first.id }}">{{ 'modules/support/ticket.show_earlier' | t: count: data.earlier_messages }}</a></p>
+        {% endif %}
         {% for message in data.messages %}
           {% render 'modules/support/ticket/message', message: message, attachments: data.attachments_by_message[message.id], requester: data.requester, profiles: data.profiles %}
         {% endfor %}

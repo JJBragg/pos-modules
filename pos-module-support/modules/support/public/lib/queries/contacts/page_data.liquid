@@ -34,10 +34,7 @@
   assign data.lookup = lookup
   graphql policies = 'modules/support/sla_policies/search', limit: 50
   assign data.policies = policies.records.results
-  function permissions = 'modules/support/queries/team/role_permissions'
-  assign data.can_manage = false
-  if permissions[member.role] contains 'support.tickets.manage.all'
-    assign data.can_manage = true
-  endif
+  function can_manage = 'modules/support/queries/team/can', member: member, do: 'support.tickets.manage.all'
+  assign data.can_manage = can_manage
   return data
 %}

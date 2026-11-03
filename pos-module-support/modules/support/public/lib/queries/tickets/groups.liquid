@@ -16,10 +16,7 @@
   if layout == 'board'
     assign limit = 50
   endif
-  assign include_waiting = false
-  if layout == 'board' and view == 'all_open'
-    assign include_waiting = true
-  endif
+  function include_waiting = 'modules/support/helpers/include_waiting', layout: layout, view: view
 
   assign open_categories = ["new", "open", "pending", "on_hold"]
   case view
@@ -81,6 +78,19 @@
   assign result = { "groups": [], "lookup": null, "total": 0, "by": null }
   assign result.by = by
   assign all_tickets = []
+
+  # the four priority lanes of the list in one request; an expanded or
+  # filtered lane, and status columns, are searched one by one
+  assign lanes = null
+  if by != 'status' and filters.priority == blank and expand == blank
+    assign lane_filters = filters | hash_merge: {}
+    if layout == 'board' and lane_filters.sort == blank
+      assign lane_filters.sort = 'board'
+    endif
+    function found = 'modules/support/queries/tickets/search', member: member, view: view, filters: lane_filters, page: 1, per_page: limit, skip_lookup: true, include_waiting: include_waiting, priority_lanes: true
+    assign lanes = found.lanes
+  endif
+
   for spec in specs
     assign group_filters = filters | hash_merge: {}
     # board cards keep their fixed order unless the agent picked a sort (D-26)
@@ -107,7 +117,11 @@
         assign group_page = 1
       endif
     endif
-    function page = 'modules/support/queries/tickets/search', member: member, view: view, filters: group_filters, page: group_page, per_page: group_limit, skip_lookup: true, include_waiting: include_waiting
+    if lanes
+      assign page = lanes[spec.key]
+    else
+      function page = 'modules/support/queries/tickets/search', member: member, view: view, filters: group_filters, page: group_page, per_page: group_limit, skip_lookup: true, include_waiting: include_waiting
+    endif
     assign group = spec
     assign group.tickets = page.results
     assign group.total = page.total_entries

@@ -1,48 +1,69 @@
 {% doc %}
-  Everything the ticket page shows, one query per table (05 §3).
+  Everything the ticket page shows (05 §3). The ticket's own tables, the
+  departments and the saved replies come from one request (tickets/page);
+  profiles, statuses and members follow from what it returned.
   @param {object} ticket - Ticket loaded through queries/tickets/find
   @param {object} member - The signed-in team_member
   @param {object} profile - The signed-in profile
+  @param {boolean} [all_messages] - Show the whole conversation instead of the newest messages
 {% enddoc %}
 {% liquid
   assign data = { "ticket": null, "attachments_by_message": {}, "profiles": {} }
   assign data.ticket = ticket
   assign data.me = member.profile_id
 
-  graphql m = 'modules/support/messages/search', ticket_id: ticket.id, limit: 200
-  assign data.messages = m.records.results
-  graphql a = 'modules/support/attachments/search', ticket_id: ticket.id, limit: 200
-  for attachment in a.records.results
+  # the newest 30 messages by default, so the page cost does not grow with
+  # the thread; "show earlier" loads every message, 200 per request
+  assign message_limit = 30
+  assign message_order = 'DESC'
+  if all_messages
+    assign message_limit = 200
+    assign message_order = 'ASC'
+  endif
+  # a blank id filter is ignored and would return the first contact
+  assign requester_id = ticket.requester_id | default: '0'
+  graphql r = 'modules/support/tickets/page', ticket_id: ticket.id, ticket_record_id: ticket.id, requester_id: requester_id, requester_key: requester_id, message_limit: message_limit, message_page: 1, message_order: message_order
+
+  if all_messages
+    assign messages = r.messages.results
+    if r.messages.total_pages > 1
+      # platformos-check-disable NestedGraphQLQuery
+      for page in (2..r.messages.total_pages)
+        graphql more = 'modules/support/messages/search', ticket_id: ticket.id, limit: 200, page: page
+        assign messages = messages | concat: more.records.results
+      endfor
+      # platformos-check-enable NestedGraphQLQuery
+    endif
+  else
+    assign messages = r.messages.results | reverse
+  endif
+  assign data.messages = messages
+  assign data.earlier_messages = r.messages.total_entries | minus: messages.size | at_least: 0
+
+  assign message_ids = messages | map: 'id'
+  for attachment in r.attachments.results
+    unless message_ids contains attachment.message_id
+      continue
+    endunless
     assign list = data.attachments_by_message[attachment.message_id] | default: []
     assign list << attachment
     assign data.attachments_by_message[attachment.message_id] = list
   endfor
-  graphql e = 'modules/support/ticket_events/search', ticket_id: ticket.id, limit: 100
   assign hidden = ["notified", "notification_skipped", "confirm_wait_notified"]
   assign data.events = []
-  for event in e.records.results
+  for event in r.events.results
     unless hidden contains event.event_type
       assign data.events << event
     endunless
   endfor
-  graphql l = 'modules/support/escalation_links/search', ticket_id: ticket.id
-  assign data.links = l.records.results
-  graphql p = 'modules/support/participants/search', ticket_id: ticket.id, email: null, role: null
-  assign data.participants = p.records.results
-
-  graphql c = 'modules/support/contacts/search', id: ticket.requester_id, limit: 1
-  assign data.requester = c.records.results.first
+  assign data.links = r.links.results
+  assign data.participants = r.participants.results
+  assign data.requester = r.requester.results.first
   if ticket.organization_id != blank
     graphql o = 'modules/support/organizations/search', id: ticket.organization_id, limit: 1
     assign data.organization = o.records.results.first
   endif
-  graphql other = 'modules/support/tickets/search', requester_id: ticket.requester_id, limit: 6
-  assign data.other_tickets = []
-  for item in other.records.results
-    if item.id != ticket.id
-      assign data.other_tickets << item
-    endif
-  endfor
+  assign data.other_tickets = r.other_tickets.results
 
   assign profile_ids = []
   if ticket.assignee_id != blank
@@ -68,8 +89,7 @@
 
   function statuses = 'modules/support/queries/statuses/all'
   assign data.statuses = statuses
-  graphql d = 'modules/support/departments/search', limit: 100
-  assign data.departments = d.records.results
+  assign data.departments = r.departments.results
   function members = 'modules/support/queries/team_members/active'
   assign data.members = []
   for item in members
@@ -79,9 +99,8 @@
   endfor
 
   function brand = 'modules/support/helpers/branding'
-  graphql sr = 'modules/support/saved_replies/search', limit: 100
   assign data.saved_replies = []
-  for reply in sr.records.results
+  for reply in r.saved_replies.results
     if reply.department_id == blank or reply.department_id == ticket.department_id
       function html = 'modules/support/commands/saved_replies/render', saved_reply: reply, ticket: ticket, requester: data.requester, agent: profile, brand: brand
       assign item = { "id": null, "title": null, "html": null }
@@ -92,10 +111,7 @@
     endif
   endfor
 
-  function permissions = 'modules/support/queries/team/role_permissions'
-  assign data.can_manage = false
-  if permissions[member.role] contains 'support.tickets.manage.all'
-    assign data.can_manage = true
-  endif
+  function can_manage = 'modules/support/queries/team/can', member: member, do: 'support.tickets.manage.all'
+  assign data.can_manage = can_manage
   return data
 %}

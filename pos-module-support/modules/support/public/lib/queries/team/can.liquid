@@ -1,0 +1,16 @@
+{% doc %}
+  Whether a team member's support role grants a permission
+  (queries/team/role_permissions). The one place the role check is written.
+  @param {object} member - The team_member
+  @param {string} do - Permission, e.g. support.tickets.manage.all
+{% enddoc %}
+{% liquid
+  if member == blank or do == blank
+    return false
+  endif
+  function permissions = 'modules/support/queries/team/role_permissions'
+  if permissions[member.role] contains do
+    return true
+  endif
+  return false
+%}

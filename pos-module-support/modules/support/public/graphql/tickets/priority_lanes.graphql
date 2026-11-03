@@ -1,0 +1,136 @@
+# The four priority lanes of a queue view in one request, with the fields a
+# queue row or board card shows (queries/tickets/search, priority_lanes).
+query (
+  $number: Int
+  $department_ids: [String!]
+  $categories: [String!]
+  $assignee_id: String
+  $assigned: Boolean
+  $status_ids: [String!]
+  $organization_id: String
+  $sla_states: [String!]
+  $needs_reply: Boolean
+  $query: String
+  $limit: Int = 25
+  $sort: [RecordsSortInput!] = [{ created_at: { order: DESC } }]
+) {
+  p0: records(
+    per_page: $limit
+    filter: {
+      table: { value: "modules/support/ticket" }
+      properties: [
+        { name: "priority", value: "p0" }
+        { name: "number", value_int: $number }
+        { name: "department_id", value_in: $department_ids }
+        { name: "category", value_in: $categories }
+        { name: "assignee_id", value: $assignee_id, exists: $assigned }
+        { name: "status_id", value_in: $status_ids }
+        { name: "organization_id", value: $organization_id }
+        { name: "sla_state", value_in: $sla_states }
+        { name: "needs_reply", value_boolean: $needs_reply }
+        { name: "search_text", contains: $query }
+      ]
+    }
+    sort: $sort
+  ) {
+    total_entries
+    results {
+      ...list_ticket
+    }
+  }
+  p1: records(
+    per_page: $limit
+    filter: {
+      table: { value: "modules/support/ticket" }
+      properties: [
+        { name: "priority", value: "p1" }
+        { name: "number", value_int: $number }
+        { name: "department_id", value_in: $department_ids }
+        { name: "category", value_in: $categories }
+        { name: "assignee_id", value: $assignee_id, exists: $assigned }
+        { name: "status_id", value_in: $status_ids }
+        { name: "organization_id", value: $organization_id }
+        { name: "sla_state", value_in: $sla_states }
+        { name: "needs_reply", value_boolean: $needs_reply }
+        { name: "search_text", contains: $query }
+      ]
+    }
+    sort: $sort
+  ) {
+    total_entries
+    results {
+      ...list_ticket
+    }
+  }
+  p2: records(
+    per_page: $limit
+    filter: {
+      table: { value: "modules/support/ticket" }
+      properties: [
+        { name: "priority", value: "p2" }
+        { name: "number", value_int: $number }
+        { name: "department_id", value_in: $department_ids }
+        { name: "category", value_in: $categories }
+        { name: "assignee_id", value: $assignee_id, exists: $assigned }
+        { name: "status_id", value_in: $status_ids }
+        { name: "organization_id", value: $organization_id }
+        { name: "sla_state", value_in: $sla_states }
+        { name: "needs_reply", value_boolean: $needs_reply }
+        { name: "search_text", contains: $query }
+      ]
+    }
+    sort: $sort
+  ) {
+    total_entries
+    results {
+      ...list_ticket
+    }
+  }
+  p3: records(
+    per_page: $limit
+    filter: {
+      table: { value: "modules/support/ticket" }
+      properties: [
+        { name: "priority", value: "p3" }
+        { name: "number", value_int: $number }
+        { name: "department_id", value_in: $department_ids }
+        { name: "category", value_in: $categories }
+        { name: "assignee_id", value: $assignee_id, exists: $assigned }
+        { name: "status_id", value_in: $status_ids }
+        { name: "organization_id", value: $organization_id }
+        { name: "sla_state", value_in: $sla_states }
+        { name: "needs_reply", value_boolean: $needs_reply }
+        { name: "search_text", contains: $query }
+      ]
+    }
+    sort: $sort
+  ) {
+    total_entries
+    results {
+      ...list_ticket
+    }
+  }
+}
+
+fragment list_ticket on Record {
+  id
+  created_at
+  updated_at
+  number: property_int(name: "number")
+  legacy_number: property(name: "legacy_number")
+  subject: property(name: "subject")
+  status_id: property(name: "status_id")
+  category: property(name: "category")
+  priority: property(name: "priority")
+  department_id: property(name: "department_id")
+  organization_id: property(name: "organization_id")
+  requester_id: property(name: "requester_id")
+  assignee_id: property(name: "assignee_id")
+  tags: property_array(name: "tags")
+  needs_reply: property_boolean(name: "needs_reply")
+  last_activity_at: property(name: "last_activity_at")
+  snooze_until: property(name: "snooze_until")
+  sla_due_at: property(name: "sla_due_at")
+  sla_state: property(name: "sla_state")
+  merged_into_id: property(name: "merged_into_id")
+}

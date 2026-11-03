@@ -89,11 +89,7 @@
     endfor
   endif
 
-  function permissions = 'modules/support/queries/team/role_permissions'
-  assign all_departments = false
-  if permissions[member.role] contains 'support.tickets.manage.all'
-    assign all_departments = true
-  endif
+  function all_departments = 'modules/support/queries/team/can', member: member, do: 'support.tickets.manage.all'
   graphql d = 'modules/support/departments/search', limit: 100
   assign departments = { "all": 0, "departments": [] }
   assign departments.all = all

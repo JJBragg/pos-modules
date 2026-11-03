@@ -1,7 +1,8 @@
 {% doc %}
   Broadcasts a ticket change (05 §4): ids only, to the department's queue
-  room and the ticket room; an assignment also goes to the assignee's
-  profile room.
+  room, the queue-all room (members who see every department listen there
+  instead of one room per department) and the ticket room; an assignment
+  also goes to the assignee's profile room.
   @param {string} ticket_id - The ticket
   @param {string} kind - created | updated | message | reply | note | assigned
   @param {string} [message_id] - For message events
@@ -25,6 +26,7 @@
   endif
   assign queue_room = 'queue-' | append: ticket.department_id
   graphql _ = 'modules/support/channels/broadcast', room_id: queue_room, payload: payload
+  graphql _ = 'modules/support/channels/broadcast', room_id: 'queue-all', payload: payload
   assign ticket_room = 'ticket-' | append: ticket.id
   graphql _ = 'modules/support/channels/broadcast', room_id: ticket_room, payload: payload
   if profile_id != blank

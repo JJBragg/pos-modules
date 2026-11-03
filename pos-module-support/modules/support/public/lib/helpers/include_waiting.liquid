@@ -1,0 +1,13 @@
+{% doc %}
+  Whether a queue view also shows pending and on-hold tickets: the board of
+  All open does (D-26), so its columns and its rail count include them. The
+  one place this rule is written.
+  @param {string} layout - list | board
+  @param {string} view - Queue view key
+{% enddoc %}
+{% liquid
+  if layout == 'board' and view == 'all_open'
+    return true
+  endif
+  return false
+%}

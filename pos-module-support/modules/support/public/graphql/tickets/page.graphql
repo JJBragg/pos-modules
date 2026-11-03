@@ -1,0 +1,153 @@
+# Everything the ticket page reads about one ticket, in one request: the
+# separate searches cost ~10 ms each in round trips alone.
+query (
+  $ticket_id: String!
+  $ticket_record_id: ID!
+  $requester_id: ID!
+  $requester_key: String!
+  $message_limit: Int = 30
+  $message_page: Int = 1
+  $message_order: SortOrderEnum = DESC
+  $expires_in: Int = 300
+) {
+  messages: records(
+    page: $message_page
+    per_page: $message_limit
+    filter: { table: { value: "modules/support/message" }, properties: [{ name: "ticket_id", value: $ticket_id }] }
+    sort: [{ created_at: { order: $message_order } }]
+  ) {
+    total_entries
+    total_pages
+    results {
+      id
+      created_at
+      author_type: property(name: "author_type")
+      author_id: property(name: "author_id")
+      visibility: property(name: "visibility")
+      kind: property(name: "kind")
+      body_html: property(name: "body_html")
+      body_text: property(name: "body_text")
+      body_stripped: property(name: "body_stripped")
+      from_email: property(name: "from_email")
+      delivery_state: property(name: "delivery_state")
+      delivery_error: property(name: "delivery_error")
+    }
+  }
+  attachments: records(
+    per_page: 200
+    filter: { table: { value: "modules/support/attachment" }, properties: [{ name: "ticket_id", value: $ticket_id }] }
+    sort: [{ created_at: { order: ASC } }]
+  ) {
+    results {
+      id
+      message_id: property(name: "message_id")
+      filename: property(name: "filename")
+      content_type: property(name: "content_type")
+      size: property_int(name: "size")
+      inline: property_boolean(name: "inline")
+      file: property_upload(name: "file", expires_in: $expires_in) {
+        url
+      }
+    }
+  }
+  events: records(
+    per_page: 100
+    filter: { table: { value: "modules/support/ticket_event" }, properties: [{ name: "ticket_id", value: $ticket_id }] }
+    sort: [{ created_at: { order: DESC } }]
+  ) {
+    results {
+      id
+      created_at
+      actor_type: property(name: "actor_type")
+      actor_id: property(name: "actor_id")
+      event_type: property(name: "event_type")
+      from_value: property(name: "from_value")
+      to_value: property(name: "to_value")
+      reason: property(name: "reason")
+    }
+  }
+  links: records(
+    per_page: 20
+    filter: { table: { value: "modules/support/escalation_link" }, properties: [{ name: "ticket_id", value: $ticket_id }] }
+    sort: [{ created_at: { order: DESC } }]
+  ) {
+    results {
+      id
+      created_at
+      provider: property(name: "provider")
+      issue_url: property(name: "issue_url")
+      issue_ref: property(name: "issue_ref")
+      last_status: property(name: "last_status")
+      linked_by_id: property(name: "linked_by_id")
+    }
+  }
+  participants: records(
+    per_page: 100
+    filter: { table: { value: "modules/support/participant" }, properties: [{ name: "ticket_id", value: $ticket_id }] }
+    sort: [{ created_at: { order: ASC } }]
+  ) {
+    results {
+      id
+      ticket_id: property(name: "ticket_id")
+      contact_id: property(name: "contact_id")
+      profile_id: property(name: "profile_id")
+      email: property(name: "email")
+      role: property(name: "role")
+    }
+  }
+  requester: records(per_page: 1, filter: { id: { value: $requester_id }, table: { value: "modules/support/contact" } }) {
+    results {
+      id
+      created_at
+      name: property(name: "name")
+      emails: property_array(name: "emails")
+      organization_id: property(name: "organization_id")
+      phone: property(name: "phone")
+      profile_id: property(name: "profile_id")
+      bounced: property_boolean(name: "bounced")
+      blocked: property_boolean(name: "blocked")
+    }
+  }
+  other_tickets: records(
+    per_page: 6
+    filter: {
+      id: { not_value_in: [$ticket_record_id] }
+      table: { value: "modules/support/ticket" }
+      properties: [{ name: "requester_id", value: $requester_key }]
+    }
+    sort: [{ created_at: { order: DESC } }]
+  ) {
+    results {
+      id
+      created_at
+      number: property_int(name: "number")
+      subject: property(name: "subject")
+      status_id: property(name: "status_id")
+      category: property(name: "category")
+      priority: property(name: "priority")
+    }
+  }
+  departments: records(per_page: 100, filter: { table: { value: "modules/support/department" } }, sort: [{ created_at: { order: ASC } }]) {
+    results {
+      id
+      name: property(name: "name")
+      short_code: property(name: "short_code")
+      inbound_local_part: property(name: "inbound_local_part")
+      public_address: property(name: "public_address")
+      from_name: property(name: "from_name")
+      from_address: property(name: "from_address")
+      signature_html: property(name: "signature_html")
+      sla_policy_id: property(name: "sla_policy_id")
+      is_default: property_boolean(name: "is_default")
+      active: property_boolean(name: "active")
+    }
+  }
+  saved_replies: records(per_page: 100, filter: { table: { value: "modules/support/saved_reply" } }, sort: [{ properties: { name: "title", order: ASC } }]) {
+    results {
+      id
+      title: property(name: "title")
+      body_html: property(name: "body_html")
+      department_id: property(name: "department_id")
+    }
+  }
+}

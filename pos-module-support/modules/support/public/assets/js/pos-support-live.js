@@ -109,9 +109,18 @@ if (root && window.pos && window.pos.csrfToken) {
         }
       }
     }, () => room && room.send({ state: state() }));
-    setInterval(() => { room.send({ state: state() }); renderPresence(); }, 20000);
+    // the heartbeat runs only while the tab is visible: a hidden tab drops out
+    // of the others' presence after 45 s and is announced again when shown
+    let heartbeat = null;
+    const beat = () => { room.send({ state: state() }); renderPresence(); };
+    const startBeat = () => { if (!heartbeat) heartbeat = setInterval(beat, 20000); };
+    const stopBeat = () => { clearInterval(heartbeat); heartbeat = null; };
+    if (document.visibilityState === 'visible') startBeat();
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') { beat(); startBeat(); } else stopBeat();
+    });
     if (body) body.addEventListener('focus', () => room.send({ state: 'replying' }));
-    window.addEventListener('pagehide', () => room.send({ state: 'left' }));
+    window.addEventListener('pagehide', () => { stopBeat(); room.send({ state: 'left' }); });
   }
 
   // Personal room: short in-app notice for assignments, and the result of a

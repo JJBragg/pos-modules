@@ -75,6 +75,18 @@
     assign lane_sum = lane_sum | plus: lane.total
   endfor
   function contract = 'modules/tests/assertions/equal', contract: contract, given: lane_sum, expected: lanes.total, field_name: 'lane totals add up'
+  # the lanes come from one request: each matches a search of its own priority
+  for lane in lanes.groups
+    assign one = filters | hash_merge: {}
+    assign one.priority = lane.key
+    function alone = 'modules/support/queries/tickets/search', member: manager, view: 'all_open', filters: one, page: 1, per_page: 25, skip_lookup: true, include_waiting: false
+    assign label = 'lane ' | append: lane.key | append: ' matches its own search'
+    function contract = 'modules/tests/assertions/equal', contract: contract, given: lane.total, expected: alone.total_entries, field_name: label
+    assign lane_ids = lane.tickets | map: 'id' | join: ','
+    assign alone_ids = alone.results | map: 'id' | join: ','
+    assign label = 'lane ' | append: lane.key | append: ' has the same tickets in the same order'
+    function contract = 'modules/tests/assertions/equal', contract: contract, given: lane_ids, expected: alone_ids, field_name: label
+  endfor
 
   # a refused move leaves the ticket where it was
   function a = 'modules/support/commands/tickets/assign', ticket: f.ticket, assignee_id: f.other_agent_id, reason: null, actor: f.manager_actor

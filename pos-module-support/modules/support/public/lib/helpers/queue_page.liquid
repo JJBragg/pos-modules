@@ -53,21 +53,14 @@
   endif
 
   function groups = 'modules/support/queries/tickets/groups', member: member, view: view, filters: filters, by: group, layout: current_layout, expand: params.expand, expand_page: params.lane_page
-  assign include_waiting = false
-  if current_layout == 'board' and view == 'all_open'
-    assign include_waiting = true
-  endif
+  function include_waiting = 'modules/support/helpers/include_waiting', layout: current_layout, view: view
   function rail = 'modules/support/queries/tickets/rail_counts', member: member, view: view, filters: filters, include_waiting: include_waiting
   assign counts = rail.counts
   assign department_counts = rail.departments
 
   function statuses = 'modules/support/queries/statuses/all'
   function members = 'modules/support/queries/team_members/active'
-  function permissions = 'modules/support/queries/team/role_permissions'
-  assign can_manage = false
-  if permissions[member.role] contains 'support.tickets.manage.all'
-    assign can_manage = true
-  endif
+  function can_manage = 'modules/support/queries/team/can', member: member, do: 'support.tickets.manage.all'
   assign active_statuses = []
   for s in statuses.list
     if s.active
@@ -96,6 +89,11 @@
   assign result.members = members
   assign result.can_manage = can_manage
   assign result.query = query | www_form_encode
-  assign result.live_departments = department_counts.departments | map: 'id' | join: ','
+  # live rooms: one for every department a manager or admin sees, one per department for an agent
+  if member.role == 'agent'
+    assign result.live_departments = department_counts.departments | map: 'id' | join: ','
+  else
+    assign result.live_departments = 'all'
+  endif
   return result
 %}

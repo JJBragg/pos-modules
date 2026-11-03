@@ -1,6 +1,14 @@
 {% doc %}
   One icon from the sprite in icons/sprite. Decorative: the text next to it carries the meaning.
+  The name is recorded, so the layout's sprite sends only the icons a page uses.
   @param {string} name - Icon id without the psi- prefix, e.g. inbox
   @param {string} [size] - sm | lg
 {% enddoc %}
+{% liquid
+  assign icons = context.exports.support_icons.icons | default: []
+  unless icons contains name
+    assign icons << name
+    export icons, namespace: 'support_icons'
+  endunless
+%}
 <svg class="pos-support-icon{% if size %} pos-support-icon-{{ size }}{% endif %}" aria-hidden="true" focusable="false"><use href="#psi-{{ name }}"></use></svg>

@@ -1,8 +1,13 @@
 {% doc %}
   Active team members with their profile names, for assignee pickers.
-  Returns [{ profile_id, role, department_ids, name }].
+  Returns [{ profile_id, role, department_ids, name }]. Read once per request
+  (memo in context.exports, cleared by commands/team_members/forget).
 {% enddoc %}
 {% liquid
+  assign cached = context.exports.support_team_members.named
+  if cached != blank
+    return cached
+  endif
   function active = 'modules/support/queries/team_members/all_active'
   assign profile_ids = active | map: 'profile_id'
   assign names = {}
@@ -49,5 +54,7 @@
       assign members << item
     endif
   endfor
+  assign named = members
+  export named, namespace: 'support_team_members'
   return members
 %}

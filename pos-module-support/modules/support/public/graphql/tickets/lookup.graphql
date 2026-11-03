@@ -1,0 +1,41 @@
+# The contacts, organizations and departments a list of tickets refers to,
+# in one request. An empty id list matches nothing.
+query ($contact_ids: [ID!]!, $organization_ids: [ID!]!) {
+  contacts: records(per_page: 100, filter: { id: { value_in: $contact_ids }, table: { value: "modules/support/contact" } }) {
+    results {
+      id
+      created_at
+      name: property(name: "name")
+      emails: property_array(name: "emails")
+      organization_id: property(name: "organization_id")
+      phone: property(name: "phone")
+      profile_id: property(name: "profile_id")
+      bounced: property_boolean(name: "bounced")
+      blocked: property_boolean(name: "blocked")
+    }
+  }
+  organizations: records(per_page: 100, filter: { id: { value_in: $organization_ids }, table: { value: "modules/support/organization" } }) {
+    results {
+      id
+      name: property(name: "name")
+      domains: property_array(name: "domains")
+      tier: property(name: "tier")
+      sla_policy_id: property(name: "sla_policy_id")
+    }
+  }
+  departments: records(per_page: 100, filter: { table: { value: "modules/support/department" } }, sort: [{ created_at: { order: ASC } }]) {
+    results {
+      id
+      name: property(name: "name")
+      short_code: property(name: "short_code")
+      inbound_local_part: property(name: "inbound_local_part")
+      public_address: property(name: "public_address")
+      from_name: property(name: "from_name")
+      from_address: property(name: "from_address")
+      signature_html: property(name: "signature_html")
+      sla_policy_id: property(name: "sla_policy_id")
+      is_default: property_boolean(name: "is_default")
+      active: property_boolean(name: "active")
+    }
+  }
+}

@@ -67,4 +67,19 @@
   function contract = 'modules/tests/assertions/equal', contract: contract, given: job.changed, expected: 1, field_name: 'bulk job changed one'
   graphql t = 'modules/support/tickets/search', id: ticket.id, limit: 1
   function contract = 'modules/tests/assertions/equal', contract: contract, given: t.records.results.first.priority, expected: 'p2', field_name: 'bulk job priority'
+
+  # live rooms: managers listen to queue-all, agents only to their departments
+  assign agent_profile = { "id": null }
+  assign agent_profile.id = f.actor.id
+  assign manager_profile = { "id": null }
+  assign manager_profile.id = f.manager_actor.id
+  function joined = 'modules/support/queries/channels/can_join', profile: manager_profile, room_id: 'queue-all'
+  function contract = 'modules/tests/assertions/presence', contract: contract, object: joined, field_name: 'id'
+  function joined = 'modules/support/queries/channels/can_join', profile: agent_profile, room_id: 'queue-all'
+  function contract = 'modules/tests/assertions/blank', contract: contract, object: joined, field_name: 'id'
+  assign own_room = 'queue-' | append: f.department_id
+  function joined = 'modules/support/queries/channels/can_join', profile: agent_profile, room_id: own_room
+  function contract = 'modules/tests/assertions/presence', contract: contract, object: joined, field_name: 'id'
+  function joined = 'modules/support/queries/channels/can_join', profile: agent_profile, room_id: 'queue-0'
+  function contract = 'modules/tests/assertions/blank', contract: contract, object: joined, field_name: 'id'
 %}

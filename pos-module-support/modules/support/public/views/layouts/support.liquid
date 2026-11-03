@@ -67,7 +67,6 @@
   </head>
   <body class="pos-support" data-support-sw="{{ worker_url }}">
     <a class="pos-support-skip" href="#pos-support-content">{{ 'modules/support/shell.skip' | t }}</a>
-    {% render 'modules/support/icons/sprite' %}
     {% render 'modules/support/shell', brand: brand, member: member, profile: current_profile, content: content_for_layout, pathname: context.location.pathname, nav: nav, view: context.params.view %}
     {% liquid
       function flash = 'modules/core/commands/session/get', key: 'sflash', clear: null
@@ -75,6 +74,13 @@
         function _ = 'modules/core/commands/session/clear', key: 'sflash'
       endif
       render 'modules/common-styling/toasts', message: flash.message, severity: flash.severity, autohide: flash.autohide, delay: flash.delay
+
+      # after the page and the shell, so only the icons they drew are sent; live
+      # rows and board cards can add the status and SLA icons
+      assign icon_names = "sparkles,circle-dot,clock,circle-pause,rocket,circle-check,archive,timer,triangle-alert" | split: ','
+      assign drawn = context.exports.support_icons.icons | default: []
+      assign icon_names = icon_names | concat: drawn | uniq
+      render 'modules/support/icons/sprite', names: icon_names
     %}
   </body>
 </html>

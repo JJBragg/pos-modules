@@ -441,6 +441,7 @@ en:
     agent: Agent
     internal_note: Internal note
     show_original: Show original email
+    show_earlier: "Show earlier messages (%{count})"
     snooze: Snooze
     snooze_hour: For 1 hour
     snooze_day: For 1 day

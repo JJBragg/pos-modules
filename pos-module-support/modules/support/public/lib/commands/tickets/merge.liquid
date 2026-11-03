@@ -18,8 +18,8 @@
     return result
   endif
   if source.organization_id != target.organization_id
-    function permissions = 'modules/support/queries/team/role_permissions'
-    unless permissions[actor.member.role] contains 'support.tickets.manage.all'
+    function can_manage = 'modules/support/queries/team/can', member: actor.member, do: 'support.tickets.manage.all'
+    unless can_manage
       assign result.errors.target = 'modules/support/tickets.errors.merge_org'
       return result
     endunless

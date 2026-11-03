@@ -1,9 +1,14 @@
 {% doc %}
   Builds the brand used by the layout, emails, manifest and push (08 §3):
   Branding settings override (setting branding_override) over the host
-  hook support_branding over module defaults, per key.
+  hook support_branding over module defaults, per key. Built once per
+  request (memo in context.exports, cleared by commands/settings/set).
 {% enddoc %}
 {% liquid
+  assign cached = context.exports.support_brand.brand
+  if cached != blank
+    return cached
+  endif
   assign app_name = 'modules/support/app_name' | t
   assign brand = { "app_name": app_name, "short_name": app_name, "logo_url": null, "logo_dark_url": null, "icon_url": null, "favicon_url": null, "theme_color": null, "background_color": null, "theme_mode": "auto", "support_email_name": app_name }
 
@@ -31,5 +36,6 @@
     else
       assign brand.theme_class = 'pos-theme-darkEnabled'
   endcase
+  export brand, namespace: 'support_brand'
   return brand
 %}

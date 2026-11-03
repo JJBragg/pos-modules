@@ -37,6 +37,9 @@ see <a href="https://example.com/x">https://example.com/x</a></p>
     assign has_script = true
   endif
   function contract = 'modules/tests/assertions/equal', contract: contract, given: has_script, expected: false, field_name: 'saved reply values escaped'
+  assign plain = { "body_html": "<p>Thanks, we are on it.</p>" }
+  function html = 'modules/support/commands/saved_replies/render', saved_reply: plain, ticket: ticket, requester: requester, agent: agent, brand: brand
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: html, expected: '<p>Thanks, we are on it.</p>', field_name: 'saved reply without placeholders unchanged'
 
   # a note is never delivered as email
   function note = 'modules/support/commands/messages/create_note', ticket: f.ticket, body_html: '<p>secret</p>', mentioned_ids: null, actor: f.actor
@@ -46,4 +49,25 @@ see <a href="https://example.com/x">https://example.com/x</a></p>
   # composer text becomes escaped paragraphs with links
   function html = 'modules/support/helpers/text_to_html', text: composer_text
   function contract = 'modules/tests/assertions/equal', contract: contract, given: html, expected: composer_html, field_name: 'text to html'
+
+  # a long conversation shows the newest 30 messages; "show earlier" loads all of them
+  assign rows = []
+  for i in (1..35)
+    assign row = { "table": "modules/support/message", "properties": null }
+    assign props = { "ticket_id": null, "author_type": "customer", "visibility": "public", "kind": "message", "body_text": null }
+    assign props.ticket_id = f.ticket.id
+    assign props.body_text = 'message ' | append: i
+    assign row.properties = props
+    assign rows << row
+  endfor
+  graphql _ = 'modules/support/records/create_many', records: rows
+  graphql all = 'modules/support/messages/search', ticket_id: f.ticket.id, limit: 1
+  assign total = all.records.total_entries
+  function pd = 'modules/support/queries/tickets/page_data', ticket: f.ticket, member: f.actor.member, profile: null, all_messages: false
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: pd.messages.size, expected: 30, field_name: 'newest 30 messages shown'
+  assign hidden = total | minus: 30
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: pd.earlier_messages, expected: hidden, field_name: 'earlier messages counted'
+  function pd = 'modules/support/queries/tickets/page_data', ticket: f.ticket, member: f.actor.member, profile: null, all_messages: true
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: pd.messages.size, expected: total, field_name: 'show earlier loads every message'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: pd.earlier_messages, expected: 0, field_name: 'nothing hidden after show earlier'
 %}

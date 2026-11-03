@@ -10,6 +10,12 @@
   @param {object} brand - From helpers/branding
 {% enddoc %}
 {% liquid
+  assign html = saved_reply.body_html | default: ''
+  # the ticket page renders every saved reply: skip the regex passes a reply does not need
+  unless html contains '{{'
+    return html
+  endunless
+
   assign first_name = requester.name | split: ' ' | first
   assign agent_first = agent.first_name | default: agent.name | split: ' ' | first
   assign values = { "requester.first_name": null, "requester.name": null, "ticket.number": null, "ticket.subject": null, "agent.first_name": null, "brand.name": null }
@@ -20,8 +26,10 @@
   assign values['agent.first_name'] = agent_first | escape
   assign values['brand.name'] = brand.app_name | escape
 
-  assign html = saved_reply.body_html | default: ''
   for pair in values
+    unless html contains pair[0]
+      continue
+    endunless
     assign pattern = '\{\{\s*' | append: pair[0] | replace: '.', '\.' | append: '\s*\}\}'
     assign value = pair[1] | default: ''
     assign html = html | replace_regex: pattern, value

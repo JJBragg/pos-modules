@@ -26,8 +26,8 @@
   endif
 
   if actor.type == 'user' and assignee_id != actor.id
-    function permissions = 'modules/support/queries/team/role_permissions'
-    unless permissions[actor.member.role] contains 'support.tickets.manage.all'
+    function can_manage = 'modules/support/queries/team/can', member: actor.member, do: 'support.tickets.manage.all'
+    unless can_manage
       assign result.errors.assignee_id = 'modules/support/tickets.errors.assign_others'
       return result
     endunless

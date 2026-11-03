@@ -9,6 +9,8 @@
   @param {number} [per_page] - Page size, max 200
   @param {boolean} [skip_lookup] - Leave out the related records (the caller loads them once for several searches)
   @param {boolean} [include_waiting] - In all_open, also include pending and on-hold tickets (the board shows them as columns)
+  @param {boolean} [priority_lanes] - Return the first page of every priority instead, in one request (filters.priority is ignored):
+    { lanes: { p0: { results, total_entries }, … p3 } }, with the fields a queue row or board card shows
 {% enddoc %}
 {% liquid
   assign view = view | default: 'all_open'
@@ -89,6 +91,17 @@
     else
       assign sort = [{ "properties": { "name": "sla_due_at", "order": "ASC" } }, { "properties": { "name": "priority", "order": "ASC" } }, { "created_at": { "order": "DESC" } }]
   endcase
+  if priority_lanes
+    graphql r = 'modules/support/tickets/priority_lanes', department_ids: scope, categories: categories, assignee_id: assignee_id, assigned: assigned, status_ids: status_ids, organization_id: filters.organization_id, sla_states: sla_states, needs_reply: needs_reply, query: q, number: number, limit: per_page, sort: sort
+    assign result = { "lanes": {} }
+    for p in priorities
+      assign lane = { "results": null, "total_entries": null }
+      assign lane.results = r[p].results
+      assign lane.total_entries = r[p].total_entries
+      assign result.lanes[p] = lane
+    endfor
+    return result
+  endif
   graphql r = 'modules/support/tickets/search', department_ids: scope, categories: categories, assignee_id: assignee_id, assigned: assigned, status_ids: status_ids, organization_id: filters.organization_id, sla_states: sla_states, priority: priority, needs_reply: needs_reply, query: q, number: number, page: page, limit: per_page, sort: sort
 
   assign tickets = r.records.results

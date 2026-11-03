@@ -1,11 +1,12 @@
 {% doc %}
-  Clears the per-request memo of queries/team_members/all_active and
-  queries/team_members/find. Call it after every team_member write, so a
-  later read in the same request sees the change.
+  Clears the per-request memo of queries/team_members/all_active, active and
+  find. Call it after every team_member write, so a later read in the same
+  request sees the change.
 {% enddoc %}
 {% liquid
   assign active = null
+  assign named = null
   assign by_profile = {}
-  export active, by_profile, namespace: 'support_team_members'
+  export active, named, by_profile, namespace: 'support_team_members'
   return true
 %}

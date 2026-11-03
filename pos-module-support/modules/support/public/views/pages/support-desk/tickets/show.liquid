@@ -16,7 +16,11 @@ metadata:
     render 'modules/support/forbidden'
     break
   endif
-  function data = 'modules/support/queries/tickets/page_data', ticket: ticket, member: member, profile: context.exports.support.current_profile
+  assign all_messages = false
+  if context.params.thread == 'all'
+    assign all_messages = true
+  endif
+  function data = 'modules/support/queries/tickets/page_data', ticket: ticket, member: member, profile: context.exports.support.current_profile, all_messages: all_messages
   assign title = '#' | append: ticket.number | append: ' ' | append: ticket.subject
   export title, namespace: 'support_page'
   function neighbors = 'modules/support/queries/tickets/neighbors', member: member, params: context.params, ticket_id: ticket.id

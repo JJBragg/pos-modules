@@ -1,6 +1,7 @@
 {% doc %}
   Whether the signed-in profile may use a support channel room (05 §4):
   queue-<department_id> for members serving it (managers and admins: all),
+  queue-all for managers and admins,
   ticket-<ticket_id> when the ticket is in their scope, profile-<profile_id>
   only for themselves. Returns the active member, or null.
   @param {object} profile - The signed-in profile
@@ -20,7 +21,11 @@
   assign target = room_id | remove_first: kind | remove_first: '-'
   case kind
     when 'queue'
-      if member.role != 'agent' or member.department_ids contains target
+      if target == 'all'
+        if member.role != 'agent'
+          return member
+        endif
+      elsif member.role != 'agent' or member.department_ids contains target
         return member
       endif
     when 'ticket'

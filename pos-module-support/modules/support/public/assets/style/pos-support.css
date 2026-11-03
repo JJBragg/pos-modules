@@ -1878,6 +1878,12 @@
     gap: 1rem;
   }
 
+  .pos-support-thread-earlier {
+    position: relative;
+    margin: 0;
+    text-align: center;
+  }
+
   .pos-support-thread::before {
     content: "";
     position: absolute;
