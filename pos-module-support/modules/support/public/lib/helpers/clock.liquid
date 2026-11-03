@@ -1,0 +1,20 @@
+{% doc %}
+  The desk's time zone (helpers/display_zone) with the current time and year
+  in it, read once per request: the time partial renders on every queue row,
+  and reading 'now' there was most of a row's cost.
+  Returns { zone, now (Unix seconds), year }.
+{% enddoc %}
+{% liquid
+  assign cached = context.exports.support_clock.clock
+  if cached != blank
+    return cached
+  endif
+  function zone = 'modules/support/helpers/display_zone'
+  assign now = 'now' | to_time
+  assign clock = { "zone": null, "now": null, "year": null }
+  assign clock.zone = zone
+  assign clock.now = now | strftime: '%s' | plus: 0
+  assign clock.year = now | strftime: '%Y', zone
+  export clock, namespace: 'support_clock'
+  return clock
+%}

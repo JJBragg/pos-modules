@@ -35,6 +35,7 @@
         assign member_values = { "state": "disabled" }
         function props = 'modules/support/helpers/props', values: member_values
         graphql m = 'modules/support/records/update', id: member.id, properties: props
+        function _ = 'modules/support/commands/team_members/forget'
       endif
       assign result.notice = 'modules/support/team.notices.revoked'
     endif

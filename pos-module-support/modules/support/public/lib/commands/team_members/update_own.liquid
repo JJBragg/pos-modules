@@ -62,6 +62,7 @@
 
   function props = 'modules/support/helpers/props', values: values
   graphql r = 'modules/support/records/update', id: member.id, properties: props
+  function _ = 'modules/support/commands/team_members/forget'
   if change == 'availability' and params.value != member.availability
     function _ = 'modules/support/commands/ticket_events/log', ticket_id: null, actor_type: 'user', actor_id: member.profile_id, event_type: 'availability_changed', from_value: member.availability, to_value: params.value, reason: null
   endif

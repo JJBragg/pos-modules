@@ -44,6 +44,7 @@
   assign values.notification_prefs = prefs | json
   function props = 'modules/support/helpers/props', values: values
   graphql u = 'modules/support/records/update', id: member.id, properties: props
+  function _ = 'modules/support/commands/team_members/forget'
   function mention = 'modules/support/commands/notifications/dispatch', event_key: 'mention', ticket_id: f.ticket.id, recipient_ids: ids, actor_id: null
   function contract = 'modules/tests/assertions/equal', contract: contract, given: mention.pushed, expected: 0, field_name: 'push off stops push'
   function contract = 'modules/tests/assertions/equal', contract: contract, given: mention.emailed, expected: 1, field_name: 'push off keeps email'
@@ -55,6 +56,7 @@
   assign values.paused_until = 'now' | add_to_time: 1, 'h'
   function props = 'modules/support/helpers/props', values: values
   graphql u = 'modules/support/records/update', id: member.id, properties: props
+  function _ = 'modules/support/commands/team_members/forget'
   function paused = 'modules/support/commands/notifications/dispatch', event_key: 'sla_breach', ticket_id: f.ticket.id, recipient_ids: ids, actor_id: null
   function contract = 'modules/tests/assertions/equal', contract: contract, given: paused.skipped, expected: 1, field_name: 'pause skips'
   assign total = paused.pushed | plus: paused.emailed

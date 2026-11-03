@@ -49,6 +49,7 @@
     assign member_values.last_assigned_at = now
     function props = 'modules/support/helpers/props', values: member_values
     graphql m = 'modules/support/records/update', id: assignee.id, properties: props
+    function _ = 'modules/support/commands/team_members/forget'
   endif
 
   function _ = 'modules/support/commands/ticket_events/log', ticket_id: ticket.id, actor_type: actor.type, actor_id: actor.id, event_type: 'assigned', from_value: ticket.assignee_id, to_value: assignee_id, reason: reason

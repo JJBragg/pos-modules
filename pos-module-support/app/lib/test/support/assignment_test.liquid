@@ -64,6 +64,7 @@
   assign off_values = { "availability": "off" }
   function props = 'modules/support/helpers/props', values: off_values
   graphql off = 'modules/support/records/update', id: free_agent.id, properties: props
+  function _ = 'modules/support/commands/team_members/forget'
   function g = 'support_test_helpers/ticket_fixture', label: 'escalate'
   function none = 'modules/support/commands/assignment/auto_assign', ticket_id: g.ticket.id
   function contract = 'modules/tests/assertions/equal', contract: contract, given: none, expected: null, field_name: 'nobody available'

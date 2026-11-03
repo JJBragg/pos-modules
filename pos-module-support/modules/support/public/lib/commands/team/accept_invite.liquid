@@ -56,6 +56,7 @@
     assign member_values = { "state": "active" }
     function props = 'modules/support/helpers/props', values: member_values
     graphql m = 'modules/support/records/update', id: member.id, properties: props
+    function _ = 'modules/support/commands/team_members/forget'
   endif
   function session = 'modules/user/commands/session/create', email: null, password: null, hook_params: null, validate_password: false, skip_otp: true, user_id: profile.user_id
   function _ = 'modules/support/commands/ticket_events/log', ticket_id: null, actor_type: 'user', actor_id: invite.profile_id, event_type: 'team_joined', from_value: null, to_value: invite.email, reason: null

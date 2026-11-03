@@ -75,6 +75,7 @@
   endif
   function props = 'modules/support/helpers/props', values: values
   graphql u = 'modules/support/records/update', id: member.id, properties: props
+  function _ = 'modules/support/commands/team_members/forget'
 
   if values.state == 'disabled' and member.state != 'disabled'
     function _ = 'modules/support/commands/team/offboard', member: member

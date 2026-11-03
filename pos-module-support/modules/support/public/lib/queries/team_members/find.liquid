@@ -1,10 +1,24 @@
 {% doc %}
+  The membership of one profile, read once per request (memo in
+  context.exports, cleared by commands/team_members/forget after any
+  team_member write), so a bulk change does not look the assignee up again
+  for every ticket.
   @param {string} profile_id - The profile whose membership to load
 {% enddoc %}
 {% liquid
   if profile_id == blank
     return null
   endif
+  assign by_profile = context.exports.support_team_members.by_profile | default: {}
+  assign key = profile_id | append: ''
+  if by_profile[key] != blank
+    return by_profile[key]
+  endif
   graphql r = 'modules/support/team_members/search', profile_id: profile_id, limit: 1
-  return r.records.results.first
+  assign member = r.records.results.first
+  if member != blank
+    assign by_profile[key] = member
+    export by_profile, namespace: 'support_team_members'
+  endif
+  return member
 %}

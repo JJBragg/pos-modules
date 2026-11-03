@@ -7,10 +7,11 @@
 {% enddoc %}
 {% if time != blank %}
   {% liquid
-    function zone = 'modules/support/helpers/display_zone'
+    function clock = 'modules/support/helpers/clock'
+    assign zone = clock.zone
     assign iso = time | strftime: '%Y-%m-%dT%H:%M:%SZ', 'UTC'
     assign full = time | strftime: '%a, %b %-d, %Y, %-l:%M %p %Z', zone
-    assign this_year = 'now' | strftime: '%Y', zone
+    assign this_year = clock.year
     assign year = time | strftime: '%Y', zone
     assign date_format = '%b %-d'
     if year != this_year
@@ -24,7 +25,8 @@
       when 'date'
         assign text = time | strftime: date_format, zone
       else
-        assign minutes = time | time_diff: 'now', 'm', 0 | floor
+        assign epoch = time | strftime: '%s' | plus: 0
+        assign minutes = clock.now | minus: epoch | divided_by: 60
         assign key_suffix = '_ago'
         if minutes < 0
           assign key_suffix = '_ahead'
