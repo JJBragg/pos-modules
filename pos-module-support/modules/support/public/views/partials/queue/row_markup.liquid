@@ -1,0 +1,41 @@
+{% doc %}
+  The markup of one queue row (queue/row prepares the values and may cache it).
+  @param {object} ticket - Ticket record
+  @param {object} [requester] - Requester contact
+  @param {object} [organization] - Organization
+  @param {object} [assignee] - Assignee profile
+  @param {object} [department] - Department
+  @param {object} [status] - Status
+  @param {string} url - Ticket link
+  @param {string} [requester_name] - Shown requester
+  @param {string} [assignee_name] - Shown assignee
+{% enddoc %}
+<tr class="pos-support-row{% if ticket.needs_reply %} pos-support-row-needs-reply{% endif %}" data-url="{{ url }}" data-priority="{{ ticket.priority }}" data-status-key="{{ status.key }}">
+  <td class="pos-support-cell-select">
+    <label for="pos-support-select-{{ ticket.id }}">
+      <input type="checkbox" name="ids[]" value="{{ ticket.id }}" id="pos-support-select-{{ ticket.id }}" class="pos-support-select">
+      <span class="pos-support-sr-only">{{ 'modules/support/queue.select_ticket' | t: number: ticket.number }}</span>
+    </label>
+  </td>
+  <td class="pos-support-cell-priority">{% render 'modules/support/badges/priority', priority: ticket.priority %}</td>
+  <td class="pos-support-number">#{{ ticket.number }}</td>
+  <td class="pos-support-subject" title="{{ ticket.subject }}">
+    {% if ticket.needs_reply %}<span class="pos-support-needs-reply" title="{{ 'modules/support/queue.needs_reply' | t }}"><span class="pos-support-sr-only">{{ 'modules/support/queue.needs_reply' | t }}</span></span>{% endif %}
+    <a href="{{ url }}">{{ ticket.subject }}</a>
+  </td>
+  <td class="pos-support-cell-requester" title="{{ requester.emails.first }}">
+    {{ requester_name }}{% if organization %}<span class="pos-supplementary">{{ organization.name }}</span>{% endif %}
+  </td>
+  <td class="pos-support-cell-department"><span class="pos-tag" title="{{ department.name }}">{{ department.short_code | default: department.name }}</span></td>
+  <td class="pos-support-cell-status">{% render 'modules/support/badges/status', status: status %}</td>
+  <td class="pos-support-cell-assignee">
+    {% if assignee %}
+      <span class="pos-support-person">{% render 'modules/support/avatar', name: assignee_name, email: assignee.email, size: 'xs', labelled: false %}<span class="pos-support-person-name">{{ assignee_name }}</span></span>
+    {% else %}
+      <span class="pos-support-muted">{{ 'modules/support/ticket.unassigned' | t }}</span>
+    {% endif %}
+  </td>
+  <td class="pos-support-cell-sla">{% render 'modules/support/badges/sla', state: ticket.sla_state %}</td>
+  {% assign activity_at = ticket.last_activity_at | default: ticket.created_at %}
+  <td class="pos-support-cell-activity pos-support-muted">{% render 'modules/support/time', time: activity_at, style: 'relative' %}</td>
+</tr>

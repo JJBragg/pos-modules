@@ -1,5 +1,8 @@
 {% doc %}
-  One queue row; the subject link covers the whole row.
+  One queue row; the subject link covers the whole row. A row whose last
+  activity is more than a week old shows only dates, so its markup is cached
+  (keyed by everything it shows); fresher rows show relative times and are
+  rendered every time.
   @param {object} ticket - Ticket record
   @param {object} lookup - { contacts, organizations, profiles, departments, statuses } keyed by id
   @param {string} [link_query] - Queue view and filters, so the ticket page can offer previous/next
@@ -16,33 +19,25 @@
   endif
   assign requester_name = requester.name | default: requester.emails.first
   assign assignee_name = assignee.name | default: assignee.first_name | default: assignee.email
+
+  function clock = 'modules/support/helpers/clock'
+  assign activity_at = ticket.last_activity_at | default: ticket.created_at
+  assign activity_epoch = activity_at | strftime: '%s' | plus: 0
+  assign age = clock.now | minus: activity_epoch
+  # eight days: the time partial switches from "3 d ago" to a date after seven
+  assign cacheable = false
+  if age > 691200
+    assign cacheable = true
+  endif
 %}
-<tr class="pos-support-row{% if ticket.needs_reply %} pos-support-row-needs-reply{% endif %}" data-url="{{ url }}" data-priority="{{ ticket.priority }}" data-status-key="{{ status.key }}">
-  <td class="pos-support-cell-select">
-    <label for="pos-support-select-{{ ticket.id }}">
-      <input type="checkbox" name="ids[]" value="{{ ticket.id }}" id="pos-support-select-{{ ticket.id }}" class="pos-support-select">
-      <span class="pos-support-sr-only">{{ 'modules/support/queue.select_ticket' | t: number: ticket.number }}</span>
-    </label>
-  </td>
-  <td class="pos-support-cell-priority">{% render 'modules/support/badges/priority', priority: ticket.priority %}</td>
-  <td class="pos-support-number">#{{ ticket.number }}</td>
-  <td class="pos-support-subject" title="{{ ticket.subject }}">
-    {% if ticket.needs_reply %}<span class="pos-support-needs-reply" title="{{ 'modules/support/queue.needs_reply' | t }}"><span class="pos-support-sr-only">{{ 'modules/support/queue.needs_reply' | t }}</span></span>{% endif %}
-    <a href="{{ url }}">{{ ticket.subject }}</a>
-  </td>
-  <td class="pos-support-cell-requester" title="{{ requester.emails.first }}">
-    {{ requester_name }}{% if organization %}<span class="pos-supplementary">{{ organization.name }}</span>{% endif %}
-  </td>
-  <td class="pos-support-cell-department"><span class="pos-tag" title="{{ department.name }}">{{ department.short_code | default: department.name }}</span></td>
-  <td class="pos-support-cell-status">{% render 'modules/support/badges/status', status: status %}</td>
-  <td class="pos-support-cell-assignee">
-    {% if assignee %}
-      <span class="pos-support-person">{% render 'modules/support/avatar', name: assignee_name, email: assignee.email, size: 'xs', labelled: false %}<span class="pos-support-person-name">{{ assignee_name }}</span></span>
-    {% else %}
-      <span class="pos-support-muted">{{ 'modules/support/ticket.unassigned' | t }}</span>
-    {% endif %}
-  </td>
-  <td class="pos-support-cell-sla">{% render 'modules/support/badges/sla', state: ticket.sla_state %}</td>
-  {% assign activity_at = ticket.last_activity_at | default: ticket.created_at %}
-  <td class="pos-support-cell-activity pos-support-muted">{% render 'modules/support/time', time: activity_at, style: 'relative' %}</td>
-</tr>
+{%- if cacheable -%}
+  {%- liquid
+    assign key = 'support-row|' | append: ticket.id | append: '|' | append: ticket.updated_at | append: '|' | append: link_query | append: '|' | append: clock.year | append: '|' | append: clock.zone | append: '|' | append: requester_name | append: '|' | append: requester.emails.first | append: '|' | append: organization.name | append: '|' | append: assignee_name | append: '|' | append: assignee.email | append: '|' | append: department.name | append: '|' | append: department.short_code | append: '|' | append: status.key | append: '|' | append: status.label | append: '|' | append: status.color
+    assign key = key | digest: 'sha256'
+  -%}
+  {%- cache key, expire: 86400 -%}
+    {%- render 'modules/support/queue/row_markup', ticket: ticket, requester: requester, organization: organization, assignee: assignee, department: department, status: status, url: url, requester_name: requester_name, assignee_name: assignee_name -%}
+  {%- endcache -%}
+{%- else -%}
+  {%- render 'modules/support/queue/row_markup', ticket: ticket, requester: requester, organization: organization, assignee: assignee, department: department, status: status, url: url, requester_name: requester_name, assignee_name: assignee_name -%}
+{%- endif -%}

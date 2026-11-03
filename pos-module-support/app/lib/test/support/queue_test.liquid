@@ -68,6 +68,33 @@
   graphql t = 'modules/support/tickets/search', id: ticket.id, limit: 1
   function contract = 'modules/tests/assertions/equal', contract: contract, given: t.records.results.first.priority, expected: 'p2', field_name: 'bulk job priority'
 
+  # a row older than a week is cached, but a change to the ticket shows at once
+  assign row_tickets = []
+  assign row_tickets << f.ticket
+  function row_lookup = 'modules/support/queries/tickets/lookup', tickets: row_tickets
+  assign old_ticket = f.ticket | hash_merge: {}
+  assign old_ticket.last_activity_at = 'now' | to_time | add_to_time: -30, 'd'
+  assign old_ticket.subject = 'Cached row subject one'
+  assign old_ticket.updated_at = '2026-01-01T10:00:00.000Z'
+  capture first_row
+    render 'modules/support/queue/row', ticket: old_ticket, lookup: row_lookup, link_query: null
+  endcapture
+  assign old_ticket.subject = 'Cached row subject two'
+  assign old_ticket.updated_at = '2026-01-01T10:05:00.000Z'
+  capture second_row
+    render 'modules/support/queue/row', ticket: old_ticket, lookup: row_lookup, link_query: null
+  endcapture
+  assign shows_change = false
+  if second_row contains 'Cached row subject two'
+    assign shows_change = true
+  endif
+  function contract = 'modules/tests/assertions/true', contract: contract, value: shows_change, field_name: 'changed ticket is not served from the row cache', object: null
+  assign shows_first = false
+  if first_row contains 'Cached row subject one'
+    assign shows_first = true
+  endif
+  function contract = 'modules/tests/assertions/true', contract: contract, value: shows_first, field_name: 'cached row shows the ticket', object: null
+
   # live rooms: managers listen to queue-all, agents only to their departments
   assign agent_profile = { "id": null }
   assign agent_profile.id = f.actor.id
