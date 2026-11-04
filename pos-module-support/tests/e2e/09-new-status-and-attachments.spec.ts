@@ -4,7 +4,7 @@
 // The unit tests cover the command; these cover the three places an agent
 // actually meets the change — the board, the ticket sidebar, and the thread.
 import { test, expect, Page } from '@playwright/test';
-import { contextFor, desk, liquid, liquidFile, newTicket, ticketField, unique, users } from './helpers';
+import { contextFor, desk, liquid, newTicket, ticketField, unique, users } from './helpers';
 
 const columnOf = (page: Page, id: string) => page.evaluate((id) => document.querySelector(`.pos-support-card[data-ticket-id="${id}"]`)?.closest('.pos-support-column')?.getAttribute('data-status-key') || null, id);
 
@@ -18,8 +18,8 @@ const setStatus = (ticketId: string, key: string) => liquid(`{% liquid
 %}`);
 
 test('a started card can be dragged back onto the New column', async ({ browser }) => {
-  const fixture = liquidFile('p0_bulk_tickets.liquid', { TICKET_COUNT: '1', OFFSET: '0', LABEL_SUFFIX: unique('new').replace(/[^a-z0-9]/gi, '').toLowerCase() });
-  const id = fixture.ids[0];
+  const t = await newTicket('New board');
+  const id = t.ticket.id;
   expect(setStatus(id, 'progress').valid, 'the ticket starts in a working status').toBe(true);
 
   const { context, page } = await contextFor(browser, users.superadmin);
