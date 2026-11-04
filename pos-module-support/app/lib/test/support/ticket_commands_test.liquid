@@ -12,9 +12,16 @@
   graphql ev = 'modules/support/ticket_events/search', ticket_id: ticket.id, event_type: 'created'
   function contract = 'modules/tests/assertions/equal', contract: contract, given: ev.records.total_entries, expected: 1, field_name: 'created audit row'
 
-  # moving to New is refused
-  function moved = 'modules/support/commands/tickets/change_status', ticket: ticket, status_key: 'new', actor: actor
-  function contract = 'modules/tests/assertions/equal', contract: contract, given: moved.valid, expected: false, field_name: 'to New refused'
+  # a started ticket can go back to New: new and open behave identically in
+  # helpers/categories, so this is a plain transition. The assignee and the
+  # first-reply stamp survive it, which is what stops the SLA clock restarting.
+  function started = 'modules/support/commands/tickets/change_status', ticket: ticket, status_key: 'progress', actor: actor
+  function back = 'modules/support/commands/tickets/change_status', ticket: started.ticket, status_key: 'new', actor: actor
+  function contract = 'modules/tests/assertions/valid_object', contract: contract, object: back, field_name: 'back to New allowed'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: back.ticket.category, expected: 'new', field_name: 'back to New sets the new category'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: back.ticket.assignee_id, expected: ticket.assignee_id, field_name: 'back to New keeps the assignee'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: back.ticket.first_replied_at, expected: ticket.first_replied_at, field_name: 'back to New keeps first_replied_at'
+  assign ticket = back.ticket
 
   # pending + customer reply -> In progress
   function changed = 'modules/support/commands/tickets/change_status', ticket: ticket, status_key: 'customer', actor: actor

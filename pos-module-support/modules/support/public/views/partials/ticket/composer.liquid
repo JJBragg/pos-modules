@@ -65,7 +65,7 @@
         </span>
         <select id="pos-support-then" name="then_status" data-support-reply-only>
           <option value="">{{ 'modules/support/ticket.then_keep' | t }}</option>
-          {% for s in data.statuses.list %}{% if s.category != 'new' and s.active %}<option value="{{ s.key }}" {% if s.key == 'progress' %}selected{% endif %}>{{ s.label }}</option>{% endif %}{% endfor %}
+          {% for s in data.statuses.list %}{% if s.active %}<option value="{{ s.key }}" {% if s.key == 'progress' %}selected{% endif %}>{{ s.label }}</option>{% endif %}{% endfor %}
         </select>
         <button type="submit" class="pos-button pos-button-primary" data-support-send title="{{ 'modules/support/ticket.send_shortcut' | t }}">{% render 'modules/support/icon', name: 'send', size: 'sm' %}<span data-support-send-label>{{ 'modules/support/ticket.send' | t }}</span></button>
       </div>

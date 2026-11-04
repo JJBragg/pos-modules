@@ -55,7 +55,7 @@
         <label for="pos-support-bulk-status" class="pos-support-sr-only">{{ 'modules/support/queue.status' | t }}</label>
         <select id="pos-support-bulk-status" name="bulk_status">
           <option value="">{{ 'modules/support/queue.bulk_status' | t }}</option>
-          {% for s in page_data.statuses %}{% if s.category != 'new' %}<option value="{{ s.key }}">{{ s.label }}</option>{% endif %}{% endfor %}
+          {% for s in page_data.statuses %}<option value="{{ s.key }}">{{ s.label }}</option>{% endfor %}
         </select>
         <label for="pos-support-bulk-priority" class="pos-support-sr-only">{{ 'modules/support/queue.priority' | t }}</label>
         <select id="pos-support-bulk-priority" name="bulk_priority">
