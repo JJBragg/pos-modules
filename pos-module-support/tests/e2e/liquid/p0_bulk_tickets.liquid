@@ -1,0 +1,41 @@
+{% doc %}
+  Creates TICKET_COUNT tickets in the E2E department through the module's own
+  create command, so a bulk action can be measured at the scale the P0 finding
+  describes (20-50 tickets) without posting that many inbound emails.
+  Each ticket costs ~0.4 s, so the suite calls this in chunks that stay under
+  the platform's ~20 s gateway limit, passing the same LABEL_SUFFIX each time.
+  Returns { label, ids, department_id }.
+{% enddoc %}
+{% liquid
+  assign count = TICKET_COUNT
+  assign offset = OFFSET
+  graphql d = 'modules/support/departments/search', inbound_local_part: 'e2e', limit: 1
+  assign department_id = d.records.results.first.id
+  if department_id == blank
+    log 'e2e department missing', type: 'ERROR p0_bulk_tickets'
+    return null
+  endif
+
+  assign suffix = 'LABEL_SUFFIX'
+  assign label = 'P0BULK' | append: suffix
+  assign email = 'p0-bulk-' | append: suffix | append: '@e2e.example'
+  function contact = 'modules/support/commands/contacts/find_or_create', email: email, name: 'P0 Bulk'
+
+  assign ids = []
+  for i in (1..count)
+    assign n = i | plus: offset
+    assign object = { "channel": "email", "actor_type": "customer", "priority": "p3" }
+    assign object.subject = label | append: ' ticket ' | append: n
+    assign object.department_id = department_id
+    assign object.requester_id = contact.id
+    assign object.actor_id = contact.id
+    function t = 'modules/support/commands/tickets/create', object: object
+    assign ids << t.id
+  endfor
+
+  assign out = { "label": null, "ids": null, "department_id": null }
+  assign out.label = label
+  assign out.ids = ids
+  assign out.department_id = department_id
+  echo out | json | html_safe
+%}
