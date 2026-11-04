@@ -60,7 +60,7 @@
   function contract = 'modules/tests/assertions/true', contract: contract, value: c.records.results.first.blocked, field_name: 'contact blocked', object: null
 
   function back = 'modules/support/commands/tickets/unmark_spam', ticket: marked.ticket, actor: f.manager_actor
-  function contract = 'modules/tests/assertions/equal', contract: contract, given: back.ticket.category, expected: 'open', field_name: 'undo moves New back to an open status'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: back.ticket.category, expected: 'new', field_name: 'undo restores the status the ticket had before spam'
   graphql rows = 'modules/support/blocked_senders/search', ticket_id: f.ticket.id, source: 'spam_mark', limit: 10
   function contract = 'modules/tests/assertions/equal', contract: contract, given: rows.records.total_entries, expected: 0, field_name: 'undo removes the row'
   graphql c = 'modules/support/contacts/search', ids: ids, limit: 1

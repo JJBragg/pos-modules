@@ -41,9 +41,10 @@
   function after = 'modules/support/commands/tickets/apply_customer_reply', ticket: changed.ticket, auto_reply: true
   function contract = 'modules/tests/assertions/equal', contract: contract, given: after.category, expected: 'pending', field_name: 'auto-reply keeps pending'
 
-  # every change wrote an audit row
+  # every change wrote an audit row: five here, plus the two of the round trip
+  # back to New above
   graphql ev = 'modules/support/ticket_events/search', ticket_id: ticket.id, event_type: 'status_changed'
-  function contract = 'modules/tests/assertions/equal', contract: contract, given: ev.records.total_entries, expected: 5, field_name: 'status changes audited'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: ev.records.total_entries, expected: 7, field_name: 'status changes audited'
 
   # priority
   function p = 'modules/support/commands/tickets/set_priority', ticket: after, priority: 'p9', actor: actor
