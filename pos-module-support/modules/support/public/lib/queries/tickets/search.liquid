@@ -9,6 +9,7 @@
   @param {number} [per_page] - Page size, max 200
   @param {boolean} [skip_lookup] - Leave out the related records (the caller loads them once for several searches)
   @param {boolean} [include_waiting] - In all_open, also include pending and on-hold tickets (the board shows them as columns)
+  @param {string} [ticket_id] - Only this ticket: whether it belongs to the view (live refresh of one row)
   @param {boolean} [priority_lanes] - Return the first page of every priority instead, in one request (filters.priority is ignored):
     { lanes: { p0: { results, total_entries }, … p3 } }, with the fields a queue row or board card shows
 {% enddoc %}
@@ -107,7 +108,7 @@
     endfor
     return result
   endif
-  graphql r = 'modules/support/tickets/search', department_ids: scope, categories: categories, assignee_id: assignee_id, assigned: assigned, status_ids: status_ids, organization_id: filters.organization_id, sla_states: sla_states, priority: priority, needs_reply: needs_reply, query: q, number: number, page: page, limit: per_page, sort: sort
+  graphql r = 'modules/support/tickets/search', id: ticket_id, department_ids: scope, categories: categories, assignee_id: assignee_id, assigned: assigned, status_ids: status_ids, organization_id: filters.organization_id, sla_states: sla_states, priority: priority, needs_reply: needs_reply, query: q, number: number, page: page, limit: per_page, sort: sort
 
   assign tickets = r.records.results
   assign lookup = null

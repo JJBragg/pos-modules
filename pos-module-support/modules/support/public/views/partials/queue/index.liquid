@@ -15,7 +15,7 @@
     assign filtered = true
   endif
 %}
-<div class="pos-support-queue" data-support-live data-support-group="{{ page_data.group }}" data-support-departments="{{ page_data.live_departments }}" data-support-me="{{ member.profile_id }}" data-support-first-page="true" data-support-assigned-to-you="{{ 'modules/support/live.assigned_to_you' | t }}" data-support-bulk-done="{{ 'modules/support/live.bulk_done' | t }}" data-support-bulk-done-one="{{ 'modules/support/live.bulk_done_one' | t }}" data-support-bulk-failed="{{ 'modules/support/live.bulk_failed' | t }}" data-support-bulk-failed-one="{{ 'modules/support/live.bulk_failed_one' | t }}" data-support-bulk-unavailable="{{ 'modules/support/live.bulk_unavailable' | t }}" data-support-bulk-unavailable-one="{{ 'modules/support/live.bulk_unavailable_one' | t }}">
+<div class="pos-support-queue" data-support-live data-support-group="{{ page_data.group }}" data-support-query="{{ page_data.query }}" data-support-departments="{{ page_data.live_departments }}" data-support-me="{{ member.profile_id }}" data-support-first-page="true" data-support-assigned-to-you="{{ 'modules/support/live.assigned_to_you' | t }}" data-support-bulk-done="{{ 'modules/support/live.bulk_done' | t }}" data-support-bulk-done-one="{{ 'modules/support/live.bulk_done_one' | t }}" data-support-bulk-failed="{{ 'modules/support/live.bulk_failed' | t }}" data-support-bulk-failed-one="{{ 'modules/support/live.bulk_failed_one' | t }}" data-support-bulk-unavailable="{{ 'modules/support/live.bulk_unavailable' | t }}" data-support-bulk-unavailable-one="{{ 'modules/support/live.bulk_unavailable_one' | t }}">
   {% render 'modules/support/queue/head', page_data: page_data, member: member %}
 
   {% if groups.total == 0 %}

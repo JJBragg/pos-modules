@@ -29,7 +29,9 @@ if (root && window.pos && window.pos.csrfToken) {
   const refreshRow = async (ticketId, kind, attempt = 1) => {
     if (leaving) return;
     if (!rowOf(ticketId) && (kind !== 'created' || root.dataset.supportFirstPage !== 'true')) return;
-    const response = await fetch(`/support-desk/tickets/${encodeURIComponent(ticketId)}/row`, { credentials: 'same-origin' }).catch(() => null);
+    // the page's view and filters go along: a ticket outside them answers 204
+    const query = root.dataset.supportQuery ? `?${root.dataset.supportQuery}&layout=list` : '';
+    const response = await fetch(`/support-desk/tickets/${encodeURIComponent(ticketId)}/row${query}`, { credentials: 'same-origin' }).catch(() => null);
     // messages for one change are merged into this one fetch, so a failed
     // fetch (busy server, rate limit) is tried again once
     if (!response || (!response.ok && response.status !== 404)) {
@@ -37,6 +39,12 @@ if (root && window.pos && window.pos.csrfToken) {
       return;
     }
     if (!response.ok) return;
+    if (response.status === 204) {
+      // the ticket left this view (status, assignee, department…): its row goes too
+      const gone = rowOf(ticketId);
+      if (gone) gone.remove();
+      return;
+    }
     const template = document.createElement('template');
     template.innerHTML = (await response.text()).trim();
     const row = template.content.querySelector('tr');

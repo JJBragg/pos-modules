@@ -46,6 +46,18 @@
   function data = 'modules/support/queries/tickets/search', member: manager, view: 'all_open', filters: unassigned_filter, page: 1, per_page: 10
   function contract = 'modules/tests/assertions/equal', contract: contract, given: data.results.first.id, expected: f.ticket.id, field_name: 'unassigned filter finds unassigned ticket'
 
+  # live refresh: a ticket belongs to a page's view only when its view and filters match
+  assign live_params = { "view": "all_open", "layout": "list" }
+  function in_view = 'modules/support/queries/tickets/in_view', member: manager, params: live_params, ticket_id: f.ticket.id
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: in_view, expected: true, field_name: 'new ticket is in All open'
+  assign live_params.view = 'closed'
+  function in_view = 'modules/support/queries/tickets/in_view', member: manager, params: live_params, ticket_id: f.ticket.id
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: in_view, expected: false, field_name: 'new ticket is not in Closed'
+  assign live_params.view = 'all_open'
+  assign live_params.department_id = other.records.results.first.id
+  function in_view = 'modules/support/queries/tickets/in_view', member: manager, params: live_params, ticket_id: f.ticket.id
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: in_view, expected: false, field_name: 'ticket of another department is not in a filtered view'
+
   # bulk: agent assigns to self, sets priority and status; events written
   assign ids = []
   assign ids << f.ticket.id

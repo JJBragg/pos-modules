@@ -15,6 +15,12 @@ metadata:
     response_status 404
     break
   endif
+  # a ticket that is not (or no longer) on the board's view: 204, and the board drops its card
+  function in_view = 'modules/support/queries/tickets/in_view', member: context.exports.support.support_member, params: context.params, ticket_id: ticket.id
+  unless in_view
+    response_status 204
+    break
+  endunless
   assign tickets = []
   assign tickets << ticket
   function lookup = 'modules/support/queries/tickets/lookup', tickets: tickets

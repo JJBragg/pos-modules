@@ -1,0 +1,27 @@
+{% doc %}
+  Whether a ticket belongs to the queue view a live page shows: the same
+  view, filters and layout as helpers/queue_page, narrowed to the one
+  ticket. A page that posts no view (the ticket page) gets true.
+  @param {object} member - The signed-in team_member
+  @param {object} params - Request params: view, layout, department_id, priority, status_key, assignee_id, q
+  @param {string} ticket_id - The ticket
+{% enddoc %}
+{% liquid
+  function form = 'modules/support/helpers/text_params', params: params, names: 'view,layout,department_id,priority,status_key,assignee_id,q'
+  assign views = "mine,needs_reply,unassigned,all_open,waiting,awaiting_confirmation,sla_at_risk,deploy,closed" | split: ','
+  unless views contains form.view
+    return true
+  endunless
+  assign filters = { "department_id": null, "priority": null, "status_key": null, "assignee_id": null, "q": null }
+  assign filters.department_id = form.department_id
+  assign filters.priority = form.priority
+  assign filters.status_key = form.status_key
+  assign filters.assignee_id = form.assignee_id
+  assign filters.q = form.q | strip
+  function include_waiting = 'modules/support/helpers/include_waiting', layout: form.layout, view: form.view
+  function found = 'modules/support/queries/tickets/search', member: member, view: form.view, filters: filters, page: 1, per_page: 1, skip_lookup: true, include_waiting: include_waiting, ticket_id: ticket_id
+  if found.total_entries > 0
+    return true
+  endif
+  return false
+%}

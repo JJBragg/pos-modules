@@ -7,12 +7,8 @@
 {% enddoc %}
 {% liquid
   assign groups = page_data.groups
-  assign filtered = false
-  if page_data.filters.q != blank or page_data.filters.priority != blank or page_data.filters.assignee_id != blank or page_data.filters.department_id != blank
-    assign filtered = true
-  endif
 %}
-<div class="pos-support-queue" data-support-board data-support-group="{{ page_data.group }}" data-support-filtered="{{ filtered }}" data-support-departments="{{ page_data.live_departments }}" data-support-move-error="{{ 'modules/support/board.move_error' | t }}" data-support-moved="{{ 'modules/support/board.moved' | t }}">
+<div class="pos-support-queue" data-support-board data-support-group="{{ page_data.group }}" data-support-query="{{ page_data.query }}" data-support-departments="{{ page_data.live_departments }}" data-support-move-error="{{ 'modules/support/board.move_error' | t }}" data-support-moved="{{ 'modules/support/board.moved' | t }}">
   {% render 'modules/support/queue/head', page_data: page_data, member: member %}
 
   <div class="pos-support-board">

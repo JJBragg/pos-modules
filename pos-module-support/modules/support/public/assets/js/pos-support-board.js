@@ -40,7 +40,9 @@ if (root) {
   // Fetch the card again. It is dropped when the ticket left the member's
   // scope or moved to a column that is not shown.
   const refresh = async (ticketId, attempt = 1) => {
-    const response = await fetch(`/support-desk/tickets/${encodeURIComponent(ticketId)}/card?group=${byPriority ? 'priority' : 'status'}`, { credentials: 'same-origin' }).catch(() => null);
+    // the board's view and filters go along: a ticket outside them answers 204 and its card is dropped
+    const query = root.dataset.supportQuery ? `&${root.dataset.supportQuery}&layout=board` : '';
+    const response = await fetch(`/support-desk/tickets/${encodeURIComponent(ticketId)}/card?group=${byPriority ? 'priority' : 'status'}${query}`, { credentials: 'same-origin' }).catch(() => null);
     // a failed fetch (busy server, rate limit) keeps the card and tries again;
     // only an answer without a card removes it
     if (!response || (!response.ok && response.status !== 404)) {
@@ -51,7 +53,7 @@ if (root) {
     const from = existing && existing.closest('.pos-support-column');
     let card = null;
     let target = null;
-    if (response.ok) {
+    if (response.ok && response.status !== 204) {
       const template = document.createElement('template');
       template.innerHTML = (await response.text()).trim();
       card = template.content.querySelector('.pos-support-card');
@@ -141,16 +143,15 @@ if (root) {
     });
   });
 
-  // Live: cards on the board follow changes made elsewhere. A ticket not on
-  // the board is only added when no filter is narrowing it.
-  const filtered = root.dataset.supportFiltered === 'true';
+  // Live: cards on the board follow changes made elsewhere; the card endpoint
+  // decides from the board's view and filters whether a ticket belongs on it.
   const departments = (root.dataset.supportDepartments || '').split(',').filter(Boolean);
   if (departments.length && window.pos && window.pos.csrfToken) {
     const consumer = createConsumer(() => `/websocket?authenticity_token=${encodeURIComponent(window.pos.csrfToken)}`);
     // several messages for one change are merged into one card fetch
     const timers = new Map();
     const received = (data) => {
-      if (!data.ticket_id || (filtered && !cardFor(data.ticket_id))) return;
+      if (!data.ticket_id) return;
       clearTimeout(timers.get(data.ticket_id));
       timers.set(data.ticket_id, setTimeout(() => {
         timers.delete(data.ticket_id);
