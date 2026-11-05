@@ -78,7 +78,17 @@
     <select id="pos-support-assignee-filter" name="assignee_id">
       <option value="">{{ 'modules/support/queue.any_assignee' | t }}</option>
       <option value="{{ member.profile_id }}" {% if filters.assignee_id == member.profile_id %}selected{% endif %}>{{ 'modules/support/queue.assigned_to_me' | t }}</option>
-      {% for m in page_data.members %}{% if m.profile_id != member.profile_id %}<option value="{{ m.profile_id }}" {% if filters.assignee_id == m.profile_id %}selected{% endif %}>{{ m.name }}</option>{% endif %}{% endfor %}
+      <option value="none" {% if filters.assignee_id == 'none' %}selected{% endif %}>{{ 'modules/support/ticket.unassigned' | t }}</option>
+      {%- comment -%} an agent sees only colleagues who can hold tickets in their own departments {%- endcomment -%}
+      {% for m in page_data.members %}
+        {% if m.profile_id == member.profile_id %}{% continue %}{% endif %}
+        {% assign shares_department = true %}
+        {% if member.role == 'agent' and m.role == 'agent' %}
+          {% assign shares_department = false %}
+          {% for d in m.department_ids %}{% if member.department_ids contains d %}{% assign shares_department = true %}{% endif %}{% endfor %}
+        {% endif %}
+        {% if shares_department %}<option value="{{ m.profile_id }}" {% if filters.assignee_id == m.profile_id %}selected{% endif %}>{{ m.name }}</option>{% endif %}
+      {% endfor %}
     </select>
   {% endif %}
   <label for="pos-support-sort" class="pos-support-sr-only">{{ 'modules/support/queue.sort' | t }}</label>

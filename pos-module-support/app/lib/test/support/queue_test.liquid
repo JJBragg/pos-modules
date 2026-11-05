@@ -40,6 +40,12 @@
   endif
   function contract = 'modules/tests/assertions/true', contract: contract, value: has_unassigned, field_name: 'counts include fixture', object: null
 
+  # the assignee filter's "Unassigned" choice finds the unassigned fixture ticket
+  assign unassigned_filter = { "assignee_id": "none", "q": null }
+  assign unassigned_filter.q = '#' | append: f.ticket.number
+  function data = 'modules/support/queries/tickets/search', member: manager, view: 'all_open', filters: unassigned_filter, page: 1, per_page: 10
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: data.results.first.id, expected: f.ticket.id, field_name: 'unassigned filter finds unassigned ticket'
+
   # bulk: agent assigns to self, sets priority and status; events written
   assign ids = []
   assign ids << f.ticket.id
@@ -47,6 +53,8 @@
   function contract = 'modules/tests/assertions/equal', contract: contract, given: bulk.changed, expected: 1, field_name: 'bulk changed one'
   function ticket = 'modules/support/queries/tickets/find', id: f.ticket.id, number: null, member: agent
   function contract = 'modules/tests/assertions/equal', contract: contract, given: ticket.assignee_id, expected: agent.profile_id, field_name: 'bulk assigned'
+  function data = 'modules/support/queries/tickets/search', member: manager, view: 'all_open', filters: unassigned_filter, page: 1, per_page: 10
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: data.total_entries, expected: 0, field_name: 'assigned ticket leaves the unassigned filter'
   function contract = 'modules/tests/assertions/equal', contract: contract, given: ticket.priority, expected: 'p1', field_name: 'bulk priority'
   function contract = 'modules/tests/assertions/equal', contract: contract, given: ticket.category, expected: 'open', field_name: 'bulk status'
   graphql ev = 'modules/support/ticket_events/search', ticket_id: f.ticket.id

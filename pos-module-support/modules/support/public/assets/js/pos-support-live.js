@@ -145,10 +145,17 @@ if (root && window.pos && window.pos.csrfToken) {
       batches.set(data.batch, batch);
       if (batch.seen < data.chunks) return;
       batches.delete(data.batch);
-      if (batch.changed > 0) toast('success', text('supportBulkDone', '{count} tickets updated.').replace('{count}', batch.changed));
+      // one / many wording; a ticket outside the member's scope has no number to show
+      const pick = (count, one, many, fallback) => (count === 1 ? text(one, fallback) : text(many, fallback));
+      if (batch.changed > 0) {
+        toast('success', pick(batch.changed, 'supportBulkDoneOne', 'supportBulkDone', '{count} tickets updated.').replace('{count}', batch.changed));
+      }
       if (batch.failed > 0) {
         const numbers = batch.numbers.map((n) => `#${n}`).join(', ');
-        toast('error', text('supportBulkFailed', '{count} tickets could not be changed: {numbers}').replace('{count}', batch.failed).replace('{numbers}', numbers));
+        const message = numbers
+          ? pick(batch.failed, 'supportBulkFailedOne', 'supportBulkFailed', '{count} tickets could not be changed: {numbers}')
+          : pick(batch.failed, 'supportBulkUnavailableOne', 'supportBulkUnavailable', '{count} tickets could not be changed.');
+        toast('error', message.replace('{count}', batch.failed).replace('{numbers}', numbers));
       }
     });
   }

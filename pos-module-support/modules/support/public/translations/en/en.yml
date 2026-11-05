@@ -616,6 +616,10 @@ en:
     assigned_to_you: Assigned to you
     bulk_done: "{count} tickets updated."
     bulk_failed: "{count} tickets could not be changed: {numbers}"
+    bulk_done_one: 1 ticket updated.
+    bulk_failed_one: "1 ticket could not be changed: {numbers}"
+    bulk_unavailable: "{count} tickets could not be changed; they are not available to you."
+    bulk_unavailable_one: 1 ticket could not be changed; it is not available to you.
   categories:
     new: New
     open: Open

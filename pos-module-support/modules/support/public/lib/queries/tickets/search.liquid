@@ -4,7 +4,7 @@
   Returns { results, total_entries, total_pages, page, lookup: { contacts, organizations, profiles, departments, statuses } }.
   @param {object} member - The acting team_member
   @param {string} [view] - mine | needs_reply | unassigned | all_open | waiting | awaiting_confirmation | sla_at_risk | deploy | closed
-  @param {object} [filters] - { department_id, priority, status_key, assignee_id, organization_id, q, sort: sla (default) | priority | newest | oldest | activity | board }
+  @param {object} [filters] - { department_id, priority, status_key, assignee_id ('none' = unassigned), organization_id, q, sort: sla (default) | priority | newest | oldest | activity | board }
   @param {number} [page] - Page number
   @param {number} [per_page] - Page size, max 200
   @param {boolean} [skip_lookup] - Leave out the related records (the caller loads them once for several searches)
@@ -22,6 +22,11 @@
   assign categories = ["new", "open", "pending", "on_hold"]
   assign assignee_id = filters.assignee_id
   assign assigned = null
+  # the assignee filter's "Unassigned" choice
+  if assignee_id == 'none'
+    assign assignee_id = null
+    assign assigned = false
+  endif
   assign needs_reply = null
   assign status_ids = null
   assign sla_states = null
