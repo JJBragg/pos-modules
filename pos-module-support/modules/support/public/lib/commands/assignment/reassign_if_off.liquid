@@ -35,5 +35,9 @@
   assign reason = 'modules/support/assignment.reassigned_off' | t
   function unassigned = 'modules/support/commands/tickets/assign', ticket: ticket, assignee_id: null, reason: reason, actor: actor
   function _ = 'modules/support/commands/assignment/auto_assign', ticket_id: ticket.id
+  # the previous assignee learns the ticket moved on while they were away
+  assign previous = []
+  assign previous << member.profile_id
+  function _ = 'modules/support/commands/notifications/notify', event_key: 'reassigned', ticket_id: ticket.id, actor_id: null, mentioned_ids: previous
   return true
 %}

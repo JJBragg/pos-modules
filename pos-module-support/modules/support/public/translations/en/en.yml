@@ -547,6 +547,7 @@ en:
     mail_loop: Mail loop detected
     mail_loop_body: "More than 20 emails in an hour came from one sender at %{domain}. Further emails from it are set aside until the hour passes; block it if it keeps on."
     open_blocklist: Open the blocklist
+    reassigned: "Ticket re-assigned while you were away · %{priority}"
     new: "New ticket · %{priority}"
     p0: "P0 ticket · act now"
     assigned: "Ticket assigned to you · %{priority}"

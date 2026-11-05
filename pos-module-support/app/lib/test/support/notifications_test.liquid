@@ -64,6 +64,12 @@
   graphql skipped = 'modules/support/ticket_events/search', ticket_id: f.ticket.id, event_type: 'notification_skipped', limit: 1
   function contract = 'modules/tests/assertions/equal', contract: contract, given: skipped.records.results.first.reason, expected: 'paused', field_name: 'skip logged'
 
+  # recipients: a re-assignment while away goes to the previous assignee only
+  assign previous = ["test-previous-assignee"]
+  function recipients = 'modules/support/queries/notifications/recipients', event_key: 'reassigned', ticket: f.ticket, mentioned_ids: previous
+  assign joined = recipients | join: ','
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: joined, expected: 'test-previous-assignee', field_name: 'reassigned notice goes to the previous assignee'
+
   # recipients: new goes to department agents and managers
   function recipients = 'modules/support/queries/notifications/recipients', event_key: 'new', ticket: f.ticket, mentioned_ids: null
   assign has_member = false

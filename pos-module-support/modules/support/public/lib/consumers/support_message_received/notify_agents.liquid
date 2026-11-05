@@ -4,14 +4,18 @@ metadata:
   max_attempts: 3
 ---
 {% doc %}
-  A customer reply on an existing ticket. The first message of a new ticket
-  is covered by the "new" notification.
+  A customer reply on an existing ticket. When the assignee has been away
+  or off for more than a business day the ticket is re-assigned first
+  (06 §2), so the reply alert reaches the new assignee and the previous one
+  is told. The first message of a new ticket is covered by the "new"
+  notification.
   @param {object} event - support_message_received
 {% enddoc %}
 {% liquid
   if event.auto_reply
     return null
   endif
+  function _ = 'modules/support/commands/assignment/reassign_if_off', ticket_id: event.ticket_id
   graphql first = 'modules/support/messages/search', ticket_id: event.ticket_id, limit: 1
   if first.records.results.first.id == event.message_id
     return null

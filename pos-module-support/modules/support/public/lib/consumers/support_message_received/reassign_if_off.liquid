@@ -1,16 +1,15 @@
 ---
 metadata:
   priority: default
-  max_attempts: 3
+  max_attempts: 1
 ---
 {% doc %}
-  A customer wrote on a ticket whose assignee has been away or off for more
-  than one business day (06 §2): unassign and assign again.
-  @param {object} event - support_message_received
+  Re-assignment on a customer reply now runs in notify_agents, before the
+  reply alert, so the alert reaches the new assignee. This consumer is kept
+  empty because a deploy does not delete files: an installation upgrading
+  from a version that had it would otherwise keep running the old copy and
+  re-assign twice.
 {% enddoc %}
 {% liquid
-  if event.auto_reply
-    return null
-  endif
-  function _ = 'modules/support/commands/assignment/reassign_if_off', ticket_id: event.ticket_id
+  return null
 %}

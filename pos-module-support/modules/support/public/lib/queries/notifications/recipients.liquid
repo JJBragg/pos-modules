@@ -1,8 +1,8 @@
 {% doc %}
   Profile ids to notify for an event (07 §1).
-  @param {string} event_key - new | assigned | reply | mention | sla_due | sla_breach | unassigned | confirm_wait | p0 | access_requested
+  @param {string} event_key - new | assigned | reply | mention | reassigned | sla_due | sla_breach | unassigned | confirm_wait | p0 | access_requested
   @param {object} [ticket] - The ticket
-  @param {string[]} [mentioned_ids] - For mention
+  @param {string[]} [mentioned_ids] - For mention, and the previous assignee for reassigned
 {% enddoc %}
 {% liquid
   function members = 'modules/support/queries/team_members/all_active'
@@ -36,7 +36,7 @@
       else
         assign ids = everyone_new
       endif
-    when 'mention'
+    when 'mention', 'reassigned'
       assign ids = mentioned_ids | default: []
     when 'sla_due', 'confirm_wait'
       if ticket.assignee_id != blank
