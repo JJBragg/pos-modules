@@ -19,18 +19,36 @@
     assign staff_roles = staff_roles | uniq
   endif
 
-  graphql people = 'modules/support/team/profiles_by_roles', roles: staff_roles, limit: 200
-  graphql members = 'modules/support/team_members/search', limit: 200
-  assign member_ids = members.records.results | map: 'profile_id'
+  # every membership, in any state, is excluded: one page of 200 left later members in the list
+  graphql members = 'modules/support/team_members/search', limit: 200, page: 1
+  assign memberships = members.records.results
+  assign pages = members.records.total_entries | plus: 199 | divided_by: 200
+  # one request per page of 200, not per member or profile
+  # platformos-check-disable NestedGraphQLQuery
+  if pages > 1
+    for page in (2..pages)
+      graphql more = 'modules/support/team_members/search', limit: 200, page: page
+      assign memberships = memberships | concat: more.records.results
+    endfor
+  endif
+  assign member_ids = memberships | map: 'profile_id' | array_compact | uniq
+
   assign candidates = []
-  for profile in people.records.results
-    unless member_ids contains profile.id
+  assign page = 1
+  for _ in (1..50)
+    graphql people = 'modules/support/team/profiles_by_roles', roles: staff_roles, not_ids: member_ids, limit: 200, page: page
+    for profile in people.records.results
       assign item = { "id": null, "name": null, "email": null }
       assign item.id = profile.id
       assign item.name = profile.name | default: profile.first_name | default: profile.email
       assign item.email = profile.email
       assign candidates << item
-    endunless
+    endfor
+    if page >= people.records.total_pages
+      break
+    endif
+    assign page = page | plus: 1
   endfor
+  # platformos-check-enable NestedGraphQLQuery
   return candidates
 %}

@@ -22,9 +22,15 @@
   function r = 'modules/support/commands/settings_sections/branding', params: bad
   function contract = 'modules/tests/assertions/equal', contract: contract, given: r.valid, expected: false, field_name: 'non-https logo refused'
 
-  # back to the host's branding
-  assign reset = { "use_host": "true" }
-  function _ = 'modules/support/commands/settings_sections/branding', params: reset
+  # a new value typed with "use host branding" still ticked is refused, not dropped
+  assign mixed = { "use_host": "true", "app_name": "Typed Desk" }
+  function r = 'modules/support/commands/settings_sections/branding', params: mixed
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: r.error, expected: 'modules/support/settings.errors.use_host_with_overrides', field_name: 'override typed with use host refused'
+
+  # back to the host's branding: ticking the box with the saved values still in the form
+  assign reset = { "use_host": "true", "app_name": "Override Desk" }
+  function r = 'modules/support/commands/settings_sections/branding', params: reset
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: r.valid, expected: true, field_name: 'ticking use host clears saved overrides'
   function brand = 'modules/support/helpers/branding'
   function contract = 'modules/tests/assertions/equal', contract: contract, given: brand.app_name, expected: 'Harbor City Permits', field_name: 'host branding restored'
 %}

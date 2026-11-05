@@ -76,6 +76,14 @@
     });
   });
 
+  // typing into a field that only applies with a box unticked unticks it
+  // (data-support-untick="<checkbox id>"), e.g. branding overrides vs host branding
+  document.addEventListener('input', (event) => {
+    const id = event.target.dataset && event.target.dataset.supportUntick;
+    const box = id && document.getElementById(id);
+    if (box && event.target.value.trim() !== '') box.checked = false;
+  });
+
   const toggle = document.querySelector('[data-support-nav-toggle]');
   if (!toggle) return;
   const rail = document.getElementById('pos-support-rail');

@@ -1,12 +1,15 @@
-query ($roles: [String!], $email: String, $limit: Int = 200) {
+query ($roles: [String!], $email: String, $not_ids: [ID!], $limit: Int = 200, $page: Int = 1) {
   records(
+    page: $page
     per_page: $limit
     filter: {
+      id: { not_value_in: $not_ids }
       table: { value: "modules/user/profile" }
       properties: [{ name: "roles", array_overlaps: $roles }, { name: "email", value: $email }]
     }
     sort: [{ created_at: { order: ASC } }]
   ) {
+    total_pages
     results {
       id
       email: property(name: "email")

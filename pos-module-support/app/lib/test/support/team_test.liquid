@@ -111,5 +111,15 @@
   function can = 'modules/support/can/desk', requester: requester_profile, entity: entity, do: 'support.tickets.read'
   function contract = 'modules/tests/assertions/equal', contract: contract, given: can, expected: false, field_name: 'disabled member refused'
 
+  # Pick existing staff never offers someone who already has a membership, however many there are
+  function candidates = 'modules/support/queries/team/staff_candidates'
+  assign candidate_ids = candidates | map: 'id'
+  assign offered_members = 0
+  if candidate_ids.size > 0
+    graphql taken = 'modules/support/team_members/search', profile_ids: candidate_ids, limit: 1
+    assign offered_members = taken.records.total_entries
+  endif
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: offered_members, expected: 0, field_name: 'staff candidates exclude every member'
+
   function _ = 'modules/support/commands/settings/set', key: 'email_api_base_url', value: null
 %}

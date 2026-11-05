@@ -721,6 +721,7 @@ en:
       number: Enter a number in range.
       minutes: Enter a whole number of minutes from 1 to 10080.
       spam_threshold: Enter a spam threshold from 0 to 100.
+      use_host_with_overrides: "Untick \"Use the host app's branding\" to save your own name, colours or images."
       theme_mode: Choose Follow the device, Light or Dark.
       section: Unknown settings section.
       department: Enter a name and an inbound address name (lower-case letters, digits, dashes).

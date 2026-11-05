@@ -54,13 +54,13 @@
     <form action="/support-desk/settings/save" method="post" class="pos-form pos-support-settings-form">
       <input type="hidden" name="authenticity_token" value="{{ context.authenticity_token }}">
       <input type="hidden" name="section" value="branding">
-      <fieldset><label><input type="checkbox" name="use_host" value="true" {% if using_host %}checked{% endif %}> {{ 'modules/support/settings.use_host' | t }}</label></fieldset>
-      <fieldset><label for="br-name">{{ 'modules/support/settings.app_name' | t }}</label><input id="br-name" name="app_name" value="{{ o.app_name }}" placeholder="{{ brand.app_name }}"></fieldset>
-      <fieldset><label for="br-short">{{ 'modules/support/settings.short_name' | t }}</label><input id="br-short" name="short_name" value="{{ o.short_name }}" placeholder="{{ brand.short_name }}"></fieldset>
-      <fieldset><label for="br-email-name">{{ 'modules/support/settings.email_name' | t }}</label><input id="br-email-name" name="support_email_name" value="{{ o.support_email_name }}" placeholder="{{ brand.support_email_name }}"></fieldset>
-      <fieldset><label for="br-theme">{{ 'modules/support/settings.theme_color' | t }}</label><input id="br-theme" name="theme_color" value="{{ o.theme_color }}" placeholder="#1d4f91" pattern="#[0-9a-fA-F]{6}"></fieldset>
-      <fieldset><label for="br-logo">{{ 'modules/support/settings.logo_url' | t }}</label><input id="br-logo" type="url" name="logo_url" value="{{ o.logo_url }}" placeholder="https://"></fieldset>
-      <fieldset><label for="br-icon">{{ 'modules/support/settings.icon_url' | t }}</label><input id="br-icon" type="url" name="icon_url" value="{{ o.icon_url }}" placeholder="https://"></fieldset>
+      <fieldset><label><input id="br-use-host" type="checkbox" name="use_host" value="true" {% if using_host %}checked{% endif %}> {{ 'modules/support/settings.use_host' | t }}</label></fieldset>
+      <fieldset><label for="br-name">{{ 'modules/support/settings.app_name' | t }}</label><input id="br-name" name="app_name" value="{{ o.app_name }}" placeholder="{{ brand.app_name }}" data-support-untick="br-use-host"></fieldset>
+      <fieldset><label for="br-short">{{ 'modules/support/settings.short_name' | t }}</label><input id="br-short" name="short_name" value="{{ o.short_name }}" placeholder="{{ brand.short_name }}" data-support-untick="br-use-host"></fieldset>
+      <fieldset><label for="br-email-name">{{ 'modules/support/settings.email_name' | t }}</label><input id="br-email-name" name="support_email_name" value="{{ o.support_email_name }}" placeholder="{{ brand.support_email_name }}" data-support-untick="br-use-host"></fieldset>
+      <fieldset><label for="br-theme">{{ 'modules/support/settings.theme_color' | t }}</label><input id="br-theme" name="theme_color" value="{{ o.theme_color }}" placeholder="#1d4f91" pattern="#[0-9a-fA-F]{6}" data-support-untick="br-use-host"></fieldset>
+      <fieldset><label for="br-logo">{{ 'modules/support/settings.logo_url' | t }}</label><input id="br-logo" type="url" name="logo_url" value="{{ o.logo_url }}" placeholder="https://" data-support-untick="br-use-host"></fieldset>
+      <fieldset><label for="br-icon">{{ 'modules/support/settings.icon_url' | t }}</label><input id="br-icon" type="url" name="icon_url" value="{{ o.icon_url }}" placeholder="https://" data-support-untick="br-use-host"></fieldset>
       <button type="submit" class="pos-button pos-button-primary">{{ 'modules/support/settings.save' | t }}</button>
     </form>
   </section>

@@ -25,6 +25,17 @@
   endif
 
   if params.use_host == 'true'
+    # an override typed in with the box still ticked would be thrown away
+    # without a word; values already saved (ticking the box to clear them) pass
+    assign fields = "app_name,short_name,support_email_name,theme_color,background_color,logo_url,logo_dark_url,icon_url" | split: ','
+    for key in fields
+      assign typed = params[key] | strip
+      assign saved = settings.branding_override[key] | default: ''
+      if typed != blank and typed != saved
+        assign result.error = 'modules/support/settings.errors.use_host_with_overrides'
+        return result
+      endif
+    endfor
     assign kept = {}
     if current_mode != blank and current_mode != 'auto'
       assign kept.theme_mode = current_mode
