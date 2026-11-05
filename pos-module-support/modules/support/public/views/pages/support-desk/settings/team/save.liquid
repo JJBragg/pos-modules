@@ -18,7 +18,12 @@ metadata:
   assign actor = { "id": null, "member": null }
   assign actor.id = context.exports.support.support_member.profile_id
   assign actor.member = context.exports.support.support_member
-  function result = 'modules/support/commands/team/apply_form', params: context.params, actor: actor
+  # text fields as text and the department list as a list of text: an array
+  # or hash posted in their place reads as blank instead of failing the page
+  function form = 'modules/support/helpers/text_params', params: context.params, names: 'op,email,role,invite_id,member_id,request_id,state,job_title,on_duty_manager'
+  function department_ids = 'modules/support/helpers/text_list', value: context.params.department_ids
+  assign form.department_ids = department_ids
+  function result = 'modules/support/commands/team/apply_form', params: form, actor: actor
   if result.valid
     function _ = 'modules/user/helpers/flash', notice: result.notice, error: null, info: null, force_clear: null
   else

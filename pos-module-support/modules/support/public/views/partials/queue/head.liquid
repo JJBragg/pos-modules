@@ -13,6 +13,11 @@
     assign view_label = 'modules/support/board.title' | t
   endif
   assign base = '/support-desk?' | append: page_data.query
+  # the attention chips keep the department, like the rail's view links
+  assign department_suffix = ''
+  if filters.department_id != blank
+    assign department_suffix = '&department_id=' | append: filters.department_id
+  endif
   assign filtered = false
   if filters.q != blank or filters.priority != blank or filters.status_key != blank or filters.assignee_id != blank
     assign filtered = true
@@ -41,9 +46,9 @@
 </div>
 
 <nav class="pos-support-attention" aria-label="{{ 'modules/support/queue.attention' | t }}">
-  <a href="/support-desk?view=needs_reply" class="pos-support-attention-item pos-support-attention-reply{% if counts.needs_reply == 0 %} pos-support-attention-zero{% endif %}">{% render 'modules/support/icon', name: 'reply', size: 'sm' %}<strong>{{ counts.needs_reply }}</strong> {{ 'modules/support/views.needs_reply' | t }}</a>
-  <a href="/support-desk?view=sla_at_risk" class="pos-support-attention-item pos-support-attention-sla{% if counts.sla_at_risk == 0 %} pos-support-attention-zero{% endif %}">{% render 'modules/support/icon', name: 'triangle-alert', size: 'sm' %}<strong>{{ counts.sla_at_risk }}</strong> {{ 'modules/support/views.sla_at_risk' | t }}</a>
-  <a href="/support-desk?view=deploy" class="pos-support-attention-item pos-support-attention-deploy{% if counts.deploy == 0 %} pos-support-attention-zero{% endif %}">{% render 'modules/support/icon', name: 'rocket', size: 'sm' %}<strong>{{ counts.deploy }}</strong> {{ 'modules/support/views.deploy' | t }}</a>
+  <a href="/support-desk?view=needs_reply{{ department_suffix }}" class="pos-support-attention-item pos-support-attention-reply{% if counts.needs_reply == 0 %} pos-support-attention-zero{% endif %}">{% render 'modules/support/icon', name: 'reply', size: 'sm' %}<strong>{{ counts.needs_reply }}</strong> {{ 'modules/support/views.needs_reply' | t }}</a>
+  <a href="/support-desk?view=sla_at_risk{{ department_suffix }}" class="pos-support-attention-item pos-support-attention-sla{% if counts.sla_at_risk == 0 %} pos-support-attention-zero{% endif %}">{% render 'modules/support/icon', name: 'triangle-alert', size: 'sm' %}<strong>{{ counts.sla_at_risk }}</strong> {{ 'modules/support/views.sla_at_risk' | t }}</a>
+  <a href="/support-desk?view=deploy{{ department_suffix }}" class="pos-support-attention-item pos-support-attention-deploy{% if counts.deploy == 0 %} pos-support-attention-zero{% endif %}">{% render 'modules/support/icon', name: 'rocket', size: 'sm' %}<strong>{{ counts.deploy }}</strong> {{ 'modules/support/views.deploy' | t }}</a>
 </nav>
 
 <form class="pos-support-toolbar pos-form" method="get" action="/support-desk" role="search" data-support-autosubmit>

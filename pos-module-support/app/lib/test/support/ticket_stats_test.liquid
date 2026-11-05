@@ -94,4 +94,10 @@
   graphql _ = 'modules/support/records/create_one', table: 'modules/support/ticket_stat', properties: props
   function rail = 'modules/support/queries/ticket_stats/rail', member: f.actor.member, view: 'waiting', filters: no_filters, include_waiting: false
   function contract = 'modules/tests/assertions/equal', contract: contract, given: rail.departments.all, expected: live.records.total_entries, field_name: 'rail ignores a duplicate row'
+
+  # with a department selected, the view counts are that department's
+  assign other_department = { "department_id": "0" }
+  function rail = 'modules/support/queries/ticket_stats/rail', member: f.actor.member, view: 'waiting', filters: other_department, include_waiting: false
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: rail.counts.mine, expected: 0, field_name: 'view counts follow the selected department'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: rail.departments.all, expected: live.records.total_entries, field_name: 'department counters still list every department'
 %}

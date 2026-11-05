@@ -1,0 +1,20 @@
+{% doc %}
+  Reads a list field (name[]=a&name[]=b) as an array of plain-text values.
+  Anything else (a single value, a hash, nested arrays) gives an empty list
+  or drops the item, so it cannot reach string filters or GraphQL variables.
+  @param {object} value - The posted value, e.g. context.params.department_ids
+{% enddoc %}
+{% liquid
+  assign result = []
+  assign kind = value | type_of
+  if kind != 'Array'
+    return result
+  endif
+  for item in value
+    assign text = item | append: ''
+    if text == item and text != blank
+      assign result << text
+    endif
+  endfor
+  return result
+%}

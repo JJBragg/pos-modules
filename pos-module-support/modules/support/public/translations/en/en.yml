@@ -198,6 +198,8 @@ en:
       role_map: Host role
       superadmin: Host superadmin
       recovery: Recovery email
+      other: Other
+    no_departments: No departments
     notices:
       invited: Added. People without an account get an invitation email.
       resent: Invitation sent again.
@@ -218,6 +220,8 @@ en:
       declined_body: Ask a support admin if you think this is a mistake.
     errors:
       already_member: is already on the support team
+      already_member_message: This person is already on the support team.
+      agent_departments: Choose at least one department for an agent, or they will see no tickets.
       not_allowed: Only a support admin can change the team.
       role: Choose agent, manager or admin.
       state: Choose active or disabled.

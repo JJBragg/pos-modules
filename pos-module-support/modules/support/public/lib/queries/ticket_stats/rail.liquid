@@ -7,7 +7,7 @@
   Returns { counts, departments }, the shape of queries/tickets/rail_counts.
   @param {object} member - The acting team_member
   @param {string} view - Queue view key
-  @param {object} filters - Current filters; department_id is ignored
+  @param {object} filters - Current filters; department_id narrows the view counts only
   @param {boolean} include_waiting - In all_open, count pending and on-hold tickets too (the board)
 {% enddoc %}
 {% liquid
@@ -37,20 +37,35 @@
     endunless
   endfor
 
+  # The view counts follow what the views show: only the selected department
+  # when one is selected (the rail links keep it), and All open counts the
+  # waiting tickets too on the board. Department counters below always list
+  # every department.
   assign keys = "needs_reply,unassigned,all_open,waiting,awaiting_confirmation,sla_at_risk,deploy" | split: ','
   assign counts = { "mine": 0 }
   for key in keys
     assign counts[key] = 0
   endfor
+  assign selected = filters.department_id | default: ''
   for row in department_rows
+    if selected != blank and row.department_id != selected
+      continue
+    endif
     for key in keys
-      assign counts[key] = counts[key] | plus: row.counts[key]
+      assign source_key = key
+      if key == 'all_open' and include_waiting
+        assign source_key = 'open'
+      endif
+      assign counts[key] = counts[key] | plus: row.counts[source_key]
     endfor
   endfor
   assign mine_by_department = {}
   for row in mine_rows
-    assign counts.mine = counts.mine | plus: row.counts.mine
     assign mine_by_department[row.department_id] = row.counts.mine
+    if selected != blank and row.department_id != selected
+      continue
+    endif
+    assign counts.mine = counts.mine | plus: row.counts.mine
   endfor
 
   assign result = { "counts": null, "departments": null }

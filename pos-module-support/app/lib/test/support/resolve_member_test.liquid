@@ -9,6 +9,9 @@
   function member = 'modules/support/helpers/resolve_member', profile: profile
   function contract = 'modules/tests/assertions/equal', contract: contract, given: member.source, expected: 'superadmin', field_name: 'superadmin source'
   function contract = 'modules/tests/assertions/equal', contract: contract, given: member.role, expected: 'admin', field_name: 'superadmin role'
+  graphql audit = 'modules/support/ticket_events/search', event_type: 'team_member_created', limit: 1
+  assign audited = audit.records.results.first
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: audited.to_value, expected: pid, field_name: 'auto-created membership audited'
   function again = 'modules/support/helpers/resolve_member', profile: profile
   function contract = 'modules/tests/assertions/equal', contract: contract, given: again.id, expected: member.id, field_name: 'superadmin reuses membership'
   graphql r = 'modules/support/team_members/search', profile_id: pid, limit: 5

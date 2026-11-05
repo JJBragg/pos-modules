@@ -14,6 +14,22 @@ next line{% endcapture %}
   function again = 'modules/support/helpers/text_to_html', text: back
   function contract = 'modules/tests/assertions/equal', contract: contract, given: again, expected: html, field_name: 'saving unchanged text keeps the html'
 
+  # a posted list keeps only its text items; a hash or a single value is no list
+  assign posted = []
+  assign nested = ["b"]
+  assign hashed = { "c": 1 }
+  assign posted << 'a'
+  assign posted << nested
+  assign posted << hashed
+  assign posted << ''
+  assign posted << 'd'
+  function list = 'modules/support/helpers/text_list', value: posted
+  assign joined = list | join: ','
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: joined, expected: 'a,d', field_name: 'text list keeps text items'
+  assign posted = { "0": "a" }
+  function list = 'modules/support/helpers/text_list', value: posted
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: list.size, expected: 0, field_name: 'hash is not a list'
+
   # reply token: round trip, changed number, changed mac
   function token = 'modules/support/helpers/reply_token', number: 1234, token: null
   function number = 'modules/support/helpers/reply_token', number: null, token: token

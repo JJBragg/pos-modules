@@ -26,14 +26,19 @@
       assign result.error = 'modules/support/team.errors.role'
       return result
     endunless
+    assign department_ids = department_ids | default: []
+    if role == 'agent' and department_ids.size == 0
+      assign result.error = 'modules/support/team.errors.agent_departments'
+      return result
+    endif
     assign object = { "state": "active", "source": "request" }
     assign object.profile_id = request.profile_id
     assign object.role = role
-    assign object.department_ids = department_ids | default: []
+    assign object.department_ids = department_ids
     assign object.created_by_id = actor.id
     function member = 'modules/support/commands/team_members/create', object: object
     unless member.valid
-      assign result.error = 'modules/support/team.errors.already_member'
+      assign result.error = 'modules/support/team.errors.already_member_message'
       return result
     endunless
     assign state = 'approved'

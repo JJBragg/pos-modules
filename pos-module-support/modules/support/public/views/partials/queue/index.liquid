@@ -24,6 +24,9 @@
         assign empty_title = 'modules/support/queue.empty_search' | t
         assign empty_text = 'modules/support/queue.empty_search_help' | t
         assign empty_url = '/support-desk?view=' | append: page_data.view
+        if page_data.filters.department_id != blank
+          assign empty_url = empty_url | append: '&department_id=' | append: page_data.filters.department_id
+        endif
         assign empty_action = 'modules/support/queue.clear' | t
         assign empty_icon = 'search'
       else

@@ -16,6 +16,7 @@ layout: modules/support/support
     redirect_to '/support-desk/sign-in'
     break
   endif
-  function result = 'modules/support/commands/team/request_access', profile: profile, note: context.params.note
+  function form = 'modules/support/helpers/text_params', params: context.params, names: 'note'
+  function result = 'modules/support/commands/team/request_access', profile: profile, note: form.note
   render 'modules/support/team/request_sent', result: result
 %}

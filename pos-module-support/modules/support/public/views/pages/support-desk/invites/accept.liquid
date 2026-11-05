@@ -9,7 +9,8 @@ layout: modules/support/support
     render 'modules/support/team/invite_accept', valid: false, invite_id: null, token: null, error: null
     break
   endunless
-  function result = 'modules/support/commands/team/accept_invite', invite_id: context.params.id, token: context.params.token, password: context.params.password, name: context.params.name
+  function form = 'modules/support/helpers/text_params', params: context.params, names: 'id,token,password,name'
+  function result = 'modules/support/commands/team/accept_invite', invite_id: form.id, token: form.token, password: form.password, name: form.name
   if result.valid
     redirect_to '/support-desk'
     break
@@ -19,5 +20,5 @@ layout: modules/support/support
   if result.invite
     assign still_valid = true
   endif
-  render 'modules/support/team/invite_accept', valid: still_valid, invite_id: context.params.id, token: context.params.token, error: result.error
+  render 'modules/support/team/invite_accept', valid: still_valid, invite_id: form.id, token: form.token, error: result.error
 %}

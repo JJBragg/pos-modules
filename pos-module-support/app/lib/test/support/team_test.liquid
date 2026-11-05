@@ -18,6 +18,10 @@
   # invite external: user with no host roles, invited membership, invite record
   assign email = 'invitee-' | append: suffix | append: '@example.com'
   assign departments = []
+  function no_department = 'modules/support/commands/team/invite', email: email, role: 'agent', department_ids: departments, actor: actor
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: no_department.error, expected: 'modules/support/team.errors.agent_departments', field_name: 'agent needs a department'
+  graphql fd = 'modules/support/departments/search', inbound_local_part: 'testfixtures', limit: 1
+  assign departments << fd.records.results.first.id
   function invited = 'modules/support/commands/team/invite', email: email, role: 'agent', department_ids: departments, actor: actor
   function contract = 'modules/tests/assertions/equal', contract: contract, given: invited.valid, expected: true, field_name: 'invite ok'
   function contract = 'modules/tests/assertions/equal', contract: contract, given: invited.member.state, expected: 'invited', field_name: 'membership invited'
@@ -25,8 +29,18 @@
   function contract = 'modules/tests/assertions/equal', contract: contract, given: p.records.results.first.roles.size, expected: 0, field_name: 'no host roles'
 
   # inviting the same address again adds no second user
-  function again = 'modules/support/commands/team/invite', email: email, role: 'agent', department_ids: departments, actor: actor
-  function contract = 'modules/tests/assertions/equal', contract: contract, given: again.error, expected: 'modules/support/team.errors.already_member', field_name: 'already member refused'
+  # an existing user whose profile kept the capitals of their address is found and added
+  assign capital_email = 'Cap-' | append: suffix | append: '@Example.com'
+  assign no_roles = []
+  function capital_user = 'modules/user/commands/user/create', first_name: 'Cap', last_name: 'Test', email: capital_email, password: 'password-12345678', roles: no_roles, hook_params: null
+  assign lower_email = capital_email | downcase
+  function added = 'modules/support/commands/team/invite', email: lower_email, role: 'agent', department_ids: departments, actor: actor
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: added.member.state, expected: 'active', field_name: 'existing user with capitals added at once'
+
+  # typed with capitals it is still the same person
+  assign shouted = email | upcase
+  function again = 'modules/support/commands/team/invite', email: shouted, role: 'agent', department_ids: departments, actor: actor
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: again.error, expected: 'modules/support/team.errors.already_member_message', field_name: 'already member refused'
   graphql p = 'modules/support/team/profiles_by_roles', email: email, limit: 5
   function contract = 'modules/tests/assertions/equal', contract: contract, given: p.records.results.size, expected: 1, field_name: 'one user only'
 

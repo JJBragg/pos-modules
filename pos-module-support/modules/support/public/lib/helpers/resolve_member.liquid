@@ -54,5 +54,7 @@
     log member.errors, type: 'modules/support/helpers/resolve_member'
     return null
   endunless
+  # audited like an invite: who got which role, and why
+  function _ = 'modules/support/commands/ticket_events/log', ticket_id: null, actor_type: 'system', actor_id: null, event_type: 'team_member_created', from_value: null, to_value: profile.id, reason: source
   return member
 %}

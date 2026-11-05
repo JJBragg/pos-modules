@@ -32,17 +32,21 @@
 
   <div class="pos-support-table-wrap">
     <table class="pos-support-table">
-      <thead><tr><th scope="col">{{ 'modules/support/settings.name' | t }}</th><th scope="col">{{ 'modules/support/team.role' | t }}</th><th scope="col">{{ 'modules/support/team.departments' | t }}</th><th scope="col">{{ 'modules/support/settings.state' | t }}</th><th scope="col">{{ 'modules/support/team.source' | t }}</th><th scope="col"><span class="pos-support-sr-only">{{ 'modules/support/settings.edit' | t }}</span></th></tr></thead>
+      <thead><tr><th scope="col">{{ 'modules/support/settings.name' | t }}</th><th scope="col">{{ 'modules/support/team.role' | t }}</th><th scope="col">{{ 'modules/support/team.departments' | t }}</th><th scope="col">{{ 'modules/support/settings.state' | t }}</th><th scope="col">{{ 'modules/support/profile.availability' | t }}</th><th scope="col">{{ 'modules/support/team.source' | t }}</th><th scope="col"><span class="pos-support-sr-only">{{ 'modules/support/settings.edit' | t }}</span></th></tr></thead>
       <tbody>
+        {% assign other_source = 'modules/support/team.sources.other' | t %}
         {% for member in data.members %}
           {% assign person = data.profiles[member.profile_id] %}
+          {% assign source_key = 'modules/support/team.sources.' | append: member.source %}
           {% if person %}
+            {% function availability = 'modules/support/helpers/team/effective_availability', member: member, at: null %}
             <tr>
               <td>{{ person.name | default: person.email }}<br><span class="pos-supplementary">{{ person.email }}{% if member.job_title != blank %} · {{ member.job_title }}{% endif %}</span></td>
               <td>{{ 'modules/support/team.roles.' | append: member.role | t }}{% if member.on_duty_manager %} · {{ 'modules/support/team.on_duty' | t }}{% endif %}</td>
-              <td>{% if member.role == 'admin' %}{{ 'modules/support/settings.all_departments' | t }}{% else %}{% for d in data.departments %}{% if member.department_ids contains d.id %}<span class="pos-tag">{{ d.short_code | default: d.name }}</span> {% endif %}{% endfor %}{% endif %}</td>
+              <td>{% if member.role == 'admin' %}{{ 'modules/support/settings.all_departments' | t }}{% elsif member.role == 'agent' and member.department_ids == blank %}<span class="pos-tag">{{ 'modules/support/team.no_departments' | t }}</span>{% else %}{% for d in data.departments %}{% if member.department_ids contains d.id %}<span class="pos-tag">{{ d.short_code | default: d.name }}</span> {% endif %}{% endfor %}{% endif %}</td>
               <td>{{ 'modules/support/team.states.' | append: member.state | t }}</td>
-              <td>{{ 'modules/support/team.sources.' | append: member.source | t }}</td>
+              <td>{% if member.state == 'active' %}<span class="pos-support-presence-dot pos-support-presence-{{ availability }}"></span> {{ 'modules/support/availability.' | append: availability | t }}{% endif %}</td>
+              <td>{{ source_key | t: default: other_source }}</td>
               <td><a href="/support-desk/settings/team?edit={{ member.id }}">{{ 'modules/support/settings.edit' | t }}</a> · <a href="/support-desk/settings/agents/{{ member.profile_id }}">{{ 'modules/support/team.alerts' | t }}</a></td>
             </tr>
           {% else %}
@@ -52,7 +56,8 @@
               <td>{{ 'modules/support/team.roles.' | append: member.role | t }}</td>
               <td></td>
               <td>{{ 'modules/support/team.states.' | append: member.state | t }}</td>
-              <td>{{ 'modules/support/team.sources.' | append: member.source | t }}</td>
+              <td></td>
+              <td>{{ source_key | t: default: other_source }}</td>
               <td><a href="/support-desk/settings/team?edit={{ member.id }}">{{ 'modules/support/settings.edit' | t }}</a></td>
             </tr>
           {% endif %}
@@ -64,7 +69,7 @@
   {% if edit %}
     {% assign person = data.profiles[edit.profile_id] %}
     <section class="pos-card pos-support-step" aria-labelledby="tm-edit">
-      <h2 id="tm-edit" class="pos-heading-3">{{ 'modules/support/settings.edit' | t }}: {{ person.name | default: person.email }}</h2>
+      <h2 id="tm-edit" class="pos-heading-3">{{ 'modules/support/settings.edit' | t }}: {% if person %}{{ person.name | default: person.email }}{% else %}{{ 'modules/support/team.deleted_user' | t }}{% endif %}</h2>
       <form action="/support-desk/settings/team" method="post" class="pos-form pos-support-settings-form">
         <input type="hidden" name="authenticity_token" value="{{ context.authenticity_token }}">
         <input type="hidden" name="op" value="update">

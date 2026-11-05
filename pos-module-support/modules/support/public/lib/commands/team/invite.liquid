@@ -4,7 +4,7 @@
   gets a user with no host roles (roles: [] so USER_DEFAULT_ROLE is never
   applied), an invited membership and an invite email. Refused: invalid
   email, already a member, actor without support.team.manage, more than 50
-  invites an hour. Returns { valid, error, member }.
+  invites an hour, an agent without a department. Returns { valid, error, member }.
   @param {string} email - The address
   @param {string} role - agent | manager | admin
   @param {string[]} [department_ids] - Departments (ignored for admins)
@@ -35,17 +35,28 @@
     return result
   endif
 
-  graphql existing = 'modules/support/team/profiles_by_roles', email: email, limit: 1
-  assign profile = existing.records.results.first
+  assign department_ids = department_ids | default: []
+  if role == 'agent' and department_ids.size == 0
+    assign result.error = 'modules/support/team.errors.agent_departments'
+    return result
+  endif
+
+  # found through the user, whose address is stored lower-cased; a profile's
+  # copy of the address may keep the capitals it was typed with
+  function existing_user = 'modules/user/queries/user/find', email: email, id: null, with_token: false, expires_in: null
+  assign profile = null
+  if existing_user
+    function profile = 'modules/user/queries/profiles/find', user_id: existing_user.id, id: null, uuid: null, first_name: null, last_name: null
+  endif
   assign object = { "role": null, "source": "invite" }
   assign object.role = role
   assign object.created_by_id = actor.id
-  assign object.department_ids = department_ids | default: []
+  assign object.department_ids = department_ids
 
   if profile
     function member = 'modules/support/queries/team_members/find', profile_id: profile.id
     if member
-      assign result.error = 'modules/support/team.errors.already_member'
+      assign result.error = 'modules/support/team.errors.already_member_message'
       return result
     endif
     assign object.profile_id = profile.id
