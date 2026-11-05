@@ -21,6 +21,7 @@ query (
     results {
       id
       created_at
+      ticket_id: property(name: "ticket_id")
       author_type: property(name: "author_type")
       author_id: property(name: "author_id")
       visibility: property(name: "visibility")

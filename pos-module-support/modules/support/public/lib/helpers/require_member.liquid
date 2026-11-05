@@ -6,6 +6,13 @@
 {% enddoc %}
 {% liquid
   function current_profile = 'modules/user/helpers/current_profile'
+  # a session opened on another form while the desk sign-in lock was on (hook_user_login)
+  if context.session.support_sign_in_locked == 'true'
+    graphql _ = 'modules/user/session/destroy'
+    session support_sign_in_locked = null
+    redirect_to '/support-desk/sign-in'
+    break
+  endif
   if current_profile.user == null
     session return_to = context.location.pathname
     redirect_to '/support-desk/sign-in'

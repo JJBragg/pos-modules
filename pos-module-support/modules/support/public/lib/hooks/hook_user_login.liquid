@@ -1,15 +1,17 @@
 {% doc %}
   user_login hook (pos-module-user, fired after every password sign-in on the
   instance). While an email is locked after 5 failed desk sign-ins, a sign-in
-  through another form (the host's /sessions) is undone, so the lock cannot
-  be bypassed there. Failed attempts on other forms are not seen by the desk:
+  through another form (the host's /sessions) gets no desk access: the
+  session is marked and helpers/require_member signs it out. Failed attempts on other forms are not seen by the desk:
   the host rate-limits its own sign-in form (README, Security).
   @param {object} params - { user, hook_params }
 {% enddoc %}
 {% liquid
   function locked = 'modules/support/queries/sign_in/locked', email: params.user.email
   if locked
-    graphql _ = 'modules/user/session/destroy'
+    # the sign-in of this request cannot be undone here (it is written after
+    # the hook), so the session is marked and the desk gate signs it out
+    session support_sign_in_locked = 'true'
     log params.user.id, type: 'support_sign_in_locked'
     return { "support_sign_in_locked": true }
   endif
