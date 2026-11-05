@@ -44,7 +44,7 @@
   graphql p = 'modules/support/team/profiles_by_roles', email: email, limit: 5
   function contract = 'modules/tests/assertions/equal', contract: contract, given: p.records.results.size, expected: 1, field_name: 'one user only'
 
-  # wrong token, expired token and reused token all give the generic refusal
+  # wrong and expired tokens give the generic refusal; a used link with its own token offers sign-in
   graphql inv = 'modules/support/team_invites/search', email: email, limit: 1
   assign invite = inv.records.results.first
   function wrong = 'modules/support/commands/team/accept_invite', invite_id: invite.id, token: 'not-the-token', password: null, name: null
@@ -70,7 +70,10 @@
   function props = 'modules/support/helpers/props', values: values
   graphql u = 'modules/support/records/update', id: invite.id, properties: props
   function reused = 'modules/support/commands/team/accept_invite', invite_id: invite.id, token: token, password: null, name: null
-  function contract = 'modules/tests/assertions/equal', contract: contract, given: reused.error, expected: 'modules/support/team.invite_invalid', field_name: 'reused token generic'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: reused.valid, expected: false, field_name: 'used link cannot be accepted again'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: reused.used, expected: true, field_name: 'used link with its token offers sign-in'
+  function wrong_used = 'modules/support/commands/team/accept_invite', invite_id: invite.id, token: 'not-the-token', password: null, name: null
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: wrong_used.used, expected: false, field_name: 'wrong token learns nothing about a used link'
 
   # staff candidates come from host roles granting admin_pages.view (example host: superadmin, editor)
   function candidates = 'modules/support/queries/team/staff_candidates'

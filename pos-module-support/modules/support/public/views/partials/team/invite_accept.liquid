@@ -5,6 +5,7 @@
   @param {string} [invite_id] - The invite
   @param {string} [token] - Token from the link
   @param {string} [error] - Translation key of a form error
+  @param {boolean} [used] - The link was already used (right token)
 {% enddoc %}
 <section class="pos-card pos-support-gate" aria-labelledby="inv-title">
   {% if valid %}
@@ -17,6 +18,10 @@
       <fieldset><label for="inv-password">{{ 'modules/support/team.choose_password' | t }}</label><input id="inv-password" type="password" name="password" minlength="12" autocomplete="new-password" required aria-describedby="inv-help"><p id="inv-help" class="pos-supplementary">{{ 'modules/support/team.password_help' | t }}</p></fieldset>
       <button type="submit" class="pos-button pos-button-primary">{{ 'modules/support/team.join' | t }}</button>
     </form>
+  {% elsif used %}
+    <h1 id="inv-title" class="pos-heading-2">{{ 'modules/support/team.invite_used' | t }}</h1>
+    <p>{{ 'modules/support/team.invite_used_help' | t }}</p>
+    <p><a class="pos-button pos-button-primary" href="/support-desk/sign-in">{{ 'modules/support/team.sign_in' | t }}</a></p>
   {% else %}
     <h1 id="inv-title" class="pos-heading-2">{{ 'modules/support/team.invite_invalid' | t }}</h1>
     <p>{{ 'modules/support/team.invite_invalid_help' | t }}</p>

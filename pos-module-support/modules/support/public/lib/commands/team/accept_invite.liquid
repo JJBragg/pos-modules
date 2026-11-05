@@ -1,23 +1,22 @@
 {% doc %}
   Checks an invite link (D-25) and, with a password, completes it: sets the
   password and name, marks the invite accepted, activates the membership
-  and signs the user in. Any problem returns the same generic refusal.
-  Returns { valid, invite }.
+  and signs the user in. Any problem returns the same generic refusal, except
+  a link already used with its right token (used: true, to offer sign-in).
+  Returns { valid, invite, error, used }.
   @param {string} invite_id - The invite
   @param {string} token - Token from the link
   @param {string} [password] - New password (12+ characters); blank = only check
   @param {string} [name] - Display name
 {% enddoc %}
 {% liquid
-  assign result = { "valid": false, "invite": null, "error": "modules/support/team.invite_invalid" }
-  graphql r = 'modules/support/team_invites/search', id: invite_id, limit: 1
-  assign invite = r.records.results.first
-  if invite == blank or token == blank or invite.accepted_at != blank or invite.revoked_at != blank
+  assign result = { "valid": false, "invite": null, "error": "modules/support/team.invite_invalid", "used": false }
+  if invite_id == blank or token == blank
     return result
   endif
-  assign expires = invite.expires_at | to_time
-  assign now = 'now' | to_time
-  if expires <= now
+  graphql r = 'modules/support/team_invites/search', id: invite_id, limit: 1
+  assign invite = r.records.results.first
+  if invite == blank
     return result
   endif
   function digest = 'modules/support/helpers/team/token_digest', token: token
@@ -25,6 +24,20 @@
   assign a = digest | compute_hmac: key
   assign b = invite.token_digest | compute_hmac: key
   if a != b
+    return result
+  endif
+  # only the holder of the right token learns that the link was already used,
+  # so they can sign in; every other problem stays the generic refusal
+  if invite.accepted_at != blank
+    assign result.used = true
+    return result
+  endif
+  if invite.revoked_at != blank
+    return result
+  endif
+  assign expires = invite.expires_at | to_time
+  assign now = 'now' | to_time
+  if expires <= now
     return result
   endif
   assign result.invite = invite

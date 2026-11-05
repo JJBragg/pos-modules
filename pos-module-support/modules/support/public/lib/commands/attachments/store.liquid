@@ -72,7 +72,16 @@
   assign values.message_id = message_id
   assign values.filename = filename
   assign values.content_type = content_type
-  assign values.size = file.content_base64 | size | times: 3 | divided_by: 4
+  # the decoded length: line breaks are not data and each trailing '=' is one byte of padding
+  assign encoded = file.content_base64 | replace_regex: '\s', ''
+  assign padding = 0
+  assign tail = encoded | slice: -2, 2
+  if tail == '=='
+    assign padding = 2
+  elsif tail contains '='
+    assign padding = 1
+  endif
+  assign values.size = encoded | size | times: 3 | divided_by: 4 | minus: padding
   assign values.content_id = file.content_id
   if file.inline
     assign values.inline = true

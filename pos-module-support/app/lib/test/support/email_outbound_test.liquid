@@ -63,7 +63,6 @@
   function alerted = 'modules/support/commands/notifications/alert_mail_loop', sender: 'robot@loop-test.example'
   graphql stored = 'modules/support/records/find_by', table: 'modules/support/setting', name: 'key', value: 'test_stub_last_body'
   assign last_text = stored.records.results.first.properties.value | json
-  assign last_subject = last_text
   assign someone_alerted = false
   if alerted > 0
     assign someone_alerted = true

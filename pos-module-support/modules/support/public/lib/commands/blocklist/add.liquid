@@ -1,8 +1,8 @@
 {% doc %}
   Blocks an address ("x@y.com") or a domain ("y.com", subdomains included)
   (D-27). A free-mail domain needs confirm_free_mail. Adding a pattern that
-  is already blocked returns the existing row.
-  Returns { valid, error, record }.
+  is already blocked returns the existing row with existing: true.
+  Returns { valid, error, record, existing }.
   @param {string} pattern - Address or domain as typed
   @param {string} [reason] - Shown in Settings → Blocklist
   @param {string} source - manual | spam_mark
@@ -45,6 +45,7 @@
   graphql existing = 'modules/support/blocked_senders/search', patterns: patterns, limit: 1
   if existing.records.results.size > 0
     assign result.valid = true
+    assign result.existing = true
     assign result.record = existing.records.results.first
     return result
   endif

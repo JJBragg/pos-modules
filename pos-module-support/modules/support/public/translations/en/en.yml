@@ -179,6 +179,9 @@ en:
     join: Join
     invite_invalid: This invitation link is no longer valid
     invite_invalid_help: Ask a support admin to send you a new invitation.
+    invite_used: This invitation has already been used
+    invite_used_help: Your account is set up. Sign in with the password you chose.
+    sign_in: Sign in
     request_sent: Request sent
     request_sent_help: The support admins have been told. You'll get an email when they decide.
     reassigned_disabled: "re-assigned: previous assignee disabled"
@@ -515,6 +518,7 @@ en:
     mark_spam_confirm: "Mark this ticket as spam? The requester's address will be blocked. You can undo it."
     from_spam: Marked as spam
     added: Sender blocked.
+    already_blocked: That sender was already blocked.
     removed: Sender unblocked.
     confirm_title: "Block everyone at %{domain}?"
     confirm_body: "%{domain} is a free email provider. Blocking it refuses email from all of its users, not just one sender."

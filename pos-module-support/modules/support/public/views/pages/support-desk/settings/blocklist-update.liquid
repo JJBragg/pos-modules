@@ -28,6 +28,9 @@ metadata:
     endif
     function result = 'modules/support/commands/blocklist/add', pattern: context.params.pattern, reason: context.params.reason, source: 'manual', ticket_id: null, actor_id: context.exports.support.support_member.profile_id, confirm_free_mail: confirm
     assign notice = 'modules/support/blocklist.added'
+    if result.existing
+      assign notice = 'modules/support/blocklist.already_blocked'
+    endif
     if result.error == 'modules/support/blocklist.errors.free_mail'
       assign query = { "confirm": null, "reason": null }
       assign query.confirm = context.params.pattern | downcase | strip

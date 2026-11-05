@@ -20,6 +20,7 @@
   function contract = 'modules/tests/assertions/equal', contract: contract, given: a.record.pattern, expected: lower, field_name: 'address lower-cased'
   function again = 'modules/support/commands/blocklist/add', pattern: address, reason: null, source: 'manual', ticket_id: null, actor_id: null, confirm_free_mail: false
   function contract = 'modules/tests/assertions/equal', contract: contract, given: again.record.id, expected: a.record.id, field_name: 'no duplicate row'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: again.existing, expected: true, field_name: 'already blocked is reported'
 
   # match: subdomain of a blocked domain, exact address only
   assign list = []

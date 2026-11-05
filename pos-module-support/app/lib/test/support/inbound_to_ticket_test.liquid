@@ -31,6 +31,9 @@
   graphql atts = 'modules/support/attachments/search', message_ids: message_ids, limit: 5
   assign att = atts.records.results.first
   function contract = 'modules/tests/assertions/equal', contract: contract, given: att.filename, expected: 'screenshot.png', field_name: 'attachment stored'
+  # the fixture image is 70 bytes; its base64 has a line break and '==' padding
+  assign stored_size = att.size | plus: 0
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: stored_size, expected: 70, field_name: 'attachment size is the decoded size'
   assign local_url = '/support-desk/attachments/' | append: att.id
   assign rewritten = false
   if message.body_html contains local_url
