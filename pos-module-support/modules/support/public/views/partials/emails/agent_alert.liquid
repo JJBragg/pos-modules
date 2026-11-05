@@ -1,8 +1,9 @@
 {% doc %}
   Alert email to a support team member. Inline CSS only; no message bodies.
-  @param {object} message - { title, body, url }
+  @param {object} message - { title, body, url, link_label? }
   @param {object} brand - From helpers/branding
 {% enddoc %}
+{% assign link_label = message.link_label | default: 'modules/support/notifications.open_ticket' | t %}
 <!DOCTYPE html>
 <html lang="en">
   <body style="margin:0;padding:16px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5;color:#1f2328;">
@@ -10,7 +11,7 @@
     <h1 style="margin:0 0 8px;font-size:18px;">{{ message.title }}</h1>
     <p style="margin:0 0 16px;">{{ message.body }}</p>
     {% if message.url contains 'http' %}
-      <p style="margin:0;"><a href="{{ message.url }}" style="display:inline-block;padding:8px 14px;border-radius:6px;background:{{ brand.theme_color | default: '#1f6feb' }};color:#ffffff;text-decoration:none;">{{ 'modules/support/notifications.open_ticket' | t }}</a></p>
+      <p style="margin:0;"><a href="{{ message.url }}" style="display:inline-block;padding:8px 14px;border-radius:6px;background:{{ brand.theme_color | default: '#1f6feb' }};color:#ffffff;text-decoration:none;">{{ link_label }}</a></p>
     {% endif %}
     <p style="margin:16px 0 0;color:#6b7280;font-size:12px;">{{ 'modules/support/notifications.footer' | t }}</p>
   </body>

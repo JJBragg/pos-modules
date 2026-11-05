@@ -108,6 +108,10 @@
     assign sender_key = '"sender":"' | append: sender | append: '"'
     graphql recent = 'modules/support/inbound_emails/search', sender: sender_key, since: since, limit: 1
     if recent.records.total_entries > 20
+      # managers hear about it once, when the sender first crosses the limit
+      if recent.records.total_entries == 21
+        background _ = 'modules/support/commands/notifications/alert_mail_loop', sender: sender, source_name: 'support_mail_loop', priority: 'low'
+      endif
       graphql u = 'modules/support/inbound_emails/update', id: inbound.id, state: 'ignored', ignored_reason: 'loop', message_id_header: email.message_id
       assign result.state = 'ignored'
       assign result.reason = 'loop'

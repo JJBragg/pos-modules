@@ -7,6 +7,10 @@ metadata:
   @param {object} event - support_ticket_created
 {% enddoc %}
 {% liquid
+  # a ticket opened by an auto-reply or a bounce alerts nobody
+  if event.auto_reply
+    return null
+  endif
   function ticket = 'modules/support/queries/tickets/find', id: event.ticket_id, number: null, member: null
   if ticket.category == 'closed'
     return null

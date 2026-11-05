@@ -1,0 +1,36 @@
+{% doc %}
+  Tells managers and admins by email that a mail loop was detected: more
+  than 20 emails from one sender in an hour are being set aside (inbound
+  rule 3). Sent once, when the sender crosses the limit. Like every alert it
+  names no customer address, only the sender's domain, and links to the
+  blocklist. Returns the number of people emailed.
+  @param {string} sender - The looping sender address
+{% enddoc %}
+{% liquid
+  function settings = 'modules/support/helpers/settings'
+  assign domain = sender | split: '@' | last
+  assign message = { "title": null, "body": null, "url": null, "link_label": "modules/support/notifications.open_blocklist" }
+  assign message.title = 'modules/support/notifications.mail_loop' | t
+  assign message.body = 'modules/support/notifications.mail_loop_body' | t: domain: domain
+  assign message.url = settings.base_url | append: '/support-desk/settings/blocklist'
+
+  function members = 'modules/support/queries/team_members/all_active'
+  assign profile_ids = []
+  for member in members
+    if member.role != 'agent' and member.profile_id != blank
+      assign profile_ids << member.profile_id
+    endif
+  endfor
+  if profile_ids.size == 0
+    return 0
+  endif
+  graphql p = 'modules/user/profiles/search', ids: profile_ids, limit: 100
+  assign sent = 0
+  for profile in p.records.results
+    if profile.email != blank
+      function _ = 'modules/support/commands/notifications/send_alert_email', profile: profile, message: message
+      assign sent = sent | plus: 1
+    endif
+  endfor
+  return sent
+%}

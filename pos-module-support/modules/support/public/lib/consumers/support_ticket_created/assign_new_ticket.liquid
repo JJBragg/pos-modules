@@ -7,5 +7,9 @@ metadata:
   @param {object} event - support_ticket_created
 {% enddoc %}
 {% liquid
+  # a ticket opened by an auto-reply or a bounce stays unassigned
+  if event.auto_reply
+    return null
+  endif
   function _ = 'modules/support/commands/assignment/auto_assign', ticket_id: event.ticket_id
 %}

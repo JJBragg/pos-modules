@@ -1,7 +1,7 @@
 {% doc %}
   Creates a ticket (05 §1): next number, status New, default priority p2,
   search_text, audit row and support_ticket_created.
-  @param {object} object - { subject, department_id, requester_id, organization_id?, channel, priority?, follow_up_of_id?, actor_type, actor_id }
+  @param {object} object - { subject, department_id, requester_id, organization_id?, channel, priority?, follow_up_of_id?, actor_type, actor_id, auto_reply? }
 {% enddoc %}
 {% liquid
   assign c = { "errors": {}, "valid": true }
@@ -61,9 +61,12 @@
   endif
 
   function _ = 'modules/support/commands/ticket_events/log', ticket_id: ticket.id, actor_type: object.actor_type, actor_id: object.actor_id, event_type: 'created', from_value: null, to_value: number, reason: object.channel
-  assign payload = { "ticket_id": null, "actor_id": null }
+  assign payload = { "ticket_id": null, "actor_id": null, "auto_reply": false }
   assign payload.ticket_id = ticket.id
   assign payload.actor_id = object.actor_id
+  if object.auto_reply
+    assign payload.auto_reply = true
+  endif
   function _ = 'modules/core/commands/events/publish', type: 'support_ticket_created', object: payload, delay: null, max_attempts: null
   return ticket
 %}

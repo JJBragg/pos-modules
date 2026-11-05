@@ -11,9 +11,12 @@
   if m.records.results.size == 0
     if attempt < 5
       assign next_attempt = attempt | plus: 1
-      background _ = 'modules/support/commands/messages/acknowledge_when_ready', ticket_id: ticket_id, attempt: next_attempt, delay: 0.1, source_name: 'support_acknowledge'
+      background _ = 'modules/support/commands/messages/acknowledge_when_ready', ticket_id: ticket_id, attempt: next_attempt, delay: 0.1, source_name: 'support_acknowledge', priority: 'high'
+      return 'waiting'
     endif
-    return 'waiting'
+    # a lost acknowledgement is visible in the logs, not silent
+    log ticket_id, type: 'support_acknowledgement_gave_up'
+    return 'gave_up'
   endif
   function _ = 'modules/support/commands/tickets/ensure_unique_number', ticket_id: ticket_id
   function result = 'modules/support/commands/messages/acknowledge', ticket_id: ticket_id

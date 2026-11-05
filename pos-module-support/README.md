@@ -117,7 +117,7 @@ Published with `modules/core/commands/events/publish`; consume them in `app/lib/
 
 | Event | Payload |
 |---|---|
-| `support_ticket_created` | `ticket_id`, `actor_id` |
+| `support_ticket_created` | `ticket_id`, `actor_id`, `auto_reply` (the ticket was opened by an auto-reply or bounce: no new-ticket alert, no auto-assignment) |
 | `support_ticket_updated` | `ticket_id`, `actor_id` |
 | `support_ticket_status_changed` | `ticket_id`, `actor_id`, `from_value`, `to_value` (status keys) |
 | `support_ticket_priority_changed` | `ticket_id`, `actor_id`, `to_value` |

@@ -59,6 +59,27 @@
   function contract = 'modules/tests/assertions/equal', contract: contract, given: message.delivery_state, expected: 'failed', field_name: '4xx marks failed'
   function contract = 'modules/tests/assertions/equal', contract: contract, given: message.delivery_error, expected: 'stub bad request', field_name: '4xx keeps provider error'
 
+  # a mail loop is reported to managers and admins, naming only the sender's domain
+  function alerted = 'modules/support/commands/notifications/alert_mail_loop', sender: 'robot@loop-test.example'
+  graphql stored = 'modules/support/records/find_by', table: 'modules/support/setting', name: 'key', value: 'test_stub_last_body'
+  assign last_text = stored.records.results.first.properties.value | json
+  assign last_subject = last_text
+  assign someone_alerted = false
+  if alerted > 0
+    assign someone_alerted = true
+  endif
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: someone_alerted, expected: true, field_name: 'mail loop alert sent to managers'
+  assign loop_mail = false
+  if last_text contains 'Mail loop' and last_text contains 'loop-test.example'
+    assign loop_mail = true
+  endif
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: loop_mail, expected: true, field_name: 'mail loop alert names the domain'
+  assign leaks_address = false
+  if last_text contains 'robot@loop-test.example'
+    assign leaks_address = true
+  endif
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: leaks_address, expected: false, field_name: 'mail loop alert names no address'
+
   # a refused reply can be sent again: queued once more and audited
   assign failed_ticket = { "id": null }
   assign failed_ticket.id = message.ticket_id

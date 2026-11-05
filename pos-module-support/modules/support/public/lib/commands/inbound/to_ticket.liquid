@@ -51,6 +51,8 @@
     if reason == 'follow_up'
       assign object.follow_up_of_id = ticket.id
     endif
+    # an auto-reply that opens a ticket alerts nobody and is not auto-assigned
+    assign object.auto_reply = flags.auto_reply
     function ticket = 'modules/support/commands/tickets/create', object: object
     if reason != 'follow_up'
       assign reason = 'new'
