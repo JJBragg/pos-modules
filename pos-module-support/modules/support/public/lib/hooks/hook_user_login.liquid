@@ -1,0 +1,17 @@
+{% doc %}
+  user_login hook (pos-module-user, fired after every password sign-in on the
+  instance). While an email is locked after 5 failed desk sign-ins, a sign-in
+  through another form (the host's /sessions) is undone, so the lock cannot
+  be bypassed there. Failed attempts on other forms are not seen by the desk:
+  the host rate-limits its own sign-in form (README, Security).
+  @param {object} params - { user, hook_params }
+{% enddoc %}
+{% liquid
+  function locked = 'modules/support/queries/sign_in/locked', email: params.user.email
+  if locked
+    graphql _ = 'modules/user/session/destroy'
+    log params.user.id, type: 'support_sign_in_locked'
+    return { "support_sign_in_locked": true }
+  endif
+  return null
+%}

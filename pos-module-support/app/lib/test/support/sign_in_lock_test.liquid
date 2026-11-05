@@ -18,4 +18,13 @@
   function contract = 'modules/tests/assertions/equal', contract: contract, given: locked, expected: true, field_name: '5 failures lock'
   function other_locked = 'modules/support/queries/sign_in/locked', email: other
   function contract = 'modules/tests/assertions/equal', contract: contract, given: other_locked, expected: false, field_name: 'other email not locked'
+
+  # a sign-in on another form (host /sessions) is undone while the lock is on
+  assign hook_params = { "user": { "email": null }, "hook_params": {} }
+  assign hook_params.user.email = email
+  function results = 'modules/core/commands/hook/fire', hook: 'user_login', params: hook_params, merge_to_object: true
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: results.support_sign_in_locked, expected: true, field_name: 'locked email signed out on any form'
+  assign hook_params.user.email = other
+  function results = 'modules/core/commands/hook/fire', hook: 'user_login', params: hook_params, merge_to_object: true
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: results.support_sign_in_locked, expected: nil, field_name: 'other email keeps its sign-in'
 %}

@@ -75,6 +75,8 @@ The desk is a standalone section at `/support-desk` with its own sign-in at `/su
 - Invited people accept at `/support-desk/invites/:id`; anyone else signed in sees "You don't have access to Support" and can request access, which support admins approve in Settings → Team.
 - A disabled membership is never recreated.
 
+Sign-in lock: 5 failed desk sign-ins for an email within 15 minutes lock it for the rest of that window. The module implements pos-module-user's `user_login` hook, so a sign-in through any other password form of the instance (such as the host's `/sessions`) is undone while the lock is on. Failed attempts on those other forms (and 2FA codes on `/sessions/2fa`) are not counted by the desk: rate-limit the host's own sign-in form, or remove it if desk users only sign in at `/support-desk/sign-in`.
+
 Support roles: `agent` (own departments, reply), `manager` (all departments, reassign, merge, reports), `admin` (also Team and Settings). The optional page `admin/support` (permission `admin_pages.view`, `metadata.menu.title: Support`) adds Support to host admin menus built from page metadata and only redirects to `/support-desk`.
 
 ## Constants
@@ -100,6 +102,8 @@ Stored in the module's `setting` table and edited under `/support-desk/settings/
 | `support_branding` | object: `app_name`, `short_name`, `logo_url`, `logo_dark_url`, `icon_url`, `favicon_url`, `theme_color`, `background_color`, `theme_mode` (`auto`/`light`/`dark`), `support_email_name` | brand in the desk, emails, manifest and push |
 | `support_assignment` (alter) | sets `params_to_modify.assignee_id` and `.reason` from `params.ticket`, and must `return params_to_modify` | host rule that decides who gets a new ticket before least-loaded assignment |
 | `headscripts` (core) | HTML string | host stylesheet, loaded after the module CSS so host tokens win |
+
+The module implements `user_login` (pos-module-user) to undo a sign-in on another form while the desk sign-in lock is on for that email.
 
 The desk has its own compact type scale, control sizes and layout, built from the host's common-styling tokens: the brand colour (`--pos-color-button-primary-*`) drives primary buttons, focus, selection and the monogram; the rail is a quiet neutral by default. Headings use the body font (`--pos-support-font-heading`), not common-styling's monospace heading font. The desk loads only the common-styling stylesheets it uses (no Markdown editor, highlight.js or Uppy) and sets softer dark neutrals than pure black; a host stylesheet that sets `--pos-color-dark-*` still wins.
 
