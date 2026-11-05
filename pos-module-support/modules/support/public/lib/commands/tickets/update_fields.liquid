@@ -43,6 +43,14 @@
     endfor
     assign values.tags = tags | uniq
     assign changes << 'tags'
+    # tags are searchable: kept at the end of search_text after a marker, replaced on each change
+    assign text = values.search_text | default: ticket.search_text | default: ''
+    assign text = text | split: ' #tags ' | first | default: ''
+    if values.tags.size > 0
+      assign tags_text = values.tags | join: ' '
+      assign text = text | append: ' #tags ' | append: tags_text
+    endif
+    assign values.search_text = text
   endif
 
   if changes.size == 0

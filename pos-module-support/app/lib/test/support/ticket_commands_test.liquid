@@ -108,6 +108,16 @@
   function contract = 'modules/tests/assertions/equal', contract: contract, given: ids.first, expected: f.other_agent_id, field_name: 'unique first name at the end of the note is a mention'
   function _ = 'modules/support/commands/team_members/forget'
 
+  # snooze: a malformed time is refused without a crash; clearing it is logged as unsnoozed
+  function s = 'modules/support/commands/tickets/snooze', ticket: a.ticket, until: 'next tuesday-ish', actor: actor
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: s.errors.until, expected: 'modules/support/tickets.errors.snooze_time', field_name: 'malformed snooze time refused'
+  assign later = 'now' | add_to_time: 1, 'h' | strftime: '%Y-%m-%dT%H:%M:%SZ'
+  function s = 'modules/support/commands/tickets/snooze', ticket: a.ticket, until: later, actor: actor
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: s.valid, expected: true, field_name: 'snooze ok'
+  function s = 'modules/support/commands/tickets/snooze', ticket: s.ticket, until: null, actor: actor
+  graphql un = 'modules/support/ticket_events/search', ticket_id: ticket.id, event_type: 'unsnoozed', limit: 1
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: un.records.total_entries, expected: 1, field_name: 'unsnooze logged as unsnoozed'
+
   # tags and subject
   assign tags = "Billing, billing ,Portal" | split: ','
   assign fields = { "subject": "Renamed subject" }
@@ -115,6 +125,12 @@
   function u = 'modules/support/commands/tickets/update_fields', ticket: a.ticket, fields: fields, actor: actor
   assign tag_list = u.ticket.tags | join: ','
   function contract = 'modules/tests/assertions/equal', contract: contract, given: tag_list, expected: 'billing,portal', field_name: 'tags normalised'
+  graphql by_tag = 'modules/support/tickets/search', id: ticket.id, query: 'portal', limit: 1
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: by_tag.records.total_entries, expected: 1, field_name: 'ticket found by its tag'
+  assign retag = { "tags": ["other"] }
+  function u2 = 'modules/support/commands/tickets/update_fields', ticket: u.ticket, fields: retag, actor: actor
+  graphql by_old_tag = 'modules/support/tickets/search', id: ticket.id, query: 'portal', limit: 1
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: by_old_tag.records.total_entries, expected: 0, field_name: 'removed tag no longer matches'
 
   # merge moves messages and can be undone
   function f2 = 'support_test_helpers/ticket_fixture', label: 'merge'

@@ -36,6 +36,11 @@
   assign lower_email = capital_email | downcase
   function added = 'modules/support/commands/team/invite', email: lower_email, role: 'agent', department_ids: departments, actor: actor
   function contract = 'modules/tests/assertions/equal', contract: contract, given: added.member.state, expected: 'active', field_name: 'existing user with capitals added at once'
+  # an active agent in the fixtures department would take fixture tickets in other tests
+  assign disabled_values = { "state": "disabled" }
+  function disabled_props = 'modules/support/helpers/props', values: disabled_values
+  graphql _ = 'modules/support/records/update', id: added.member.id, properties: disabled_props
+  function _ = 'modules/support/commands/team_members/forget'
 
   # typed with capitals it is still the same person
   assign shouted = email | upcase
@@ -99,6 +104,8 @@
   function member = 'modules/support/queries/team_members/find', profile_id: requester.id
   function contract = 'modules/tests/assertions/equal', contract: contract, given: member.role, expected: 'manager', field_name: 'approved role'
   function contract = 'modules/tests/assertions/equal', contract: contract, given: member.source, expected: 'request', field_name: 'approved source'
+  graphql _ = 'modules/support/records/update', id: member.id, properties: disabled_props
+  function _ = 'modules/support/commands/team_members/forget'
 
   # the last active admin cannot be disabled or demoted
   graphql admins = 'modules/support/team_members/search', role: 'admin', state: 'active', limit: 2

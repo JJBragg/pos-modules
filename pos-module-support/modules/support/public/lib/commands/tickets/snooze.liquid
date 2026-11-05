@@ -1,5 +1,7 @@
 {% doc %}
-  Hides a ticket from queue views until a time; blank until clears it.
+  Snoozes a ticket until a time; blank until clears it. A snoozed ticket
+  stays in the queue (so the stored counts match the rows), marked with an
+  alarm clock, and the sweep clears the snooze when the time has passed.
   @param {object} ticket - Ticket loaded through queries/tickets/find
   @param {string} [until] - ISO time in the future
   @param {object} actor - { type, id, member }
@@ -8,6 +10,12 @@
   assign result = { "valid": false, "errors": {}, "ticket": null }
   assign values = { "snooze_until": null }
   if until != blank
+    # a UTC time as the form sends it; anything else is refused before to_time, which fails the request on garbage
+    assign well_formed = until | matches: '\A\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])T([01]\d|2[0-3]):[0-5]\d:[0-5]\dZ\z'
+    unless well_formed
+      assign result.errors.until = 'modules/support/tickets.errors.snooze_time'
+      return result
+    endunless
     assign until_time = until | to_time
     assign now = 'now' | to_time
     if until_time <= now
@@ -17,7 +25,11 @@
     assign values.snooze_until = until_time
   endif
   function saved = 'modules/support/commands/tickets/save', ticket: ticket, values: values
-  function _ = 'modules/support/commands/ticket_events/log', ticket_id: ticket.id, actor_type: actor.type, actor_id: actor.id, event_type: 'snoozed', from_value: ticket.snooze_until, to_value: values.snooze_until, reason: null
+  assign event_type = 'snoozed'
+  if values.snooze_until == null
+    assign event_type = 'unsnoozed'
+  endif
+  function _ = 'modules/support/commands/ticket_events/log', ticket_id: ticket.id, actor_type: actor.type, actor_id: actor.id, event_type: event_type, from_value: ticket.snooze_until, to_value: values.snooze_until, reason: null
   assign result.valid = true
   assign result.ticket = saved
   return result

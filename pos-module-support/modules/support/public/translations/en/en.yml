@@ -364,6 +364,7 @@ en:
       priority: Choose a priority from P0 to P3.
       department: You can't move the ticket to that department.
       snooze_past: Choose a time in the future.
+      snooze_time: Choose one of the snooze times.
       merge_self: A ticket can't be merged into itself.
       merge_closed: Merge into an open ticket that hasn't been merged itself.
       merge_org: Only a manager can merge tickets from different organizations.
@@ -486,6 +487,7 @@ en:
     priority_changed: "changed priority from %{from} to %{to}"
     updated: "updated %{to}"
     snoozed: snoozed the ticket
+    unsnoozed: unsnoozed the ticket
     merged: "merged #%{from} into #%{to}"
     merged_in: "merged #%{from} into this ticket"
     unmerged: undid a merge

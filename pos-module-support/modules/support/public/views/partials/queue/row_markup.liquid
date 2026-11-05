@@ -21,7 +21,7 @@
   <td class="pos-support-number">#{{ ticket.number }}</td>
   <td class="pos-support-subject" title="{{ ticket.subject }}">
     {% if ticket.needs_reply %}<span class="pos-support-needs-reply" title="{{ 'modules/support/queue.needs_reply' | t }}"><span class="pos-support-sr-only">{{ 'modules/support/queue.needs_reply' | t }}</span></span>{% endif %}
-    <a href="{{ url }}">{{ ticket.subject }}</a>
+    <a href="{{ url }}">{{ ticket.subject }}</a>{% if ticket.snooze_until != blank %} <span class="pos-tag" title="{{ 'modules/support/ticket.snoozed' | t }}">{% render 'modules/support/icon', name: 'alarm-clock', size: 'sm' %}<span class="pos-support-sr-only">{{ 'modules/support/ticket.snoozed' | t }}</span></span>{% endif %}
   </td>
   <td class="pos-support-cell-requester" title="{{ requester.emails.first }}">
     {{ requester_name }}{% if organization %}<span class="pos-supplementary">{{ organization.name }}</span>{% endif %}

@@ -1,0 +1,32 @@
+{% doc %}
+  One-off data fix: puts the tags of existing tickets into search_text (after
+  the ' #tags ' marker that commands/tickets/update_fields keeps up to date),
+  so the queue search finds tickets by tag. Returns the number updated.
+{% enddoc %}
+{% liquid
+  assign updated = 0
+  # one request per page of 200 tickets, one write per tagged ticket
+  # platformos-check-disable NestedGraphQLQuery
+  for page in (1..500)
+    graphql r = 'modules/support/tickets/with_tags', page: page
+    for t in r.records.results
+      if t.tags.size == 0
+        continue
+      endif
+      assign tags_text = t.tags | join: ' '
+      assign text = t.search_text | default: '' | split: ' #tags ' | first | default: '' | append: ' #tags ' | append: tags_text
+      if text != t.search_text
+        assign values = { "search_text": null }
+        assign values.search_text = text
+        function props = 'modules/support/helpers/props', values: values
+        graphql u = 'modules/support/records/update', id: t.id, properties: props
+        assign updated = updated | plus: 1
+      endif
+    endfor
+    if page >= r.records.total_pages
+      break
+    endif
+  endfor
+  # platformos-check-enable NestedGraphQLQuery
+  return updated
+%}

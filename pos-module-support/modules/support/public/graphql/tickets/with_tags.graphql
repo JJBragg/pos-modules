@@ -1,0 +1,15 @@
+query ($page: Int = 1) {
+  records(
+    page: $page
+    per_page: 200
+    filter: { table: { value: "modules/support/ticket" }, properties: [{ name: "tags", exists: true }] }
+    sort: [{ id: { order: ASC } }]
+  ) {
+    total_pages
+    results {
+      id
+      search_text: property(name: "search_text")
+      tags: property_array(name: "tags")
+    }
+  }
+}
