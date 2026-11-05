@@ -121,6 +121,12 @@
       assign page = lanes[spec.key]
     else
       function page = 'modules/support/queries/tickets/search', member: member, view: view, filters: group_filters, page: group_page, per_page: group_limit, skip_lookup: true, include_waiting: include_waiting
+      # a page past the end (an old link, tickets closed since) shows the last page instead of an empty lane
+      assign last_page = page.total_entries | plus: group_limit | minus: 1 | divided_by: group_limit
+      if expanded and group_page > last_page and last_page > 0
+        assign group_page = last_page
+        function page = 'modules/support/queries/tickets/search', member: member, view: view, filters: group_filters, page: group_page, per_page: group_limit, skip_lookup: true, include_waiting: include_waiting
+      endif
     endif
     assign group = spec
     assign group.tickets = page.results

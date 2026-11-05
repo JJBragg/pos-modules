@@ -68,8 +68,22 @@
   endfor
   function contract = 'modules/tests/assertions/equal', contract: contract, given: new_column.tickets.first.id, expected: second.ticket.id, field_name: 'P0 card at the top'
 
+  # an expanded lane asked for a page past its end shows its last page, not an empty one
+  function paged = 'modules/support/queries/tickets/groups', member: manager, view: 'all_open', filters: filters, by: 'status', layout: 'board', expand: 'new', expand_page: '99'
+  for column in paged.groups
+    if column.key == 'new'
+      assign paged_new = column
+    endif
+  endfor
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: paged_new.page, expected: paged_new.pages, field_name: 'page past the end clamps to the last page'
+  assign has_cards = false
+  if paged_new.tickets.size > 0
+    assign has_cards = true
+  endif
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: has_cards, expected: true, field_name: 'clamped page has cards'
+
   # list lanes: totals add up to the view's total
-  function lanes = 'modules/support/queries/tickets/groups', member: manager, view: 'all_open', filters: filters, by: 'priority', layout: 'list', expand: null
+  function lanes ='modules/support/queries/tickets/groups', member: manager, view: 'all_open', filters: filters, by: 'priority', layout: 'list', expand: null
   assign lane_sum = 0
   for lane in lanes.groups
     assign lane_sum = lane_sum | plus: lane.total

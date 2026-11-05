@@ -27,8 +27,15 @@
           <span class="pos-support-count" data-count>{{ column.total }}</span>
         </h2>
         <div class="pos-support-column-cards" data-cards data-empty="{{ 'modules/support/board.empty_column' | t }}">{% for ticket in column.tickets %}{% render 'modules/support/board/card', ticket: ticket, lookup: groups.lookup, statuses: page_data.statuses, group: page_data.group %}{% endfor %}</div>
-        {% if column.total > column.tickets.size %}
-          <a class="pos-button pos-button-small pos-button-ghost" href="/support-desk?{{ page_data.query }}&layout=board&expand={{ column.key }}">{{ 'modules/support/board.show_more' | t: count: column.total }}</a>
+        {% if column.expanded and column.pages > 1 %}
+          {% assign column_url = '/support-desk?' | append: page_data.query | append: '&layout=board&expand=' | append: column.key | append: '&lane_page=' %}
+          <nav class="pos-support-lane-pager" aria-label="{{ 'modules/support/queue.pages' | t }}">
+            <span class="pos-support-tnum">{{ 'modules/support/queue.range' | t: first: column.first, last: column.last, total: column.total }}</span>
+            {% if column.page > 1 %}<a href="{{ column_url }}{{ column.page | minus: 1 }}" rel="prev">{{ 'modules/support/queue.previous' | t }}</a>{% endif %}
+            {% if column.page < column.pages %}<a href="{{ column_url }}{{ column.page | plus: 1 }}" rel="next">{{ 'modules/support/queue.next' | t }}</a>{% endif %}
+          </nav>
+        {% elsif column.expanded == false and column.total > column.tickets.size %}
+          <a class="pos-button pos-button-small pos-button-ghost" href="/support-desk?{{ page_data.query }}&layout=board&expand={{ column.key }}&lane_page=1">{{ 'modules/support/board.show_more' | t: count: column.total }}</a>
         {% endif %}
       </section>
     {% endfor %}
