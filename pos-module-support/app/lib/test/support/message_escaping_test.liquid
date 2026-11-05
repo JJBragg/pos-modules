@@ -36,17 +36,22 @@
   endfor
 
   # a customer's plain text is printed with {{ }} only, which escapes it once on
-  # an HTML page; an extra escape filter showed entities as text. The test runner
-  # serves JavaScript, where {{ }} does not escape, so here the text comes out as
-  # typed and any entity means the partial escaped it itself. (E2E covers markup.)
+  # an HTML page; an extra escape filter showed entities as text. The single test
+  # runner serves JavaScript ({{ }} does not escape) and the full run HTML, so
+  # the check is for one level too many in either: the extra escape filter gives
+  # '&#39;' as JavaScript output and '&amp;#39;' as HTML. (E2E covers markup.)
   assign message = { "id": "2", "author_type": "customer", "visibility": "public", "created_at": "2026-10-30T10:00:00Z" }
   assign message.body_text = "It's broken & we <3"
   capture page
     render 'modules/support/ticket/message', message: message, attachments: no_attachments, requester: requester, profiles: profiles
   endcapture
   assign doubled = false
-  if page contains '&#39;' or page contains '&amp;' or page contains '&lt;3'
-    assign doubled = true
+  # JavaScript runner: the text as typed; HTML runner: escaped exactly once
+  assign doubled = true
+  if page contains "It's broken & we <3"
+    assign doubled = false
+  elsif page contains "It&#39;s broken &amp; we &lt;3"
+    assign doubled = false
   endif
   function contract = 'modules/tests/assertions/equal', contract: contract, given: doubled, expected: false, field_name: 'customer text not escaped twice'
 
