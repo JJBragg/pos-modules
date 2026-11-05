@@ -5,10 +5,13 @@ import { contextFor, desk, inbound, liquid, ticketBySubject, unique, users, wait
 
 const columnOf = (page: Page, id: string) => page.evaluate((id) => document.querySelector(`.pos-support-card[data-ticket-id="${id}"]`)?.closest('.pos-support-column')?.getAttribute('data-status-key') || null, id);
 
-async function subscribed(page: Page) {
+// Readiness of the page about to be opened: contextFor already loaded a desk
+// page whose own subscription would count, so the flag is reset right before
+// the page under test is opened, and only its sockets can set it again.
+function subscribed(page: Page) {
   let confirmed = false;
   page.on('websocket', (ws) => ws.on('framereceived', (f) => { if (String(f.payload).includes('confirm_subscription')) confirmed = true; }));
-  return () => confirmed;
+  return { reset: () => { confirmed = false; }, ready: () => confirmed };
 }
 
 test('15. dragging a card changes the status and other boards and the list follow; Move to works without JavaScript', async ({ browser }) => {
@@ -25,19 +28,23 @@ test('15. dragging a card changes the status and other boards and the list follo
   const a = await contextFor(browser, users.agent);
   const b = await contextFor(browser, users.superadmin);
   const list = await contextFor(browser, users.superadmin);
-  const bReady = await subscribed(b.page);
-  const listReady = await subscribed(list.page);
+  const bSocket = subscribed(b.page);
+  const listSocket = subscribed(list.page);
   await a.page.goto(desk('/support-desk/board'));
+  bSocket.reset();
   await b.page.goto(desk('/support-desk/board'));
+  listSocket.reset();
   await list.page.goto(desk(`/support-desk?view=all_open&q=${encodeURIComponent(subject)}`));
+  await expect(list.page.locator('.pos-support-row', { hasText: subject })).toBeVisible();
   expect(await columnOf(a.page, ticket.id)).toBe('review');
-  await expect.poll(() => bReady() && listReady(), { timeout: 15000 }).toBe(true);
+  await expect.poll(() => bSocket.ready() && listSocket.ready(), { timeout: 15000 }).toBe(true);
 
   await a.page.dragAndDrop(`.pos-support-card[data-ticket-id="${ticket.id}"]`, '.pos-support-column[data-status-key="customer"] [data-cards]');
   await expect.poll(() => columnOf(a.page, ticket.id), { timeout: 20000 }).toBe('customer');
   await expect.poll(() => ticketBySubject(subject).ticket.status_id, { timeout: 20000 }).not.toBe(ticket.status_id);
   await expect.poll(() => columnOf(b.page, ticket.id), { timeout: 45000 }).toBe('customer');
-  await expect(list.page.locator('.pos-support-row', { hasText: subject })).toContainText('Waiting on customer', { timeout: 45000 });
+  // the list shows All open (new and open); a ticket waiting on the customer leaves it live
+  await expect(list.page.locator('.pos-support-row', { hasText: subject })).toHaveCount(0, { timeout: 45000 });
 
   const noJs = await contextFor(browser, users.superadmin, { javaScriptEnabled: false });
   await noJs.page.goto(desk('/support-desk/board'));
