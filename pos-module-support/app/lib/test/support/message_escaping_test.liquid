@@ -35,6 +35,21 @@
     function contract = 'modules/tests/assertions/equal', contract: contract, given: kept, expected: true, field_name: field
   endfor
 
+  # a customer's plain text is printed with {{ }} only, which escapes it once on
+  # an HTML page; an extra escape filter showed entities as text. The test runner
+  # serves JavaScript, where {{ }} does not escape, so here the text comes out as
+  # typed and any entity means the partial escaped it itself. (E2E covers markup.)
+  assign message = { "id": "2", "author_type": "customer", "visibility": "public", "created_at": "2026-10-30T10:00:00Z" }
+  assign message.body_text = "It's broken & we <3"
+  capture page
+    render 'modules/support/ticket/message', message: message, attachments: no_attachments, requester: requester, profiles: profiles
+  endcapture
+  assign doubled = false
+  if page contains '&#39;' or page contains '&amp;' or page contains '&lt;3'
+    assign doubled = true
+  endif
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: doubled, expected: false, field_name: 'customer text not escaped twice'
+
   assign ticket = { "number": 1, "subject": "S" }
   capture email
     render 'modules/support/emails/reply', body_html: body, signature_html: body, brand: null, delimiter: 'D', ticket: ticket

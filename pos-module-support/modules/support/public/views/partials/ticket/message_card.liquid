@@ -8,6 +8,8 @@
   @param {string} [author_email] - Author's address
   @param {boolean} is_note - Internal note
 {% enddoc %}
+{%- capture nl %}
+{% endcapture -%}
 <div class="pos-support-message-card">
   <header class="pos-support-message-head">
     <strong id="message-{{ message.id }}-author">{{ author }}</strong>
@@ -22,7 +24,12 @@
     {% render 'modules/support/time', time: message.created_at, style: 'datetime' %}
   </header>
   {% if message.author_type == 'customer' %}
-    <div class="pos-support-message-body">{{ message.body_stripped | default: message.body_text | escape | newline_to_br }}</div>
+    {%- liquid
+      # each line is printed with {{ }}, which escapes it once; escape before that showed entities as text
+      assign text = message.body_stripped | default: message.body_text | default: '' | replace_regex: '\r', ''
+      assign lines = text | split: nl
+    -%}
+    <div class="pos-support-message-body">{% for line in lines %}{{ line }}{% unless forloop.last %}<br>{% endunless %}{% endfor %}</div>
     {% if message.body_html != blank %}
       <details class="pos-support-original">
         <summary>{{ 'modules/support/ticket.show_original' | t }}</summary>

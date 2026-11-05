@@ -116,10 +116,13 @@
   for reply in r.saved_replies.results
     if reply.department_id == blank or reply.department_id == ticket.department_id
       function html = 'modules/support/commands/saved_replies/render', saved_reply: reply, ticket: ticket, requester: data.requester, agent: profile, brand: brand
-      assign item = { "id": null, "title": null, "html": null }
+      # the composer takes plain text: entities decoded, paragraphs kept
+      function text = 'modules/support/helpers/html_to_plain_text', html: html
+      assign item = { "id": null, "title": null, "html": null, "text": null }
       assign item.id = reply.id
       assign item.title = reply.title
       assign item.html = html
+      assign item.text = text
       assign data.saved_replies << item
     endif
   endfor

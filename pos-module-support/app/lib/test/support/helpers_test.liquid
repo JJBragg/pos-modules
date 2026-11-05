@@ -1,7 +1,19 @@
 {% doc %}
   @param {object} contract - The test contract object
 {% enddoc %}
+{% capture typed %}Tom & Jerry <b>say</b> We're "sure".
+
+Second paragraph
+next line{% endcapture %}
 {% liquid
+  # stored HTML back to plain text: same text, no entities, paragraphs kept,
+  # and saving it again stores the same HTML (no growing &amp;amp;)
+  function html = 'modules/support/helpers/text_to_html', text: typed
+  function back = 'modules/support/helpers/html_to_plain_text', html: html
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: back, expected: typed, field_name: 'html to plain text round trip'
+  function again = 'modules/support/helpers/text_to_html', text: back
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: again, expected: html, field_name: 'saving unchanged text keeps the html'
+
   # reply token: round trip, changed number, changed mac
   function token = 'modules/support/helpers/reply_token', number: 1234, token: null
   function number = 'modules/support/helpers/reply_token', number: null, token: token

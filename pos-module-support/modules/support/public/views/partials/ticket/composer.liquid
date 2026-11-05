@@ -56,7 +56,7 @@
         <label for="pos-support-saved" class="pos-support-sr-only">{{ 'modules/support/ticket.saved_replies' | t }}</label>
         <select id="pos-support-saved" data-support-saved>
           <option value="">{{ 'modules/support/ticket.choose_saved' | t }}</option>
-          {% for reply in data.saved_replies %}<option value="{{ reply.id }}" data-text="{{ reply.html | strip_html | strip }}">{{ reply.title }}</option>{% endfor %}
+          {% for reply in data.saved_replies %}<option value="{{ reply.id }}" data-text="{{ reply.text }}">{{ reply.title }}</option>{% endfor %}
         </select>
       {% endif %}
       <div class="pos-support-composer-send">

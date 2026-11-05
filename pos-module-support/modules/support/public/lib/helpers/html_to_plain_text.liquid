@@ -1,0 +1,18 @@
+{% doc %}
+  The reverse of helpers/text_to_html, for putting stored HTML back into a
+  textarea or a composer: paragraphs become blank lines, line breaks become
+  newlines, tags are dropped and entities are decoded (so '&amp;' becomes
+  '&'). Print the result with {{ }}, which escapes it once.
+  @param {string} [html] - Stored HTML (signature, saved reply)
+{% enddoc %}
+{%- capture nl %}
+{% endcapture -%}
+{% liquid
+  if html == blank
+    return ''
+  endif
+  assign blank_line = nl | append: nl
+  assign options = { "replace_newline": nl }
+  assign text = html | replace_regex: '<br\s*/?>\n?', nl, 'i' | replace_regex: '</p>\s*<p[^>]*>', blank_line, 'i' | html_to_text: options | strip
+  return text
+%}

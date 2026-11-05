@@ -20,9 +20,8 @@
       <input type="hidden" name="section" value="saved_replies">
       {% if edit %}<input type="hidden" name="id" value="{{ edit.id }}">{% endif %}
       <fieldset><label for="sr-title">{{ 'modules/support/settings.title_field' | t }}</label><input id="sr-title" name="title" value="{{ edit.title }}" required></fieldset>
-      <fieldset><label for="sr-body">{{ 'modules/support/settings.body' | t }}</label><textarea id="sr-body" name="body" rows="6" required aria-describedby="sr-help">{{ edit.body_html | replace: '</p><p>', '
-
-' | strip_html }}</textarea><p id="sr-help" class="pos-supplementary">{{ 'modules/support/settings.variables_help' | t }}</p></fieldset>
+      {% function body_text = 'modules/support/helpers/html_to_plain_text', html: edit.body_html %}
+      <fieldset><label for="sr-body">{{ 'modules/support/settings.body' | t }}</label><textarea id="sr-body" name="body" rows="6" required aria-describedby="sr-help">{{ body_text }}</textarea><p id="sr-help" class="pos-supplementary">{{ 'modules/support/settings.variables_help' | t }}</p></fieldset>
       <fieldset>
         <label for="sr-dept">{{ 'modules/support/queue.department' | t }}</label>
         <select id="sr-dept" name="department_id"><option value="">{{ 'modules/support/settings.all_departments' | t }}</option>{% for d in data.departments %}<option value="{{ d.id }}" {% if d.id == edit.department_id %}selected{% endif %}>{{ d.name }}</option>{% endfor %}</select>
