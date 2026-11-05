@@ -23,7 +23,19 @@
       <p>{{ 'modules/support/settings_email.step1.saved' | t: last4: status.key_last4 }}
         {% if status.key_ok == true %}<span class="pos-support-ok">{{ 'modules/support/settings_email.ok' | t }}</span>{% elsif status.key_ok == false %}<span class="pos-support-error">{{ 'modules/support/settings_email.failed' | t }}</span>{% endif %}
       </p>
-      {% for problem in status.problems %}<p class="pos-support-error">{{ problem }}</p>{% endfor %}
+      {% for problem in status.problems %}
+        {%- liquid
+          # the check stores codes; a provider message (anything else) is shown as it came
+          assign problem_text = problem
+          if problem == 'api_key_rejected'
+            assign problem_text = 'modules/support/settings_email.problems.api_key_rejected' | t
+          elsif problem contains 'missing_scope:'
+            assign scope = problem | remove_first: 'missing_scope:'
+            assign problem_text = 'modules/support/settings_email.problems.missing_scope' | t_escape: scope: scope
+          endif
+        -%}
+        <p class="pos-support-error">{{ problem_text }}</p>
+      {% endfor %}
     {% endif %}
     <form action="/support-desk/settings/email" method="post" data-support-pending="{{ 'modules/support/settings_email.working' | t }}" class="pos-form">
       <input type="hidden" name="authenticity_token" value="{{ context.authenticity_token }}">

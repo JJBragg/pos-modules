@@ -1331,11 +1331,13 @@
     transition: transform 160ms var(--pos-support-ease);
   }
 
-  .pos-support-switch[aria-checked="true"] {
+  .pos-support-switch[aria-checked="true"],
+  .pos-support-switch[data-on="true"] {
     background: var(--pos-support-accent);
   }
 
-  .pos-support-switch[aria-checked="true"] span {
+  .pos-support-switch[aria-checked="true"] span,
+  .pos-support-switch[data-on="true"] span {
     transform: translateX(1rem);
     background: var(--pos-support-accent-text);
   }

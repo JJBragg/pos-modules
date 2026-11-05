@@ -69,6 +69,31 @@
   endif
   function contract = 'modules/tests/assertions/equal', contract: contract, given: session_link, expected: false, field_name: 'inline image does not use the session-only attachment link'
 
+  # a plain-text email whose quoted history was cut offers the full text
+  assign plain = { "id": "3", "author_type": "customer", "visibility": "public", "created_at": "2026-10-30T10:00:00Z", "body_stripped": "Thanks", "body_text": "Thanks\n> earlier message" }
+  capture page
+    render 'modules/support/ticket/message', message: plain, attachments: no_attachments, requester: requester, profiles: profiles
+  endcapture
+  assign full_offered = false
+  if page contains 'earlier message'
+    assign full_offered = true
+  endif
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: full_offered, expected: true, field_name: 'quoted history of a plain-text email is viewable'
+
+  # a lost file on the agent's own reply does not ask the customer to resend
+  assign own = { "id": "4", "author_type": "agent", "visibility": "public", "delivery_state": "sent", "created_at": "2026-10-30T10:00:00Z", "body_html": "<p>x</p>" }
+  assign lost = { "id": "9", "filename": "a.pdf", "size": 10, "file": {} }
+  assign lost_list = []
+  assign lost_list << lost
+  capture page
+    render 'modules/support/ticket/message', message: own, attachments: lost_list, requester: requester, profiles: profiles
+  endcapture
+  assign asks_customer = false
+  if page contains 'ask the customer'
+    assign asks_customer = true
+  endif
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: asks_customer, expected: false, field_name: 'own lost file does not ask the customer'
+
   assign ticket = { "number": 1, "subject": "S" }
   capture email
     render 'modules/support/emails/reply', body_html: body, signature_html: body, brand: null, delimiter: 'D', ticket: ticket

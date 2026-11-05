@@ -1,7 +1,7 @@
 {% doc %}
   Applies one ticket-page form (05 §3). The form names its change in
   "change": properties (status, priority, assignee, department, tags),
-  snooze, link, merge or unmerge. Each goes through its command, so the
+  snooze, spam, unspam, retry (a failed reply), link, merge or unmerge. Each goes through its command, so the
   same rules, audit rows and events apply as everywhere else.
   Returns { valid, error, ticket_id, department_changed }.
   @param {object} ticket - Ticket loaded through queries/tickets/find
@@ -9,7 +9,7 @@
   @param {object} member - The acting team_member
 {% enddoc %}
 {% liquid
-  assign result = { "valid": true, "error": null, "ticket_id": null, "department_changed": false }
+  assign result = { "valid": true, "error": null, "ticket_id": null, "department_changed": false, "notice": null }
   assign result.ticket_id = ticket.id
   assign actor = { "type": "user" }
   assign actor.id = member.profile_id
@@ -136,6 +136,14 @@
       assign result.valid = false
       assign result.error = r.errors.status
     endunless
+
+  when 'retry'
+    function r = 'modules/support/commands/messages/retry_delivery', ticket: ticket, message_id: params.message_id, actor: actor
+    unless r.valid
+      assign result.valid = false
+      assign result.error = r.error
+    endunless
+    assign result.notice = 'modules/support/ticket.retry_sent'
 
   when 'link'
     function r = 'modules/support/commands/escalation_links/create', ticket: ticket, url: params.issue_url, actor: actor

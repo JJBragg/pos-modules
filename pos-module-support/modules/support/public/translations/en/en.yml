@@ -262,6 +262,9 @@ en:
     ticket_reference: "%{brand} · ticket #%{number}"
   settings_email:
     title: Email
+    problems:
+      api_key_rejected: The provider did not accept this API key. Check that it was copied whole and is still active.
+      missing_scope: "The API key is missing the permission %{scope}. Give the key that permission in the provider's settings."
     working: Working… this can take a few seconds
     intro: Connect your email provider, receive email as tickets and send replies from your department addresses.
     ok: Working
@@ -455,7 +458,13 @@ en:
     original_title: Original email
     attachments: Attachments
     attachment_not_stored: not saved — ask the customer to resend
+    own_attachment_not_stored: not saved — attach it again in a new reply
     not_delivered: "Not delivered:"
+    retry: Send again
+    retry_sent: The reply is being sent again.
+    retry_with_files: This reply had files, which cannot be attached again from here. Send it again from the reply box.
+    retry_unavailable: That reply cannot be sent again.
+    show_full_email: Show full email
     delivery_queued: Sending…
     delivery_sent: Sent
     delivery_delivered: Delivered
@@ -468,7 +477,9 @@ en:
     created: "created the ticket (#%{to})"
     renumbered: "renumbered the ticket from #%{from} to #%{to} (the number was taken)"
     status_changed: "changed status from %{from} to %{to}"
-    assigned: assigned the ticket
+    assigned: "assigned the ticket to %{to}"
+    unassigned: unassigned the ticket
+    delivery_retried: sent a failed reply again
     priority_changed: "changed priority from %{from} to %{to}"
     updated: "updated %{to}"
     snoozed: snoozed the ticket
@@ -558,6 +569,7 @@ en:
     pause_forever: Until I turn them on
     paused_until: "Alerts paused until %{until}."
     paused_until_label: Alerts paused until
+    paused_indefinitely: Alerts paused until you turn them on again.
     resume: Turn alerts back on
     device: This device
     device_help: Get push alerts on this phone or computer.
@@ -680,7 +692,8 @@ en:
     confirmation: Confirmation
     spam_threshold: Spam score threshold
     sweep: Maintenance job
-    sweep_last: "Last run: %{at}"
+    sweep_last_label: "Last run:"
+    delete_saved_reply_confirm: Delete this saved reply? Agents will no longer be able to insert it.
     sweep_never: The maintenance job has not run yet.
     sweep_stale: The maintenance job has not run for over 15 minutes. Restart it.
     sweep_restart: Restart maintenance job

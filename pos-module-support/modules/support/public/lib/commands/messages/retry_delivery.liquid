@@ -1,0 +1,34 @@
+{% doc %}
+  Sends a public agent reply again after the provider refused it (state
+  failed). The files of a reply cannot be attached again once it has left
+  the composer, so a failed reply with attachments is refused here and the
+  agent sends it again from the composer. Returns { valid, error }.
+  @param {object} ticket - Ticket loaded through queries/tickets/find
+  @param {string} message_id - The failed message
+  @param {object} actor - { type, id, member }
+{% enddoc %}
+{% liquid
+  assign result = { "valid": false, "error": "modules/support/ticket.retry_unavailable" }
+  if message_id == blank
+    return result
+  endif
+  graphql r = 'modules/support/messages/search', id: message_id, ticket_id: ticket.id, limit: 1
+  assign message = r.records.results.first
+  if message == blank or message.visibility != 'public' or message.author_type == 'customer' or message.delivery_state != 'failed'
+    return result
+  endif
+  assign ids = []
+  assign ids << message.id
+  graphql files = 'modules/support/attachments/search', message_ids: ids, limit: 1
+  if files.records.total_entries > 0
+    assign result.error = 'modules/support/ticket.retry_with_files'
+    return result
+  endif
+
+  graphql u = 'modules/support/messages/update_delivery', id: message.id, delivery_state: 'queued', delivery_error: null, email_message_id: message.email_message_id
+  background _ = 'modules/support/commands/messages/deliver', message_id: message.id, attempt: 1, attachments: null, source_name: 'support_deliver', priority: 'high'
+  function _ = 'modules/support/commands/ticket_events/log', ticket_id: ticket.id, actor_type: actor.type, actor_id: actor.id, event_type: 'delivery_retried', from_value: null, to_value: message.id, reason: null
+  assign result.valid = true
+  assign result.error = null
+  return result
+%}

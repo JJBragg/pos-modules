@@ -8,7 +8,7 @@
   <section class="pos-card pos-support-step">
     <h2 class="pos-heading-3">{{ 'modules/support/settings.sweep' | t }}</h2>
     {% if data.heartbeat.at %}
-      <p {% if data.stale %}class="pos-support-error"{% endif %}>{{ 'modules/support/settings.sweep_last' | t: at: data.heartbeat.at }}</p>
+      <p {% if data.stale %}class="pos-support-error"{% endif %}>{{ 'modules/support/settings.sweep_last_label' | t }} {% render 'modules/support/time', time: data.heartbeat.at, style: 'datetime' %}</p>
     {% else %}
       <p class="pos-support-error">{{ 'modules/support/settings.sweep_never' | t }}</p>
     {% endif %}

@@ -185,8 +185,21 @@
             assign who = data.requester.name
           endif
           assign event_key = 'modules/support/activity.' | append: event.event_type
+          # people and statuses by name, not by id or key
+          assign from_text = event.from_value
+          assign to_text = event.to_value
+          if event.event_type == 'status_changed'
+            assign from_text = data.statuses.by_key[event.from_value].label | default: event.from_value
+            assign to_text = data.statuses.by_key[event.to_value].label | default: event.to_value
+          elsif event.event_type == 'assigned'
+            assign to_profile = data.profiles[event.to_value]
+            assign to_text = to_profile.name | default: to_profile.first_name | default: to_profile.email | default: event.to_value
+            if event.to_value == blank
+              assign event_key = 'modules/support/activity.unassigned'
+            endif
+          endif
         %}
-        <li><span>{{ who }}</span> {{ event_key | t: from: event.from_value, to: event.to_value }}{% if event.reason != blank and reason_events contains event.event_type %} <span class="pos-supplementary">({{ event.reason }})</span>{% endif %} <span class="pos-supplementary">{% render 'modules/support/time', time: event.created_at, style: 'relative' %}</span></li>
+        <li><span>{{ who }}</span> {{ event_key | t_escape: from: from_text, to: to_text }}{% if event.reason != blank and reason_events contains event.event_type %} <span class="pos-supplementary">({{ event.reason }})</span>{% endif %} <span class="pos-supplementary">{% render 'modules/support/time', time: event.created_at, style: 'relative' %}</span></li>
       {% endfor %}
     </ol>
   </section>

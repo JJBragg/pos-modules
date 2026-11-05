@@ -20,6 +20,12 @@
     if paused_until > now
       assign paused = true
     endif
+    # "Until I turn them on" is stored far in the future; it is not shown as a date
+    assign year_ahead = 'now' | add_to_time: 1, 'y' | to_time
+    assign paused_indefinitely = false
+    if paused_until > year_ahead
+      assign paused_indefinitely = true
+    endif
   endif
 %}
 <div class="pos-support-steps">
@@ -45,7 +51,7 @@
     <section class="pos-card pos-support-step" aria-labelledby="pos-support-pause">
       <h2 id="pos-support-pause" class="pos-heading-3">{{ 'modules/support/profile.pause' | t }}</h2>
       {% if paused %}
-        <p class="pos-support-callout pos-support-callout-warning">{% render 'modules/support/icon', name: 'circle-pause', size: null %}<span>{{ 'modules/support/profile.paused_until_label' | t }} {% render 'modules/support/time', time: paused_until, style: 'datetime' %}</span></p>
+        <p class="pos-support-callout pos-support-callout-warning">{% render 'modules/support/icon', name: 'circle-pause', size: null %}<span>{% if paused_indefinitely %}{{ 'modules/support/profile.paused_indefinitely' | t }}{% else %}{{ 'modules/support/profile.paused_until_label' | t }} {% render 'modules/support/time', time: paused_until, style: 'datetime' %}{% endif %}</span></p>
         <form action="{{ action }}" method="post">
           <input type="hidden" name="authenticity_token" value="{{ context.authenticity_token }}">
           <input type="hidden" name="change" value="resume">
@@ -117,7 +123,7 @@
                       <button type="submit" class="pos-support-switch" role="switch" aria-checked="{{ on }}" aria-label="{{ label }} – {{ channel }}"><span aria-hidden="true"></span></button>
                     </form>
                   {% else %}
-                    <span class="pos-support-switch" role="img" aria-label="{% if on %}{{ 'modules/support/profile.on' | t }}{% else %}{{ 'modules/support/profile.off' | t }}{% endif %}" aria-checked="{{ on }}"><span aria-hidden="true"></span></span>
+                    <span class="pos-support-switch" role="img" aria-label="{% if on %}{{ 'modules/support/profile.on' | t }}{% else %}{{ 'modules/support/profile.off' | t }}{% endif %}" data-on="{{ on }}"><span aria-hidden="true"></span></span>
                   {% endif %}
                 </td>
               {% endfor %}

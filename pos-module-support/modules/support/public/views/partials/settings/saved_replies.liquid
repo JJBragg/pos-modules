@@ -34,7 +34,7 @@
         <input type="hidden" name="section" value="saved_replies">
         <input type="hidden" name="id" value="{{ edit.id }}">
         <input type="hidden" name="delete" value="true">
-        <button type="submit" class="pos-button">{{ 'modules/support/settings.delete' | t }}</button>
+        <button type="submit" class="pos-button pos-button-danger" data-support-confirm="{{ 'modules/support/settings.delete_saved_reply_confirm' | t }}">{{ 'modules/support/settings.delete' | t }}</button>
       </form>
     {% endif %}
   </section>

@@ -52,12 +52,29 @@
         <summary>{{ 'modules/support/ticket.show_original' | t }}</summary>
         <iframe class="pos-support-html-frame" sandbox="allow-popups" referrerpolicy="no-referrer" title="{{ 'modules/support/ticket.original_title' | t }}" srcdoc="<base target='_blank'>{{ original_html }}"></iframe>
       </details>
+    {% elsif message.body_stripped != blank and message.body_text != blank and message.body_stripped != message.body_text %}
+      {%- comment -%} a plain-text email: the quoted history cut from the body stays readable here {%- endcomment -%}
+      {%- assign full_lines = message.body_text | replace_regex: '\r', '' | split: nl -%}
+      <details class="pos-support-original">
+        <summary>{{ 'modules/support/ticket.show_full_email' | t }}</summary>
+        <div class="pos-support-message-body pos-support-muted">{% for line in full_lines %}{{ line }}{% unless forloop.last %}<br>{% endunless %}{% endfor %}</div>
+      </details>
     {% endif %}
   {% else %}
     <div class="pos-support-message-body">{{ message.body_html | sanitize }}</div>
   {% endif %}
   {% if message.delivery_state == 'failed' %}
     <p class="pos-support-error">{{ 'modules/support/ticket.not_delivered' | t }} {{ message.delivery_error }}</p>
+    {% unless attachments.size > 0 %}
+      <form action="/support-desk/tickets/{{ message.ticket_id }}/update" method="post" class="pos-support-inline-form">
+        <input type="hidden" name="authenticity_token" value="{{ context.authenticity_token }}">
+        <input type="hidden" name="change" value="retry">
+        <input type="hidden" name="message_id" value="{{ message.id }}">
+        <button type="submit" class="pos-button pos-button-small">{% render 'modules/support/icon', name: 'send', size: 'sm' %}{{ 'modules/support/ticket.retry' | t }}</button>
+      </form>
+    {% else %}
+      <p class="pos-supplementary">{{ 'modules/support/ticket.retry_with_files' | t }}</p>
+    {% endunless %}
   {% endif %}
   {% if attachments.size > 0 %}
     <ul class="pos-support-attachments" aria-label="{{ 'modules/support/ticket.attachments' | t }}">
@@ -66,7 +83,7 @@
           function size_label = 'modules/support/helpers/filesize', bytes: attachment.size
         %}
         {% if attachment.file.url == blank %}
-          <li class="pos-support-attachment-lost">{% render 'modules/support/icon', name: 'triangle-alert', size: 'sm' %}{{ attachment.filename }} <span>{{ size_label }} · {{ 'modules/support/ticket.attachment_not_stored' | t }}</span></li>
+          <li class="pos-support-attachment-lost">{% render 'modules/support/icon', name: 'triangle-alert', size: 'sm' %}{{ attachment.filename }} <span>{{ size_label }} · {% if message.author_type == 'customer' %}{{ 'modules/support/ticket.attachment_not_stored' | t }}{% else %}{{ 'modules/support/ticket.own_attachment_not_stored' | t }}{% endif %}</span></li>
         {% else %}
           <li><a href="/support-desk/attachments/{{ attachment.id }}" rel="noopener">{% render 'modules/support/icon', name: 'paperclip', size: 'sm' %}{{ attachment.filename }} <span class="pos-support-muted">{{ size_label }}</span></a></li>
         {% endif %}

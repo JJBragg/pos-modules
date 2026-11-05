@@ -78,6 +78,10 @@
     if event.actor_type == 'user'
       assign profile_ids << event.actor_id
     endif
+    # the activity log names who a ticket was assigned to
+    if event.event_type == 'assigned' and event.to_value != blank
+      assign profile_ids << event.to_value
+    endif
   endfor
   assign profile_ids = profile_ids | uniq | array_compact
   if profile_ids.size > 0

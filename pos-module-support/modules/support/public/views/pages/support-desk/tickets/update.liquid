@@ -32,7 +32,7 @@ metadata:
     break
   endif
 
-  function form = 'modules/support/helpers/text_params', params: context.params, names: 'change,status_key,priority,assignee_id,department_id,tags,snooze_until,issue_url,target_number'
+  function form = 'modules/support/helpers/text_params', params: context.params, names: 'change,status_key,priority,assignee_id,department_id,tags,snooze_until,issue_url,target_number,message_id'
   function result = 'modules/support/commands/tickets/apply_form', ticket: ticket, params: form, member: member
 
   if wants_json
@@ -67,7 +67,8 @@ metadata:
   endif
 
   if result.valid
-    function _ = 'modules/user/helpers/flash', notice: 'modules/support/ticket.updated', error: null, info: null, force_clear: null
+    assign notice = result.notice | default: 'modules/support/ticket.updated'
+    function _ = 'modules/user/helpers/flash', notice: notice, error: null, info: null, force_clear: null
   else
     function _ = 'modules/user/helpers/flash', error: result.error, notice: null, info: null, force_clear: null
   endif

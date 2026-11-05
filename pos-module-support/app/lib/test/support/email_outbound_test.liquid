@@ -59,6 +59,17 @@
   function contract = 'modules/tests/assertions/equal', contract: contract, given: message.delivery_state, expected: 'failed', field_name: '4xx marks failed'
   function contract = 'modules/tests/assertions/equal', contract: contract, given: message.delivery_error, expected: 'stub bad request', field_name: '4xx keeps provider error'
 
+  # a refused reply can be sent again: queued once more and audited
+  assign failed_ticket = { "id": null }
+  assign failed_ticket.id = message.ticket_id
+  assign retry_actor = { "type": "user", "id": "test-retry" }
+  function retried = 'modules/support/commands/messages/retry_delivery', ticket: failed_ticket, message_id: message.id, actor: retry_actor
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: retried.valid, expected: true, field_name: 'failed reply sent again'
+  graphql again = 'modules/support/messages/search', id: message.id, limit: 1
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: again.records.results.first.delivery_state, expected: 'queued', field_name: 'retried reply is queued'
+  function retried = 'modules/support/commands/messages/retry_delivery', ticket: failed_ticket, message_id: message.id, actor: retry_actor
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: retried.valid, expected: false, field_name: 'a reply that is not failed is not retried'
+
   # 429 (rate limited) is transient: still queued for a retry after the third attempt
   function message = 'support_test_helpers/delivery_case', subject: 'Delivery test STUB429', contact: contact
   function contract = 'modules/tests/assertions/equal', contract: contract, given: message.delivery_state, expected: 'queued', field_name: '429 is retried, not failed'
