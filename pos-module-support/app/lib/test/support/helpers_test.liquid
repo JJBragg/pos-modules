@@ -30,6 +30,12 @@ next line{% endcapture %}
   function list = 'modules/support/helpers/text_list', value: posted
   function contract = 'modules/tests/assertions/equal', contract: contract, given: list.size, expected: 0, field_name: 'hash is not a list'
 
+  # the ticket URL after a form keeps the queue query, and only a query
+  function url = 'modules/support/helpers/ticket_url', ticket_id: '5', return_to: 'view=mine&q=a%20b&page=2'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: url, expected: '/support-desk/tickets/5?view=mine&q=a%20b&page=2', field_name: 'return query kept'
+  function url = 'modules/support/helpers/ticket_url', ticket_id: '5', return_to: '//evil.example/"x'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: url, expected: '/support-desk/tickets/5', field_name: 'anything but a query dropped'
+
   # reply token: round trip, changed number, changed mac
   function token = 'modules/support/helpers/reply_token', number: 1234, token: null
   function number = 'modules/support/helpers/reply_token', number: null, token: token

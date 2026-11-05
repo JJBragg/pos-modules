@@ -23,6 +23,14 @@
   form.querySelectorAll('input[name="mode"]').forEach((input) => input.addEventListener('change', syncMode));
   syncMode();
 
+  // a draft kept across the reload after a department change
+  const draftKey = `pos-support-draft:${window.location.pathname}`;
+  try {
+    const draft = window.sessionStorage.getItem(draftKey);
+    if (draft && body.value.trim() === '') body.value = draft;
+    window.sessionStorage.removeItem(draftKey);
+  } catch (error) { /* storage unavailable */ }
+
   const saved = form.querySelector('[data-support-saved]');
   if (saved) {
     saved.addEventListener('change', () => {
@@ -141,7 +149,7 @@
   });
 
   const warn = (event) => {
-    if (body.value.trim() === '') return;
+    if (body.value.trim() === '' || form.dataset.draftKept === 'true') return;
     event.preventDefault();
     event.returnValue = '';
   };

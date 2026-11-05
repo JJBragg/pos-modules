@@ -1,0 +1,18 @@
+{% doc %}
+  The ticket page URL to return to after a form, with the queue the ticket
+  was opened from (the return_to parameter, a URL-encoded query string) so
+  the pager and "back to view" link survive. Anything but query-string
+  characters in return_to is dropped.
+  @param {string} ticket_id - The ticket
+  @param {string} [return_to] - The queue query, as queries/tickets/neighbors builds it
+{% enddoc %}
+{% liquid
+  assign url = '/support-desk/tickets/' | append: ticket_id
+  if return_to != blank
+    assign safe = return_to | matches: '\A[A-Za-z0-9_.%+=&\-]{1,600}\z'
+    if safe
+      assign url = url | append: '?' | append: return_to
+    endif
+  endif
+  return url
+%}

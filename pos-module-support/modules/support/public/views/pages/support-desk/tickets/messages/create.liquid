@@ -27,7 +27,7 @@ metadata:
   assign actor = { "type": "user" }
   assign actor.id = member.profile_id
   assign actor.member = member
-  function form = 'modules/support/helpers/text_params', params: context.params, names: 'body,mode,cc,then_status'
+  function form = 'modules/support/helpers/text_params', params: context.params, names: 'body,mode,cc,then_status,return_to'
   function body_html = 'modules/support/helpers/text_to_html', text: form.body
   if form.mode == 'note'
     function result = 'modules/support/commands/messages/create_note', ticket: ticket, body_html: body_html, mentioned_ids: null, actor: actor
@@ -50,6 +50,6 @@ metadata:
     assign error = result.errors.body | default: result.errors.attachments | default: 'modules/support/ticket.not_sent'
     function _ = 'modules/user/helpers/flash', error: error, notice: null, info: null, force_clear: null
   endif
-  assign target = '/support-desk/tickets/' | append: ticket.id
+  function target = 'modules/support/helpers/ticket_url', ticket_id: ticket.id, return_to: form.return_to
   redirect_to target
 %}

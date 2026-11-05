@@ -42,7 +42,11 @@
     template.innerHTML = html;
     if (template.content.firstElementChild) current.replaceWith(template.content.firstElementChild);
   };
+  // the choices last saved, so a refused change puts the controls back
+  const snapshot = (form) => Array.from(form.querySelectorAll('select, input[type="radio"]')).map((el) => [el, el.type === 'radio' ? el.checked : el.value]);
+  const restore = (saved) => saved.forEach(([el, value]) => { if (el.type === 'radio') el.checked = value; else el.value = value; });
   document.querySelectorAll('[data-support-autosave]').forEach((form) => {
+    let saved = snapshot(form);
     const save = async () => {
       const data = new FormData(form);
       data.set('respond', 'json');
@@ -54,12 +58,24 @@
         body = null;
       }
       if (body && body.ok && body.reload) {
+        // a reply being written survives the reload (restored by pos-support-ticket.js)
+        const composer = document.querySelector('[data-support-composer]');
+        const draft = composer && composer.querySelector('textarea[name="body"]');
+        if (draft && draft.value.trim() !== '') {
+          try {
+            window.sessionStorage.setItem(`pos-support-draft:${window.location.pathname}`, draft.value);
+            composer.dataset.draftKept = 'true';
+          } catch (error) { /* storage unavailable: the unsaved-draft warning still asks */ }
+        }
         window.location.reload();
         return;
       }
       if (body && body.ok) {
+        saved = snapshot(form);
         swapBadge('.pos-support-ticket-title .pos-support-priority', body.priority_html);
         swapBadge('.pos-support-ticket-badges .pos-support-status', body.status_html);
+      } else {
+        restore(saved);
       }
       if (window.pos && window.pos.modules && window.pos.modules.toast) {
         const ok = body && body.ok;

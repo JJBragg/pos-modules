@@ -9,6 +9,13 @@
   assign action = '/support-desk/tickets/' | append: ticket.id
   assign update_action = action | append: '/update'
   assign message_action = action | append: '/messages'
+  # the queue the ticket was opened from rides along as one parameter, so the
+  # page after a reply or change keeps its pager and "back to view" link
+  if neighbors.query != blank
+    assign return_to = neighbors.query | url_encode | prepend: '?return_to='
+    assign update_action = update_action | append: return_to
+    assign message_action = message_action | append: return_to
+  endif
   assign department = null
   for d in data.departments
     if d.id == ticket.department_id
