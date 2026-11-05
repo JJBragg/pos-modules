@@ -67,19 +67,30 @@
     return item;
   };
 
+  // A refused or unreadable choice is cleared and explained at the file field.
+  // The message is shown once and not kept as a validity error: the field is
+  // empty again, so it must not block sending the reply without a file.
+  const refuseFiles = (message) => {
+    files.value = '';
+    holder.textContent = '';
+    if (list) list.textContent = '';
+    files.setCustomValidity(message);
+    files.reportValidity();
+    files.setCustomValidity('');
+  };
+  let readFailed = false;
+
   if (files) {
     files.addEventListener('change', () => {
       holder.textContent = '';
       if (list) list.textContent = '';
+      readFailed = false;
       const chosen = Array.from(files.files);
       const total = chosen.reduce((sum, file) => sum + file.size, 0);
       if (total > MAX_BYTES) {
-        files.value = '';
-        files.setCustomValidity(form.dataset.tooLarge || 'Attachments are limited to 10 MB in total.');
-        files.reportValidity();
+        refuseFiles(form.dataset.tooLarge || 'Attachments are limited to 10 MB in total.');
         return;
       }
-      files.setCustomValidity('');
       reading = (async () => {
         for (const file of chosen) {
           const content = await readFile(file);
@@ -88,7 +99,9 @@
           holder.append(hidden('attachments[][content_base64]', content));
           if (list) list.append(chip(file));
         }
-      })();
+      })().catch(() => {
+        readFailed = true;
+      });
     });
   }
 
@@ -103,10 +116,17 @@
     send.setAttribute('aria-busy', 'true');
     send.disabled = true;
     if (sendLabel) sendLabel.textContent = form.dataset.preparing || sendLabel.textContent;
-    try {
-      await reading;
-    } catch (error) {
-      // a file that cannot be read is skipped; the message still goes out
+    await reading;
+    // a file that cannot be read is never dropped silently: nothing is sent
+    // until the agent chooses the files again or removes them
+    if (readFailed) {
+      readFailed = false;
+      submitting = false;
+      send.removeAttribute('aria-busy');
+      send.disabled = false;
+      syncMode();
+      refuseFiles(form.dataset.unreadable || 'A file could not be read. Choose it again.');
+      return;
     }
     if (sendLabel) sendLabel.textContent = form.dataset.sending || sendLabel.textContent;
     window.removeEventListener('beforeunload', warn);

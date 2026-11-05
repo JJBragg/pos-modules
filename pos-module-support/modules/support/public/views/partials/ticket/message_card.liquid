@@ -31,9 +31,26 @@
     -%}
     <div class="pos-support-message-body">{% for line in lines %}{{ line }}{% unless forloop.last %}<br>{% endunless %}{% endfor %}</div>
     {% if message.body_html != blank %}
+      {%- liquid
+        # inline (cid:) images were stored as links to the desk's attachment page,
+        # which needs the session; the sandboxed frame has none, so they point
+        # at the file's short-lived signed URL instead
+        assign original_html = message.body_html
+        for attachment in attachments
+          if attachment.file.url != blank
+            assign local_url = '/support-desk/attachments/' | append: attachment.id
+            assign quoted = '"' | append: local_url | append: '"'
+            assign signed = '"' | append: attachment.file.url | append: '"'
+            assign original_html = original_html | replace: quoted, signed
+            assign quoted = "'" | append: local_url | append: "'"
+            assign signed = "'" | append: attachment.file.url | append: "'"
+            assign original_html = original_html | replace: quoted, signed
+          endif
+        endfor
+      -%}
       <details class="pos-support-original">
         <summary>{{ 'modules/support/ticket.show_original' | t }}</summary>
-        <iframe class="pos-support-html-frame" sandbox="allow-popups" referrerpolicy="no-referrer" title="{{ 'modules/support/ticket.original_title' | t }}" srcdoc="<base target='_blank'>{{ message.body_html }}"></iframe>
+        <iframe class="pos-support-html-frame" sandbox="allow-popups" referrerpolicy="no-referrer" title="{{ 'modules/support/ticket.original_title' | t }}" srcdoc="<base target='_blank'>{{ original_html }}"></iframe>
       </details>
     {% endif %}
   {% else %}

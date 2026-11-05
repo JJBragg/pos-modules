@@ -12,7 +12,7 @@
 {% enddoc %}
 <section class="pos-support-composer" aria-labelledby="pos-support-composer-title">
   <h2 id="pos-support-composer-title" class="pos-support-sr-only">{{ 'modules/support/ticket.respond' | t }}</h2>
-  <form action="{{ message_action }}" method="post" enctype="multipart/form-data" class="pos-form" data-support-composer data-sending="{{ 'modules/support/ticket.sending' | t }}" data-preparing="{{ 'modules/support/ticket.preparing_files' | t }}" data-unsaved="{{ 'modules/support/ticket.unsaved' | t }}" data-too-large="{{ 'modules/support/ticket.attach_too_large' | t }}" data-send-label="{{ 'modules/support/ticket.send' | t }}" data-note-label="{{ 'modules/support/ticket.add_note' | t }}">
+  <form action="{{ message_action }}" method="post" enctype="multipart/form-data" class="pos-form" data-support-composer data-sending="{{ 'modules/support/ticket.sending' | t }}" data-preparing="{{ 'modules/support/ticket.preparing_files' | t }}" data-unsaved="{{ 'modules/support/ticket.unsaved' | t }}" data-too-large="{{ 'modules/support/ticket.attach_too_large' | t }}" data-unreadable="{{ 'modules/support/ticket.attach_unreadable' | t }}" data-send-label="{{ 'modules/support/ticket.send' | t }}" data-note-label="{{ 'modules/support/ticket.add_note' | t }}">
     <input type="hidden" name="authenticity_token" value="{{ context.authenticity_token }}">
     <div class="pos-support-new-message" data-support-new-message role="alert" hidden>
       <p>{{ 'modules/support/live.new_message' | t }} <a href="{{ action }}">{{ 'modules/support/live.refresh' | t }}</a></p>

@@ -50,6 +50,25 @@
   endif
   function contract = 'modules/tests/assertions/equal', contract: contract, given: doubled, expected: false, field_name: 'customer text not escaped twice'
 
+  # inline images in the original email use the file's signed URL: the sandboxed frame has no session
+  assign message.body_html = '<p><img src="/support-desk/attachments/77" alt="x"></p>'
+  assign inline = { "id": "77", "filename": "x.png", "size": 10, "file": { "url": "https://files.example/x.png?signature=1" } }
+  assign inline_list = []
+  assign inline_list << inline
+  capture page
+    render 'modules/support/ticket/message', message: message, attachments: inline_list, requester: requester, profiles: profiles
+  endcapture
+  assign signed = false
+  if page contains 'files.example/x.png?signature=1'
+    assign signed = true
+  endif
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: signed, expected: true, field_name: 'inline image uses the signed file URL'
+  assign session_link = false
+  if page contains 'src=&quot;/support-desk/attachments/77' or page contains 'src="/support-desk/attachments/77'
+    assign session_link = true
+  endif
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: session_link, expected: false, field_name: 'inline image does not use the session-only attachment link'
+
   assign ticket = { "number": 1, "subject": "S" }
   capture email
     render 'modules/support/emails/reply', body_html: body, signature_html: body, brand: null, delimiter: 'D', ticket: ticket

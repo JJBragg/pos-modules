@@ -381,6 +381,7 @@ en:
     preparing_files: Preparing attachments…
     unsaved: You have an unsent reply.
     attach_too_large: Attachments are limited to 10 MB in total.
+    attach_unreadable: A file could not be read, so nothing was sent. Choose the files again, or remove them.
     emails_to: "Emails %{name}"
     from: From
     to: To
