@@ -1,0 +1,62 @@
+{% doc %}
+  Finds the colleagues @mentioned in a note: '@First Last' matches a
+  member's full name, '@First' a first name only one member has (case does
+  not matter). Only active members who can see the ticket's department are
+  matched, and never the writer. Returns profile ids.
+  @param {string} text - The note as plain text
+  @param {object} ticket - The ticket the note is on
+  @param {string} [author_id] - The writer's profile id
+{% enddoc %}
+{% liquid
+  assign found = []
+  unless text contains '@'
+    return found
+  endunless
+  function members = 'modules/support/queries/team_members/active'
+  assign lowered = text | downcase | append: ' '
+
+  assign first_counts = {}
+  for m in members
+    assign first = m.name | downcase | strip | split: ' ' | first
+    if first != blank
+      assign count = first_counts[first] | default: 0 | plus: 1
+      assign first_counts[first] = count
+    endif
+  endfor
+
+  for m in members
+    if m.profile_id == author_id or m.name == blank
+      continue
+    endif
+    if m.role == 'agent'
+      unless m.department_ids contains ticket.department_id
+        continue
+      endunless
+    endif
+    assign full = m.name | downcase | strip
+    assign first = full | split: ' ' | first
+    assign names = []
+    assign names << full
+    if first_counts[first] == 1 and first != full
+      assign names << first
+    endif
+    assign is_mentioned = false
+    for name in names
+      assign marker = '@' | append: name
+      # a name followed by a letter or digit is a different name ('@ann' is not '@anna');
+      # the trailing space keeps a mention at the very end of the note
+      assign pieces = lowered | split: marker
+      for piece in pieces offset: 1
+        assign next = piece | slice: 0
+        assign longer = next | matches: '[\p{L}\p{N}]'
+        if longer != true
+          assign is_mentioned = true
+        endif
+      endfor
+    endfor
+    if is_mentioned
+      assign found << m.profile_id
+    endif
+  endfor
+  return found | uniq
+%}

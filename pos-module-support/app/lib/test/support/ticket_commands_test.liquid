@@ -78,6 +78,36 @@
   function contract = 'modules/tests/assertions/equal', contract: contract, given: r.valid, expected: true, field_name: 'saving an unassigned ticket does not re-run the assignment'
   function a = 'modules/support/commands/tickets/assign', ticket: t, assignee_id: actor.id, reason: null, actor: actor
 
+  # @mentions in a note are matched to colleagues by full name; a longer name is not a match
+  # fixture members have no profile, so their names are given through the member memo
+  assign mentioned_name = 'Zedekiah Quillfeather'
+  assign colleague = { "profile_id": null, "role": "agent", "department_ids": [], "name": null }
+  assign colleague.profile_id = f.other_agent_id
+  assign colleague.department_ids = ticket.department_id | split: ','
+  assign colleague.name = mentioned_name
+  assign named = []
+  assign named << colleague
+  export named, namespace: 'support_team_members'
+  assign note_text = 'please look @' | append: mentioned_name | append: ', thanks'
+  function ids = 'modules/support/queries/notes/mentioned_ids', text: note_text, ticket: ticket, author_id: actor.id
+  assign hit = false
+  if ids contains f.other_agent_id
+    assign hit = true
+  endif
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: hit, expected: true, field_name: 'full-name mention found'
+  assign mentioned_first = mentioned_name | split: ' ' | first
+  assign note_text = 'please look @' | append: mentioned_first | append: 'zz'
+  function ids = 'modules/support/queries/notes/mentioned_ids', text: note_text, ticket: ticket, author_id: actor.id
+  assign hit = false
+  if ids contains f.other_agent_id
+    assign hit = true
+  endif
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: hit, expected: false, field_name: 'longer name is not a mention'
+  assign note_text = 'cc @zedekiah'
+  function ids = 'modules/support/queries/notes/mentioned_ids', text: note_text, ticket: ticket, author_id: actor.id
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: ids.first, expected: f.other_agent_id, field_name: 'unique first name at the end of the note is a mention'
+  function _ = 'modules/support/commands/team_members/forget'
+
   # tags and subject
   assign tags = "Billing, billing ,Portal" | split: ','
   assign fields = { "subject": "Renamed subject" }

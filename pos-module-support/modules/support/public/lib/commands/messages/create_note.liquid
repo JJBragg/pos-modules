@@ -2,7 +2,7 @@
   Internal note (05 §1): never emailed to the customer.
   @param {object} ticket - Ticket loaded through queries/tickets/find
   @param {string} body_html - Note HTML from the composer
-  @param {string[]} [mentioned_ids] - Profile ids mentioned with @
+  @param {string[]} [mentioned_ids] - Profile ids mentioned with @; null finds them in the text (queries/notes/mentioned_ids)
   @param {object} actor - { type, id, member }
 {% enddoc %}
 {% liquid
@@ -31,6 +31,10 @@
   assign payload.ticket_id = ticket.id
   assign payload.message_id = message.id
   assign payload.actor_id = actor.id
+  # without ids from the caller, @names typed in the note are matched to colleagues
+  if mentioned_ids == null
+    function mentioned_ids = 'modules/support/queries/notes/mentioned_ids', text: body_text, ticket: ticket, author_id: actor.id
+  endif
   assign payload.mentioned_ids = mentioned_ids | default: [] | uniq
   function _ = 'modules/core/commands/events/publish', type: 'support_note_created', object: payload, delay: null, max_attempts: null
 
