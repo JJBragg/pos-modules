@@ -58,6 +58,26 @@
   function a2 = 'modules/support/commands/tickets/assign', ticket: a.ticket, assignee_id: f.other_agent_id, reason: null, actor: actor
   function contract = 'modules/tests/assertions/equal', contract: contract, given: a2.valid, expected: false, field_name: 'agent cannot assign others'
 
+  # ticket page properties form: all or nothing, and Unassigned stores no assignee
+  assign form = { "change": "properties", "priority": "p1", "tags": "kept", "status_key": "no-such-status", "assignee_id": "" }
+  function r = 'modules/support/commands/tickets/apply_form', ticket: a.ticket, params: form, member: actor.member
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: r.valid, expected: false, field_name: 'unknown status refuses the save'
+  function t = 'modules/support/queries/tickets/find', id: ticket.id, number: null, member: actor.member
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: t.priority, expected: 'p0', field_name: 'refused save writes nothing'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: t.assignee_id, expected: actor.id, field_name: 'refused save keeps the assignee'
+  assign form.status_key = null
+  function r = 'modules/support/commands/tickets/apply_form', ticket: t, params: form, member: actor.member
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: r.valid, expected: true, field_name: 'agent may unassign their own ticket'
+  function t = 'modules/support/queries/tickets/find', id: ticket.id, number: null, member: actor.member
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: t.priority, expected: 'p1', field_name: 'priority saved with the unassign'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: t.assignee_id, expected: null, field_name: 'unassigned stores null, not an empty string'
+  graphql un = 'modules/support/tickets/search', id: ticket.id, assigned: false, limit: 1
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: un.records.total_entries, expected: 1, field_name: 'unassigned ticket is in the Unassigned filter'
+  assign form = { "change": "properties", "priority": "p0", "assignee_id": "" }
+  function r = 'modules/support/commands/tickets/apply_form', ticket: t, params: form, member: actor.member
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: r.valid, expected: true, field_name: 'saving an unassigned ticket does not re-run the assignment'
+  function a = 'modules/support/commands/tickets/assign', ticket: t, assignee_id: actor.id, reason: null, actor: actor
+
   # tags and subject
   assign tags = "Billing, billing ,Portal" | split: ','
   assign fields = { "subject": "Renamed subject" }

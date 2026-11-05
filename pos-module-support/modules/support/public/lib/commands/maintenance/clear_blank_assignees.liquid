@@ -1,0 +1,36 @@
+{% doc %}
+  One-off data fix: tickets unassigned from the ticket page before the fix
+  stored assignee_id as '' instead of leaving it empty, so the Unassigned
+  view and counts (which match a missing assignee_id) did not list them.
+  Clears those values, then recounts the stored ticket counts.
+  Returns the number of tickets fixed.
+{% enddoc %}
+{% liquid
+  assign ids = []
+  graphql r = 'modules/support/tickets/search', assigned: true, limit: 500, page: 1
+  assign pages = r.records.total_pages
+  assign results = r.records.results
+  # one request per page of 500 tickets
+  # platformos-check-disable NestedGraphQLQuery
+  for page in (1..pages)
+    if page > 1
+      graphql r = 'modules/support/tickets/search', assigned: true, limit: 500, page: page
+      assign results = r.records.results
+    endif
+    for t in results
+      if t.assignee_id == blank
+        assign ids << t.id
+      endif
+    endfor
+  endfor
+  assign values = { "assignee_id": null }
+  function props = 'modules/support/helpers/props', values: values
+  for id in ids
+    graphql u = 'modules/support/records/update', id: id, properties: props
+  endfor
+  # platformos-check-enable NestedGraphQLQuery
+  if ids.size > 0
+    function _ = 'modules/support/commands/ticket_stats/reconcile'
+  endif
+  return ids.size
+%}

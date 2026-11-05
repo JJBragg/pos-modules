@@ -421,6 +421,7 @@ en:
     unknown_change: Unknown change.
     details: Details
     unassigned: Unassigned
+    assignee_outside: not in this department
     tags: Tags (comma-separated)
     save: Save
     sla: SLA

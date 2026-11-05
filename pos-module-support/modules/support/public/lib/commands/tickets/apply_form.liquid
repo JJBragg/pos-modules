@@ -18,42 +18,78 @@
 
   case params.change
   when 'properties'
+    # Every field is checked before anything is written, so a save is all or
+    # nothing; only fields that differ are written (every write logs and broadcasts).
     function statuses = 'modules/support/queries/statuses/all'
     assign current_key = statuses.by_id[ticket.status_id].key
+    assign change_status = false
     if params.status_key != blank and params.status_key != current_key
-      function r = 'modules/support/commands/tickets/change_status', ticket: ticket, status_key: params.status_key, actor: actor
-      if r.valid
-        assign ticket = r.ticket
-      else
+      assign change_status = true
+      assign target = statuses.by_key[params.status_key]
+      if target == blank or target.active == false
         assign result.valid = false
-        assign result.error = r.errors.status
+        assign result.error = 'modules/support/tickets.errors.unknown_status'
       endif
     endif
-    if result.valid and params.priority != blank and params.priority != ticket.priority
-      function r = 'modules/support/commands/tickets/set_priority', ticket: ticket, priority: params.priority, actor: actor
-      if r.valid
-        assign ticket = r.ticket
-      else
+    assign change_priority = false
+    if params.priority != blank and params.priority != ticket.priority
+      assign change_priority = true
+      assign priorities = ["p0", "p1", "p2", "p3"]
+      unless priorities contains params.priority
         assign result.valid = false
-        assign result.error = r.errors.priority
+        assign result.error = 'modules/support/tickets.errors.priority'
+      endunless
+    endif
+    # the select posts '' for Unassigned; a stored '' or null both mean unassigned
+    assign change_assignee = false
+    if params.assignee_id != null
+      assign posted_assignee = params.assignee_id | default: ''
+      assign current_assignee = ticket.assignee_id | default: ''
+      if posted_assignee != current_assignee
+        assign change_assignee = true
+        function error = 'modules/support/queries/tickets/assignee_error', ticket: ticket, assignee_id: posted_assignee, actor: actor
+        if error
+          assign result.valid = false
+          assign result.error = error
+        endif
       endif
     endif
-    if result.valid and params.assignee_id != ticket.assignee_id and params.assignee_id != null
-      function r = 'modules/support/commands/tickets/assign', ticket: ticket, assignee_id: params.assignee_id, reason: 'manual', actor: actor
-      if r.valid
-        assign ticket = r.ticket
-      else
-        assign result.valid = false
-        assign result.error = r.errors.assignee_id
-      endif
-    endif
-    # only fields that differ are written: every write logs and broadcasts
     assign fields = { "subject": null, "department_id": null, "tags": null }
     assign changed = false
     if params.department_id != blank and params.department_id != ticket.department_id
-      assign fields.department_id = params.department_id
-      assign changed = true
-      assign result.department_changed = true
+      graphql d = 'modules/support/departments/search', id: params.department_id, limit: 1
+      assign allowed = true
+      if d.records.total_entries == 0
+        assign allowed = false
+      elsif member.role == 'agent'
+        unless member.department_ids contains params.department_id
+          assign allowed = false
+        endunless
+      endif
+      if allowed
+        assign fields.department_id = params.department_id
+        assign changed = true
+        assign result.department_changed = true
+      else
+        assign result.valid = false
+        assign result.error = 'modules/support/tickets.errors.department'
+      endif
+    endif
+    unless result.valid
+      return result
+    endunless
+
+    if change_status
+      function r = 'modules/support/commands/tickets/change_status', ticket: ticket, status_key: params.status_key, actor: actor
+      assign ticket = r.ticket | default: ticket
+    endif
+    if change_priority
+      function r = 'modules/support/commands/tickets/set_priority', ticket: ticket, priority: params.priority, actor: actor
+      assign ticket = r.ticket | default: ticket
+    endif
+    if change_assignee
+      function r = 'modules/support/commands/tickets/assign', ticket: ticket, assignee_id: posted_assignee, reason: 'manual', actor: actor
+      assign ticket = r.ticket | default: ticket
     endif
     if params.tags != null
       # compared the way update_fields stores them
@@ -72,7 +108,7 @@
         assign changed = true
       endif
     endif
-    if result.valid and changed
+    if changed
       function r = 'modules/support/commands/tickets/update_fields', ticket: ticket, fields: fields, actor: actor
       unless r.valid
         assign result.valid = false

@@ -92,11 +92,24 @@
   assign data.departments = r.departments.results
   function members = 'modules/support/queries/team_members/active'
   assign data.members = []
+  assign assignee_listed = false
   for item in members
     if item.role != 'agent' or item.department_ids contains ticket.department_id
       assign data.members << item
+      if item.profile_id == ticket.assignee_id
+        assign assignee_listed = true
+      endif
     endif
   endfor
+  # the current assignee stays selectable even when they no longer serve this
+  # department or are disabled, so saving another field does not unassign them
+  if ticket.assignee_id != blank and assignee_listed == false
+    assign current = { "profile_id": null, "name": null, "outside": true }
+    assign current.profile_id = ticket.assignee_id
+    assign p = data.profiles[ticket.assignee_id]
+    assign current.name = p.name | default: p.first_name | default: p.email | default: ticket.assignee_id
+    assign data.members << current
+  endif
 
   function brand = 'modules/support/helpers/branding'
   assign data.saved_replies = []

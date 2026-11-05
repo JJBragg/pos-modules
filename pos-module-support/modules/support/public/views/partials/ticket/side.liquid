@@ -34,7 +34,7 @@
         <label for="pos-support-side-assignee">{{ 'modules/support/queue.assignee' | t }}</label>
         <select id="pos-support-side-assignee" name="assignee_id">
           <option value="">{{ 'modules/support/ticket.unassigned' | t }}</option>
-          {% for m in data.members %}<option value="{{ m.profile_id }}" {% if m.profile_id == ticket.assignee_id %}selected{% endif %}>{{ m.name }}</option>{% endfor %}
+          {% for m in data.members %}<option value="{{ m.profile_id }}" {% if m.profile_id == ticket.assignee_id %}selected{% endif %}>{{ m.name }}{% if m.outside %} ({{ 'modules/support/ticket.assignee_outside' | t }}){% endif %}</option>{% endfor %}
         </select>
       </fieldset>
       <fieldset>

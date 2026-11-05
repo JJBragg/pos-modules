@@ -27,6 +27,15 @@
   assign list << sub
   function m = 'modules/support/queries/blocklist/match', addresses: list
   function contract = 'modules/tests/assertions/equal', contract: contract, given: m.id, expected: d.record.id, field_name: 'subdomain matches domain'
+  assign list = []
+  assign upper = 'X@MAIL.' | append: domain | upcase
+  assign list << upper
+  function m = 'modules/support/queries/blocklist/match', addresses: list
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: m.id, expected: d.record.id, field_name: 'upper-case sender matches its domain'
+  assign list = []
+  assign list << address
+  function m = 'modules/support/queries/blocklist/match', addresses: list
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: m.id, expected: a.record.id, field_name: 'mixed-case sender matches its address'
   assign list = ["someone-else@other.example"]
   function m = 'modules/support/queries/blocklist/match', addresses: list
   function contract = 'modules/tests/assertions/equal', contract: contract, given: m.id, expected: null, field_name: 'other address at an address-blocked domain passes'

@@ -1,0 +1,37 @@
+{% doc %}
+  Checks an assignment before anything is written (05 §1). Returns the
+  error translation key, or null when the assignment is allowed: the
+  assignee must be an active member serving the ticket's department; an
+  agent may only take a ticket or give up their own unless they hold
+  support.tickets.manage.all. A blank assignee means unassign.
+  @param {object} ticket - Ticket loaded through queries/tickets/find
+  @param {string} [assignee_id] - Profile id, blank to unassign
+  @param {object} actor - { type, id, member }
+{% enddoc %}
+{% liquid
+  if assignee_id != blank
+    function assignee = 'modules/support/queries/team_members/find', profile_id: assignee_id
+    if assignee == blank or assignee.state != 'active'
+      return 'modules/support/tickets.errors.not_member'
+    endif
+    if assignee.role == 'agent'
+      unless assignee.department_ids contains ticket.department_id
+        return 'modules/support/tickets.errors.not_in_department'
+      endunless
+    endif
+  endif
+
+  if actor.type == 'user' and assignee_id != actor.id
+    assign own_unassign = false
+    if assignee_id == blank and ticket.assignee_id == actor.id
+      assign own_unassign = true
+    endif
+    unless own_unassign
+      function can_manage = 'modules/support/queries/team/can', member: actor.member, do: 'support.tickets.manage.all'
+      unless can_manage
+        return 'modules/support/tickets.errors.assign_others'
+      endunless
+    endunless
+  endif
+  return null
+%}

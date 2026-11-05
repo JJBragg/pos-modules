@@ -1,12 +1,12 @@
 {% doc %}
   Returns the blocklist row matching any of the addresses (exact address,
   or its domain and parent domains), or null (D-27).
-  @param {string[]} addresses - Lower-cased email addresses
+  @param {string[]} addresses - Email addresses, any case
 {% enddoc %}
 {% liquid
   assign patterns = []
-  for address in addresses
-    assign address = address | downcase | strip
+  for raw in addresses
+    assign address = raw | downcase | strip
     if address contains '@'
       assign patterns << address
       assign labels = address | split: '@' | last | split: '.'

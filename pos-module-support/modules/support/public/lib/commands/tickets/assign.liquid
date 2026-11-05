@@ -1,7 +1,8 @@
 {% doc %}
   Assigns a ticket (05 §1). Refuses an assignee who is not an active member
-  serving the ticket's department; an agent may assign only to themselves
-  unless they hold support.tickets.manage.all. A blank assignee unassigns.
+  serving the ticket's department; an agent may take a ticket or give up
+  their own unless they hold support.tickets.manage.all
+  (queries/tickets/assignee_error). A blank assignee unassigns.
   @param {object} ticket - Ticket loaded through queries/tickets/find
   @param {string} [assignee_id] - Profile id, blank to unassign
   @param {string} [reason] - Shown in the activity log, default "manual"
@@ -10,32 +11,21 @@
 {% liquid
   assign result = { "valid": false, "errors": {}, "ticket": null, "warning": null }
   assign reason = reason | default: 'manual'
-
-  if assignee_id != blank
-    function assignee = 'modules/support/queries/team_members/find', profile_id: assignee_id
-    if assignee == blank or assignee.state != 'active'
-      assign result.errors.assignee_id = 'modules/support/tickets.errors.not_member'
-      return result
-    endif
-    if assignee.role == 'agent'
-      unless assignee.department_ids contains ticket.department_id
-        assign result.errors.assignee_id = 'modules/support/tickets.errors.not_in_department'
-        return result
-      endunless
-    endif
+  # unassigned is stored as null: the Unassigned view and counts match on a missing assignee_id
+  if assignee_id == blank
+    assign assignee_id = null
   endif
 
-  if actor.type == 'user' and assignee_id != actor.id
-    function can_manage = 'modules/support/queries/team/can', member: actor.member, do: 'support.tickets.manage.all'
-    unless can_manage
-      assign result.errors.assignee_id = 'modules/support/tickets.errors.assign_others'
-      return result
-    endunless
+  function error = 'modules/support/queries/tickets/assignee_error', ticket: ticket, assignee_id: assignee_id, actor: actor
+  if error
+    assign result.errors.assignee_id = error
+    return result
   endif
 
   assign values = { "assignee_id": null, "assigned_at": null }
   assign values.assignee_id = assignee_id
   if assignee_id != blank
+    function assignee = 'modules/support/queries/team_members/find', profile_id: assignee_id
     assign values.assigned_at = 'now' | to_time
   endif
   assign values.assignment_reason = reason
