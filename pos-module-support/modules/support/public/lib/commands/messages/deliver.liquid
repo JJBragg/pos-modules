@@ -1,10 +1,10 @@
 {% doc %}
   Sends a public agent message as email (04 §4). Runs as a background job.
   Refuses ticket mail until Settings → Email is turned on (EM-0c).
-  Stores the Message-ID before sending; 2xx marks the message sent, 4xx or
-  a configuration error (no provider, key or From address) marks it failed
-  with the reason, 5xx or no response retries up to three attempts, then
-  marks it failed. A department without a From address uses the default
+  Stores the Message-ID before sending; 2xx marks the message sent, 4xx
+  (except 408 and 429) or a configuration error (no provider, key or From
+  address) marks it failed with the reason, 5xx or no response retries up
+  to three attempts and 408/429 up to five, then marks it failed. A department without a From address uses the default
   department's.
   @param {string} message_id - The message record id
   @param {number} [attempt] - 1-based attempt number
@@ -104,8 +104,13 @@
   assign email.attachments = attachments | default: []
   function sent = 'modules/support/commands/email/send', message: email
 
+  # 408 (timeout) and 429 (rate limited) are transient: retried like a 5xx,
+  # with two more attempts for a rate limit, which can take minutes to lift
   assign permanent = false
-  if sent.status >= 400 and sent.status < 500
+  assign max_attempts = 3
+  if sent.status == 408 or sent.status == 429
+    assign max_attempts = 5
+  elsif sent.status >= 400 and sent.status < 500
     assign permanent = true
   endif
   assign permanent_errors = ["invalid_message", "email_provider_not_configured", "missing_api_key"]
@@ -118,7 +123,7 @@
   elsif permanent
     assign error = sent.error | append: ''
     graphql u = 'modules/support/messages/update_delivery', id: message.id, delivery_state: 'failed', delivery_error: error, email_message_id: email_message_id
-  elsif attempt < 3
+  elsif attempt < max_attempts
     assign next_attempt = attempt | plus: 1
     assign delay = attempt | times: attempt
     background _ = 'modules/support/commands/messages/deliver', delay: delay, source_name: 'support_deliver_retry', message_id: message.id, attempt: next_attempt, attachments: attachments

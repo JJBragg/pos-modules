@@ -2,6 +2,33 @@
   @param {object} contract - The test contract object
 {% enddoc %}
 {% liquid
+  # Assignment: whole minutes only, spam threshold 0-100 and never blank
+  assign form = { "unassigned_alert_minutes": "15", "unassigned_alert_minutes_p0": "5", "escalate_after_minutes": "2.7", "spam_threshold": "5" }
+  function r = 'modules/support/commands/settings_sections/save', section: 'assignment', params: form
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: r.error, expected: 'modules/support/settings.errors.minutes', field_name: 'fractional minutes refused'
+  assign form.escalate_after_minutes = "30"
+  assign bad_thresholds = ",abc,-3,1e9,101" | split: ','
+  for bad in bad_thresholds
+    assign form.spam_threshold = bad
+    function r = 'modules/support/commands/settings_sections/save', section: 'assignment', params: form
+    assign label = 'spam threshold refused: "' | append: bad | append: '"'
+    function contract = 'modules/tests/assertions/equal', contract: contract, given: r.error, expected: 'modules/support/settings.errors.spam_threshold', field_name: label
+  endfor
+
+  # sweep watchdog: a recent run or restart leaves the chain alone, a stale one restarts it
+  assign recent = 'now' | add_to_time: -2, 'm' | strftime: '%Y-%m-%dT%H:%M:%SZ'
+  assign old = 'now' | add_to_time: -2, 'h' | strftime: '%Y-%m-%dT%H:%M:%SZ'
+  assign fake = { "sweep_heartbeat": { "at": null }, "sweep_started_at": null }
+  assign fake.sweep_heartbeat.at = recent
+  assign fake.sweep_started_at = old
+  function restarted = 'modules/support/commands/maintenance/watchdog', settings: fake
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: restarted, expected: false, field_name: 'watchdog leaves a running sweep alone'
+  assign fake.sweep_heartbeat.at = old
+  function restarted = 'modules/support/commands/maintenance/watchdog', settings: fake
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: restarted, expected: true, field_name: 'watchdog restarts a stopped sweep'
+  function s = 'modules/support/helpers/settings'
+  function contract = 'modules/tests/assertions/presence', contract: contract, field_name: 'sweep_started_at', object: s
+
   # dual secret: current accepted; previous accepted until it expires
   assign future = 'now' | add_to_time: 2, 'h' | strftime: '%Y-%m-%dT%H:%M:%SZ'
   assign past = 'now' | add_to_time: -2, 'h' | strftime: '%Y-%m-%dT%H:%M:%SZ'

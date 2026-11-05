@@ -2,9 +2,10 @@
   Maintenance job, every 5 minutes (06 §4): ends the Confirmation waiting
   period (auto_close closes; keep_open publishes support_confirmation_waiting
   once per ticket), clears expired snoozes, re-checks SLA deadlines that
-  passed without a state change, writes the heartbeat and schedules the
-  next run. Only the chain named in the sweep_chain setting continues, so
-  restarting the sweep never leaves two chains running.
+  passed without a state change and writes the heartbeat. The next run is
+  queued first, so a run that fails part-way does not end the chain. Only
+  the chain named in the sweep_chain setting continues, so restarting the
+  sweep never leaves two chains running.
   @param {string} chain_id - The chain this run belongs to
 {% enddoc %}
 {% liquid
@@ -12,6 +13,7 @@
   if settings.sweep_chain != chain_id
     return null
   endif
+  background _ = 'modules/support/commands/maintenance/sweep', delay: 5, source_name: 'support_sweep', chain_id: chain_id
   assign now_iso = 'now' | to_time | strftime: '%Y-%m-%dT%H:%M:%SZ'
   assign summary = { "closed": 0, "notified": 0, "unsnoozed": 0, "rechecked": 0 }
 
@@ -55,6 +57,5 @@
   assign heartbeat.at = now_iso
   assign heartbeat.summary = summary
   function _ = 'modules/support/commands/settings/set', key: 'sweep_heartbeat', value: heartbeat
-  background _ = 'modules/support/commands/maintenance/sweep', delay: 5, source_name: 'support_sweep', chain_id: chain_id
   return summary
 %}

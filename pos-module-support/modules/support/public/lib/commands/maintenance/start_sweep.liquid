@@ -1,9 +1,13 @@
 {% doc %}
   Starts a new sweep chain; any older chain stops at its next run.
-  Used by the install migration and Settings → Integrations.
+  Used by the install migration, Settings → Integrations and the watchdog
+  (commands/maintenance/watchdog), which reads sweep_started_at so it
+  restarts the chain once, not on every page until the first run.
 {% enddoc %}
 {% liquid
   assign chain_id = 12 | random_string
+  assign started_at = 'now' | to_time | strftime: '%Y-%m-%dT%H:%M:%SZ'
+  function _ = 'modules/support/commands/settings/set', key: 'sweep_started_at', value: started_at
   function _ = 'modules/support/commands/settings/set', key: 'sweep_chain', value: chain_id
   background _ = 'modules/support/commands/maintenance/sweep', delay: 0.1, source_name: 'support_sweep', chain_id: chain_id
   return chain_id

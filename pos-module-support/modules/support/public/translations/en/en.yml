@@ -719,6 +719,8 @@ en:
       integrations: Integrations
     errors:
       number: Enter a number in range.
+      minutes: Enter a whole number of minutes from 1 to 10080.
+      spam_threshold: Enter a spam threshold from 0 to 100.
       theme_mode: Choose Follow the device, Light or Dark.
       section: Unknown settings section.
       department: Enter a name and an inbound address name (lower-case letters, digits, dashes).

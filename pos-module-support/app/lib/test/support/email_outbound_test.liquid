@@ -59,6 +59,10 @@
   function contract = 'modules/tests/assertions/equal', contract: contract, given: message.delivery_state, expected: 'failed', field_name: '4xx marks failed'
   function contract = 'modules/tests/assertions/equal', contract: contract, given: message.delivery_error, expected: 'stub bad request', field_name: '4xx keeps provider error'
 
+  # 429 (rate limited) is transient: still queued for a retry after the third attempt
+  function message = 'support_test_helpers/delivery_case', subject: 'Delivery test STUB429', contact: contact
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: message.delivery_state, expected: 'queued', field_name: '429 is retried, not failed'
+
   # 5xx on the last attempt: failed
   function message = 'support_test_helpers/delivery_case', subject: 'Delivery test STUB500', contact: contact
   function contract = 'modules/tests/assertions/equal', contract: contract, given: message.delivery_state, expected: 'failed', field_name: '5xx on last attempt marks failed'

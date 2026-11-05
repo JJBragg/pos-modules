@@ -6,7 +6,8 @@ format: json
 ---
 {% liquid
   # Example-app test stub for the SendGrid Mail Send API (not distributed).
-  # Answers 400 or 500 when the subject contains STUB400 / STUB500, else 202,
+  # Answers 400, 429 or 500 when the subject contains STUB400 / STUB429 /
+  # STUB500, else 202,
   # and keeps the last request body in the setting test_stub_last_body and
   # the last 120 in test_stub_bodies (read by the E2E suite; a busy run sends
   # dozens of alerts, which pushed earlier emails out of a shorter list).
@@ -30,6 +31,9 @@ format: json
   if body.subject contains 'STUB400'
     response_status 400
     echo '{"errors":[{"message":"stub bad request"}]}'
+  elsif body.subject contains 'STUB429'
+    response_status 429
+    echo '{"errors":[{"message":"stub rate limited"}]}'
   elsif body.subject contains 'STUB500'
     response_status 500
     echo '{"errors":[{"message":"stub server error"}]}'

@@ -1,0 +1,17 @@
+{% doc %}
+  Restarts the maintenance sweep when it has stopped: no heartbeat and no
+  restart in the last 15 minutes. Called by the desk gate, so the first desk
+  page anyone opens after a lost run brings the sweep back. Returns true
+  when it restarted the chain.
+  @param {object} settings - From helpers/settings
+{% enddoc %}
+{% liquid
+  assign limit = 'now' | add_to_time: -15, 'm' | strftime: '%Y-%m-%dT%H:%M:%SZ'
+  assign last_run = settings.sweep_heartbeat.at | default: ''
+  assign last_start = settings.sweep_started_at | default: ''
+  if last_run > limit or last_start > limit
+    return false
+  endif
+  function _ = 'modules/support/commands/maintenance/start_sweep'
+  return true
+%}
