@@ -2013,6 +2013,22 @@
     text-decoration: none;
   }
 
+  /* A customer file we failed to store. It sits beside stored files, so it takes
+     the same pill shape to stay scannable, in danger colours rather than muted
+     grey: this means "we lost their document", not "this file is small". The
+     icon inherits the colour through stroke: currentColor. */
+  .pos-support-attachments li.pos-support-attachment-lost {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.3125rem 0.625rem;
+    border: 1px solid var(--pos-support-danger);
+    border-radius: var(--pos-support-radius-control);
+    background: var(--pos-support-danger-bg);
+    color: var(--pos-support-danger);
+    font-size: var(--pos-support-text-meta);
+  }
+
   /* automatic emails: one line, expandable */
   .pos-support-message-system {
     grid-template-columns: 2rem minmax(0, 1fr);

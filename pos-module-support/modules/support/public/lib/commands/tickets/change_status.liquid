@@ -1,8 +1,14 @@
 {% doc %}
-  Moves a ticket to another status (05 §1). Refuses an unknown status and
-  moving to New. Copies the category, stamps solved_at/closed_at, clears
-  needs_reply when solved. Any member who can reach the ticket may close
-  it: the close is reversible and the activity log records who did it.
+  Moves a ticket to another status (05 §1). Refuses an unknown status.
+  Copies the category, stamps solved_at/closed_at, clears needs_reply when
+  solved. Any member who can reach the ticket may close it: the close is
+  reversible and the activity log records who did it.
+
+  New is a target like any other. new and open behave identically in
+  helpers/categories, and the first-reply deadline gates on
+  first_replied_at rather than the category, so returning a ticket to New
+  cannot restart the SLA clock; support_ticket_created hangs off creation,
+  so no new-ticket alert re-fires either.
   @param {object} ticket - Ticket loaded through queries/tickets/find
   @param {string} status_key - Target status key
   @param {object} actor - { type, id, member }
@@ -13,10 +19,6 @@
   assign status = statuses.by_key[status_key]
   if status == blank or status.active == false
     assign result.errors.status = 'modules/support/tickets.errors.unknown_status'
-    return result
-  endif
-  if status.category == 'new'
-    assign result.errors.status = 'modules/support/tickets.errors.to_new'
     return result
   endif
   if status.id == ticket.status_id

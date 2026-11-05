@@ -348,7 +348,6 @@ en:
   tickets:
     errors:
       unknown_status: That status doesn't exist.
-      to_new: A ticket can't be moved back to New.
       not_member: That person isn't an active support team member.
       not_in_department: That agent doesn't work in this ticket's department.
       assign_others: Only a manager can assign tickets to other people.
@@ -449,7 +448,7 @@ en:
     unsnooze: Unsnooze
     original_title: Original email
     attachments: Attachments
-    attachment_not_stored: not stored
+    attachment_not_stored: not saved — ask the customer to resend
     not_delivered: "Not delivered:"
     delivery_queued: Sending…
     delivery_sent: Sent

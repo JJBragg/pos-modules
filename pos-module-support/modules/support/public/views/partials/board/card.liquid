@@ -46,7 +46,7 @@
       </select>
     {% else %}
       <select id="move-{{ ticket.id }}" name="status_key">
-        {% for s in statuses %}{% if s.category != 'new' %}<option value="{{ s.key }}" {% if s.id == ticket.status_id %}selected{% endif %}>{{ s.label }}</option>{% endif %}{% endfor %}
+        {% for s in statuses %}<option value="{{ s.key }}" {% if s.id == ticket.status_id %}selected{% endif %}>{{ s.label }}</option>{% endfor %}
       </select>
     {% endif %}
     <button type="submit" class="pos-button pos-button-small">{{ 'modules/support/board.move' | t }}</button>

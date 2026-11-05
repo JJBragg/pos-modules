@@ -131,8 +131,6 @@ if (root) {
   root.querySelectorAll('.pos-support-card').forEach(bind);
 
   root.querySelectorAll('.pos-support-column').forEach((col) => {
-    // a ticket never goes back to New, so that column takes no drops
-    if (col.dataset.category === 'new') return;
     col.addEventListener('dragover', (event) => { event.preventDefault(); col.classList.add('pos-support-drop-target'); });
     col.addEventListener('dragleave', (event) => { if (!col.contains(event.relatedTarget)) col.classList.remove('pos-support-drop-target'); });
     col.addEventListener('drop', (event) => {

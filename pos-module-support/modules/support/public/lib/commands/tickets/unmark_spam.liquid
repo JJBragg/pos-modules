@@ -22,7 +22,7 @@
 
   graphql ev = 'modules/support/ticket_events/search', ticket_id: ticket.id, event_type: 'marked_spam', limit: 1
   assign target = statuses.by_key[ev.records.results.first.from_value]
-  if target == blank or target.category == 'new' or target.active == false
+  if target == blank or target.active == false
     assign target = null
     for s in statuses.list
       if s.category == 'open' and s.active and target == null

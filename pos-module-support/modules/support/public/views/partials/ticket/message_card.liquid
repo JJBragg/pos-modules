@@ -42,7 +42,7 @@
           function size_label = 'modules/support/helpers/filesize', bytes: attachment.size
         %}
         {% if attachment.file.url == blank %}
-          <li>{% render 'modules/support/icon', name: 'paperclip', size: 'sm' %}{{ attachment.filename }} <span class="pos-support-muted">{{ size_label }} · {{ 'modules/support/ticket.attachment_not_stored' | t }}</span></li>
+          <li class="pos-support-attachment-lost">{% render 'modules/support/icon', name: 'triangle-alert', size: 'sm' %}{{ attachment.filename }} <span>{{ size_label }} · {{ 'modules/support/ticket.attachment_not_stored' | t }}</span></li>
         {% else %}
           <li><a href="/support-desk/attachments/{{ attachment.id }}" rel="noopener">{% render 'modules/support/icon', name: 'paperclip', size: 'sm' %}{{ attachment.filename }} <span class="pos-support-muted">{{ size_label }}</span></a></li>
         {% endif %}

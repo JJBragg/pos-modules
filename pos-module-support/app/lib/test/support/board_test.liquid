@@ -88,13 +88,15 @@
     function contract = 'modules/tests/assertions/equal', contract: contract, given: lane_ids, expected: alone_ids, field_name: label
   endfor
 
-  # a refused move (to New) leaves the ticket where it was
+  # a started ticket can be dropped back on New, and keeps its assignee
   function a = 'modules/support/commands/tickets/assign', ticket: f.ticket, assignee_id: f.other_agent_id, reason: null, actor: f.manager_actor
+  function started = 'modules/support/commands/tickets/change_status', ticket: f.ticket, status_key: 'progress', actor: f.actor
   function before = 'modules/support/queries/tickets/find', id: f.ticket.id, number: null, member: manager
-  function refused = 'modules/support/commands/tickets/change_status', ticket: before, status_key: 'new', actor: f.actor
-  function contract = 'modules/tests/assertions/equal', contract: contract, given: refused.valid, expected: false, field_name: 'a move back to New is refused'
+  function back = 'modules/support/commands/tickets/change_status', ticket: before, status_key: 'new', actor: f.actor
+  function contract = 'modules/tests/assertions/valid_object', contract: contract, object: back, field_name: 'a move back to New is allowed'
   function after = 'modules/support/queries/tickets/find', id: f.ticket.id, number: null, member: manager
-  function contract = 'modules/tests/assertions/equal', contract: contract, given: after.status_id, expected: before.status_id, field_name: 'refused move keeps status'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: after.category, expected: 'new', field_name: 'the ticket is New again'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: after.assignee_id, expected: before.assignee_id, field_name: 'back to New keeps the assignee'
 
   # any member may close a ticket assigned to someone else; the activity log records who did
   function closed = 'modules/support/commands/tickets/change_status', ticket: after, status_key: 'closed', actor: f.actor
