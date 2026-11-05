@@ -138,8 +138,8 @@ Desk: `/support-desk` (queue; `view`, `department_id`, `priority`, `status_key`,
 
 ## Troubleshooting
 
-- **Customer emails do not arrive as tickets.** Check the MX record for the inbound hostname, then Settings → Email → Check inbound. Look for `support` entries in `pos-cli logs <env>`. A sender on the blocklist is refused before anything is stored (Settings → Blocklist shows hits).
-- **Nothing is sent.** Sending is off until Settings → Email → Enable. On staging, enable API call notifications in the Partner Portal. A 4xx answer from the provider is permanent and shown on the message; 5xx answers are retried three times.
+- **Customer emails do not arrive as tickets.** Check the MX record for the inbound hostname, then Settings → Email → Check inbound. Look for `support` entries in `pos-cli logs <env>`. A sender on the blocklist is refused before anything is stored (Settings → Blocklist shows hits). An email with more than about 11 MB of attachments never reaches the desk: platformOS refuses requests over about 16 MB before any page runs, and the provider gives up after its retries without telling the sender. The acknowledgement tells customers to keep attachments under 10 MB and share larger files through a link.
+- **Nothing is sent.** Sending is off until Settings → Email → Enable. On staging, enable API call notifications in the Partner Portal. A 4xx answer from the provider is permanent and shown on the message (with Send again); 408/429 are retried up to five times and 5xx three times.
 - **Replies start new tickets.** The reply address carries a token signed with `REPLY_TOKEN_SECRET`; changing that constant breaks threading for older emails. Replies without the token are matched by `In-Reply-To`/`References`, then by subject and sender.
 - **SLA timers or alerts stopped.** Settings → Integrations shows the maintenance sweep's last run; "Restart" starts it again. The sweep also restarts by itself when a desk page is opened and it has not run for 15 minutes.
 - **Locked out.** Add your email to `modules/support/ADMIN_EMAILS` and sign in again.

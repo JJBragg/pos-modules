@@ -780,7 +780,7 @@ en:
   customer_emails:
     ack_intro: "Thank you for contacting %{brand}. We have received your request:"
     ack_expected: "We aim to reply by %{when}."
-    ack_reply: Reply to this email to add more details.
+    ack_reply: Reply to this email to add more details. Attachments can be up to 10 MB in total per email; share larger files through a link.
     confirm_intro: "We believe your request #%{number} (%{subject}) is resolved."
     confirm_auto_close: "If anything is still wrong, just reply. If we don't hear from you within %{days} days, we'll close the request."
     confirm_keep_open: Please reply to confirm that everything works, or tell us what is still wrong. We'll keep the request open until we hear from you.
