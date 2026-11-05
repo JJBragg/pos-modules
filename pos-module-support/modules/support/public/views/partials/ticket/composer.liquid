@@ -14,6 +14,23 @@
   <h2 id="pos-support-composer-title" class="pos-support-sr-only">{{ 'modules/support/ticket.respond' | t }}</h2>
   <form action="{{ message_action }}" method="post" enctype="multipart/form-data" class="pos-form" data-support-composer data-sending="{{ 'modules/support/ticket.sending' | t }}" data-preparing="{{ 'modules/support/ticket.preparing_files' | t }}" data-unsaved="{{ 'modules/support/ticket.unsaved' | t }}" data-too-large="{{ 'modules/support/ticket.attach_too_large' | t }}" data-unreadable="{{ 'modules/support/ticket.attach_unreadable' | t }}" data-send-label="{{ 'modules/support/ticket.send' | t }}" data-note-label="{{ 'modules/support/ticket.add_note' | t }}">
     <input type="hidden" name="authenticity_token" value="{{ context.authenticity_token }}">
+    {%- liquid
+      # the newest customer message this page showed: a reply to an older state needs the acknowledgement below
+      assign seen_customer_id = ''
+      for m in data.messages
+        if m.author_type == 'customer'
+          assign seen_customer_id = m.id
+        endif
+      endfor
+    -%}
+    <input type="hidden" name="seen_message_id" value="{{ seen_customer_id }}">
+    {%- liquid
+      # a reply the server refused comes back here (see tickets/messages/create)
+      assign kept_draft = ''
+      if context.session.support_reply_draft_ticket == data.ticket.id
+        assign kept_draft = context.session.support_reply_draft
+      endif
+    -%}
     <div class="pos-support-new-message" data-support-new-message role="alert" hidden>
       <p>{{ 'modules/support/live.new_message' | t }} <a href="{{ action }}">{{ 'modules/support/live.refresh' | t }}</a></p>
       <label><input type="checkbox" name="acknowledged" value="1"> {{ 'modules/support/live.acknowledge' | t }}</label>
@@ -42,7 +59,7 @@
     </div>
 
     <label for="pos-support-body" class="pos-support-sr-only">{{ 'modules/support/ticket.message' | t }}</label>
-    <textarea id="pos-support-body" name="body" rows="6" required placeholder="{{ 'modules/support/ticket.body_placeholder' | t }}"></textarea>
+    <textarea id="pos-support-body" name="body" rows="6" required placeholder="{{ 'modules/support/ticket.body_placeholder' | t }}">{{ kept_draft }}</textarea>
     <div class="pos-support-composer-files" data-support-files-list></div>
     <div data-support-files-fields></div>
 

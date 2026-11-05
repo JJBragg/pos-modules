@@ -465,6 +465,7 @@ en:
     own_attachment_not_stored: not saved — attach it again in a new reply
     not_delivered: "Not delivered:"
     retry: Send again
+    newer_message_refused: The customer wrote again after this page was loaded, so the reply was not sent. Read the new message, then send your reply again.
     retry_sent: The reply is being sent again.
     retry_with_files: This reply had files, which cannot be attached again from here. Send it again from the reply box.
     retry_unavailable: That reply cannot be sent again.

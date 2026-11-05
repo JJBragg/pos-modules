@@ -108,6 +108,19 @@
   function contract = 'modules/tests/assertions/equal', contract: contract, given: ids.first, expected: f.other_agent_id, field_name: 'unique first name at the end of the note is a mention'
   function _ = 'modules/support/commands/team_members/forget'
 
+  # a reply written before the customer's latest message needs acknowledging
+  assign rows = []
+  assign row = { "table": "modules/support/message", "properties": { "author_type": "customer", "visibility": "public", "kind": "message", "channel": "email", "body_text": "first" } }
+  assign row.properties.ticket_id = ticket.id
+  assign rows << row
+  graphql first_msg = 'modules/support/records/create_many', records: rows
+  assign seen_id = first_msg.records.first.id
+  function newer = 'modules/support/queries/messages/newer_customer_message', ticket_id: ticket.id, seen_message_id: seen_id
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: newer, expected: false, field_name: 'reply to the latest message needs nothing'
+  graphql second_msg = 'modules/support/records/create_many', records: rows
+  function newer = 'modules/support/queries/messages/newer_customer_message', ticket_id: ticket.id, seen_message_id: seen_id
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: newer, expected: true, field_name: 'a newer customer message is detected'
+
   # snooze: a malformed time is refused without a crash; clearing it is logged as unsnoozed
   function s = 'modules/support/commands/tickets/snooze', ticket: a.ticket, until: 'next tuesday-ish', actor: actor
   function contract = 'modules/tests/assertions/equal', contract: contract, given: s.errors.until, expected: 'modules/support/tickets.errors.snooze_time', field_name: 'malformed snooze time refused'

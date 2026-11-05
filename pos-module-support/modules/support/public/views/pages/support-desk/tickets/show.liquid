@@ -25,4 +25,9 @@ metadata:
   export title, namespace: 'support_page'
   function neighbors = 'modules/support/queries/tickets/neighbors', member: member, params: context.params, ticket_id: ticket.id
   render 'modules/support/ticket/index', data: data, neighbors: neighbors
+  # a refused reply's text is shown once
+  if context.session.support_reply_draft_ticket != blank
+    session support_reply_draft = null
+    session support_reply_draft_ticket = null
+  endif
 %}

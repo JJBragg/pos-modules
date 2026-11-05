@@ -27,10 +27,18 @@ metadata:
   assign actor = { "type": "user" }
   assign actor.id = member.profile_id
   assign actor.member = member
-  function form = 'modules/support/helpers/text_params', params: context.params, names: 'body,mode,cc,then_status,return_to'
+  function form = 'modules/support/helpers/text_params', params: context.params, names: 'body,mode,cc,then_status,return_to,seen_message_id,acknowledged'
   function body_html = 'modules/support/helpers/text_to_html', text: form.body
+  # a reply written before the customer's latest message needs the agent's
+  # acknowledgement; the browser asks for it, the server enforces it
+  assign unacknowledged = false
+  if form.mode != 'note' and form.acknowledged != '1'
+    function unacknowledged = 'modules/support/queries/messages/newer_customer_message', ticket_id: ticket.id, seen_message_id: form.seen_message_id
+  endif
   if form.mode == 'note'
     function result = 'modules/support/commands/messages/create_note', ticket: ticket, body_html: body_html, mentioned_ids: null, actor: actor
+  elsif unacknowledged
+    assign result = { "valid": false, "errors": { "body": "modules/support/ticket.newer_message_refused" } }
   else
     assign cc_emails = form.cc | split: ','
     assign attachments = []
@@ -49,6 +57,10 @@ metadata:
   else
     assign error = result.errors.body | default: result.errors.attachments | default: 'modules/support/ticket.not_sent'
     function _ = 'modules/user/helpers/flash', error: error, notice: null, info: null, force_clear: null
+    # the text is put back in the composer after the redirect, not lost
+    assign kept_body = form.body | truncate: 20000, ''
+    session support_reply_draft = kept_body
+    session support_reply_draft_ticket = ticket.id
   endif
   function target = 'modules/support/helpers/ticket_url', ticket_id: ticket.id, return_to: form.return_to
   redirect_to target

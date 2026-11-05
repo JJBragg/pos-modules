@@ -1,0 +1,19 @@
+{% doc %}
+  True when the customer wrote after the newest message the agent's page
+  showed, so a reply would ignore it. The composer posts seen_message_id;
+  the browser asks the agent to acknowledge, and the server checks again.
+  @param {string} ticket_id - The ticket
+  @param {string} [seen_message_id] - Newest customer message the page showed
+{% enddoc %}
+{% liquid
+  graphql r = 'modules/support/messages/search', ticket_id: ticket_id, visibility: 'public', order: 'DESC', limit: 20
+  for m in r.records.results
+    if m.author_type == 'customer'
+      if m.id != seen_message_id
+        return true
+      endif
+      return false
+    endif
+  endfor
+  return false
+%}
