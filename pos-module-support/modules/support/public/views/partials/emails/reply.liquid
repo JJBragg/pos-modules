@@ -5,6 +5,7 @@
   @param {object} brand - From helpers/branding
   @param {string} delimiter - Reply delimiter line
   @param {object} ticket - number, subject
+  @param {string} [status_label] - The status's customer label; none shows no status line
 {% enddoc %}
 <!DOCTYPE html>
 <html lang="en">
@@ -19,6 +20,7 @@
     <div style="border-top:1px solid #e5e7eb;color:#6b7280;font-size:12px;padding:12px 16px;">
       {% if brand.logo_url %}<img src="{{ brand.logo_url }}" alt="{{ brand.app_name }}" height="24" width="96" style="display:block;margin-bottom:8px;">{% endif %}
       {{ 'modules/support/emails.ticket_reference' | t: number: ticket.number, brand: brand.support_email_name }}
+      {% if status_label != blank %}<br>{{ 'modules/support/emails.status_line' | t_escape: status: status_label }}{% endif %}
     </div>
   </body>
 </html>

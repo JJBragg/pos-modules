@@ -103,4 +103,22 @@
     assign live = true
   endif
   function contract = 'modules/tests/assertions/equal', contract: contract, given: live, expected: false, field_name: 'reply email body stays text'
+
+  # the reply email tells the customer the status by its customer label; Spam (no label) shows none
+  capture email
+    render 'modules/support/emails/reply', body_html: '<p>x</p>', signature_html: null, brand: null, delimiter: 'D', ticket: ticket, status_label: 'Awaiting your reply'
+  endcapture
+  assign shows_status = false
+  if email contains 'Status: Awaiting your reply'
+    assign shows_status = true
+  endif
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: shows_status, expected: true, field_name: 'customer label in the reply email'
+  capture email
+    render 'modules/support/emails/reply', body_html: '<p>x</p>', signature_html: null, brand: null, delimiter: 'D', ticket: ticket, status_label: ''
+  endcapture
+  assign shows_status = false
+  if email contains 'Status:'
+    assign shows_status = true
+  endif
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: shows_status, expected: false, field_name: 'no status line without a customer label'
 %}

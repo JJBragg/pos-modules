@@ -68,8 +68,11 @@
   function brand = 'modules/support/helpers/branding'
   assign delimiter = 'modules/support/emails.reply_delimiter' | t
   assign html = message.body_html | default: message.body_text
+  # the status as the customer sees it (Settings > Statuses, Customer label)
+  function statuses = 'modules/support/queries/statuses/all'
+  assign status_label = statuses.by_id[ticket.status_id].customer_label
   capture html_body
-    render 'modules/support/emails/reply', body_html: html, signature_html: department.signature_html, brand: brand, delimiter: delimiter, ticket: ticket
+    render 'modules/support/emails/reply', body_html: html, signature_html: department.signature_html, brand: brand, delimiter: delimiter, ticket: ticket, status_label: status_label
   endcapture
 %}
 {%- capture text_body -%}

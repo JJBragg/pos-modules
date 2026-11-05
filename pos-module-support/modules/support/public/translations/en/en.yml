@@ -263,6 +263,7 @@ en:
     from_name: "%{brand}"
     reply_delimiter: "##- Please type your reply above this line -##"
     ticket_reference: "%{brand} · ticket #%{number}"
+    status_line: "Status: %{status}"
   settings_email:
     title: Email
     problems:
