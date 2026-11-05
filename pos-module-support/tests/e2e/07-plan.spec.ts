@@ -264,7 +264,7 @@ test.describe('settings, contacts, profile', () => {
     const before = await field.inputValue();
     await field.evaluate((el: HTMLInputElement) => { el.removeAttribute('min'); el.removeAttribute('max'); el.value = '0'; });
     await page.click('form:has([name=unassigned_alert_minutes]) button[type=submit]');
-    await expect(page.locator('body')).toContainText('Enter a number in range.');
+    await expect(page.locator('body')).toContainText('Enter a whole number of minutes from 1 to 10080.');
     await page.goto(desk('/support-desk/settings/assignment'));
     await expect(page.locator('[name=unassigned_alert_minutes]')).toHaveValue(before);
     await context.close();

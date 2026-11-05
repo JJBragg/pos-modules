@@ -3,7 +3,7 @@
 // browser. The unit tests cover the commands and queries behind them.
 import { test, expect, Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { contentOf, contextFor, createHostUser, desk, inbound, liquid, newTicket, stubBodies, ticketField, unique, users, waitForStub, waitForTicket } from './helpers';
+import { contentOf, contextFor, createHostUser, desk, inbound, liquid, newTicket, ticketField, unique, users, waitForStub, waitForTicket } from './helpers';
 
 const subscribed = (page: Page) => {
   let confirmed = false;
@@ -79,7 +79,18 @@ test('FIX-09 an unreadable file stops the send; a refused large file does not bl
   await page.click('[data-support-composer] button[type=submit]');
   await page.waitForTimeout(3000);
   expect(page.url()).toContain(`/support-desk/tickets/${t.ticket.id}`);
-  expect(stubBodies().some((b: any) => contentOf(b).includes(unreadable))).toBe(false);
+  // nothing was stored as a reply (checked on the ticket, not in the provider stub)
+  const stored = liquid(`{% liquid
+  graphql m = 'modules/support/messages/search', ticket_id: '${t.ticket.id}', limit: 100
+  assign out = { "found": false }
+  for x in m.records.results
+    if x.body_text contains '${unreadable}'
+      assign out.found = true
+    endif
+  endfor
+  echo out | json | html_safe
+%}`);
+  expect(stored.found).toBe(false);
   await expect(page.locator('[data-support-send]')).toBeEnabled();
 
   await page.reload();
