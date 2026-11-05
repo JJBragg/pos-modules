@@ -51,7 +51,7 @@
     graphql r = 'modules/support/records/update', id: current.id, properties: props
   else
     assign key = params.key | downcase | strip
-    assign key_ok = key | matches: '^[a-z][a-z_]{1,19}$'
+    assign key_ok = key | matches: '\A[a-z][a-z_]{1,19}\z'
     unless key_ok and categories contains params.category
       assign result.error = 'modules/support/settings.errors.status_key'
       return result

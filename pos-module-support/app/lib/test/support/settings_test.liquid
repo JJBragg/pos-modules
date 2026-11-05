@@ -15,6 +15,41 @@
     function contract = 'modules/tests/assertions/equal', contract: contract, given: r.error, expected: 'modules/support/settings.errors.spam_threshold', field_name: label
   endfor
 
+  # SLA hours: unknown zone, half-filled day and impossible holiday are refused
+  # (all before anything is saved, so no policy is created here)
+  assign sla = { "name": "Validation only", "tz": "Mars/Olympus" }
+  function r = 'modules/support/commands/settings_sections/save', section: 'sla', params: sla
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: r.error, expected: 'modules/support/settings.errors.time_zone', field_name: 'unknown time zone refused without a crash'
+  assign sla.tz = 'Europe/Warsaw'
+  assign sla.mon_open = '09:00'
+  function r = 'modules/support/commands/settings_sections/save', section: 'sla', params: sla
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: r.error, expected: 'modules/support/settings.errors.hours', field_name: 'day with one time refused'
+  assign sla.mon_close = '17:00'
+  assign sla.holidays = '2026-02-30'
+  function r = 'modules/support/commands/settings_sections/save', section: 'sla', params: sla
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: r.error, expected: 'modules/support/settings.errors.holidays', field_name: 'impossible holiday refused'
+  assign sla.holidays = '2026-13-01'
+  function r = 'modules/support/commands/settings_sections/save', section: 'sla', params: sla
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: r.error, expected: 'modules/support/settings.errors.holidays', field_name: 'month 13 refused without a crash'
+
+  # departments: duplicate name and a From address off the sending domain are refused
+  graphql some = 'modules/support/departments/search', limit: 1
+  assign taken = { "name": null, "inbound_local_part": "unique-validation-only" }
+  assign taken.name = some.records.results.first.name | upcase
+  function r = 'modules/support/commands/settings_sections/save', section: 'departments', params: taken
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: r.error, expected: 'modules/support/settings.errors.department_name_taken', field_name: 'duplicate department name refused'
+  function current_settings = 'modules/support/helpers/settings'
+  if current_settings.sending_domain != blank
+    assign off_domain = { "name": "Validation only zz", "inbound_local_part": "unique-validation-only", "from_address": "x@not-the-sending-domain.example" }
+    function r = 'modules/support/commands/settings_sections/save', section: 'departments', params: off_domain
+    function contract = 'modules/tests/assertions/equal', contract: contract, given: r.error, expected: 'modules/support/settings.errors.from_domain', field_name: 'from address off the sending domain refused'
+  endif
+
+  # desk address: host and port only
+  assign bad_url = { "only": "base_url", "base_url": "https://desk.example?x=1" }
+  function r = 'modules/support/commands/settings_sections/save', section: 'integrations', params: bad_url
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: r.error, expected: 'modules/support/settings.errors.base_url', field_name: 'desk address with a query refused'
+
   # sweep watchdog: a recent run or restart leaves the chain alone, a stale one restarts it
   assign recent = 'now' | add_to_time: -2, 'm' | strftime: '%Y-%m-%dT%H:%M:%SZ'
   assign old = 'now' | add_to_time: -2, 'h' | strftime: '%Y-%m-%dT%H:%M:%SZ'

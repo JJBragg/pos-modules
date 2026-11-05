@@ -8,7 +8,8 @@
   assign result = { "valid": false, "error": null, "notice": "modules/support/settings.saved" }
   assign name = params.name | strip
   assign local = params.inbound_local_part | downcase | strip
-  assign local_ok = local | matches: '^[a-z0-9][a-z0-9-]{0,40}$'
+  # \A and \z: ^ and $ would accept a second line after a valid first one
+  assign local_ok = local | matches: '\A[a-z0-9][a-z0-9-]{0,40}\z'
   if name == blank or local_ok == false
     assign result.error = 'modules/support/settings.errors.department'
     return result
@@ -19,6 +20,13 @@
       assign result.error = 'modules/support/settings.errors.from_address'
       return result
     endunless
+    # the provider only sends for the authenticated domain (Settings > Email)
+    function settings = 'modules/support/helpers/settings'
+    assign from_domain = params.from_address | downcase | strip | split: '@' | last
+    if settings.sending_domain != blank and from_domain != settings.sending_domain
+      assign result.error = 'modules/support/settings.errors.from_domain'
+      return result
+    endif
   endif
   graphql same = 'modules/support/departments/search', inbound_local_part: local, limit: 1
   assign clash = same.records.results.first
@@ -26,6 +34,16 @@
     assign result.error = 'modules/support/settings.errors.local_part_taken'
     return result
   endif
+  # two departments with one name cannot be told apart in the rail and pickers
+  graphql all_departments = 'modules/support/departments/search', limit: 100
+  assign lowered_name = name | downcase
+  for other in all_departments.records.results
+    assign other_name = other.name | downcase | strip
+    if other_name == lowered_name and other.id != params.id
+      assign result.error = 'modules/support/settings.errors.department_name_taken'
+      return result
+    endif
+  endfor
 
   assign values = { "active": true, "is_default": false }
   assign values.name = name

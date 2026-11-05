@@ -68,7 +68,8 @@
     # the section has two forms; the desk address one marks itself
     if params.only == 'base_url'
       assign value = params.base_url | strip
-      assign valid = value | matches: '^https://[^\s"<>/]+$'
+      # a host name and an optional port only: a path, query or second line would break every link in emails
+      assign valid = value | matches: '\Ahttps://[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?(:\d{1,5})?\z'
       unless valid
         assign result.error = 'modules/support/settings.errors.base_url'
         return result

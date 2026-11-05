@@ -12,7 +12,7 @@
   assign raw = params.domains | split: ','
   for item in raw
     assign domain = item | downcase | strip
-    assign valid = domain | matches: '^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$'
+    assign valid = domain | matches: '\A[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+\z'
     if domain == blank
       continue
     endif

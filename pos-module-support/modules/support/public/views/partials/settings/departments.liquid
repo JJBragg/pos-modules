@@ -31,7 +31,7 @@
       {% if edit %}<input type="hidden" name="id" value="{{ edit.id }}">{% endif %}
       <fieldset><label for="dep-name">{{ 'modules/support/settings.name' | t }}</label><input id="dep-name" name="name" value="{{ edit.name }}" required></fieldset>
       <fieldset><label for="dep-code">{{ 'modules/support/settings.short_code' | t }}</label><input id="dep-code" name="short_code" value="{{ edit.short_code }}" maxlength="8"></fieldset>
-      <fieldset><label for="dep-local">{{ 'modules/support/settings.inbound_local_part' | t }}</label><input id="dep-local" name="inbound_local_part" value="{{ edit.inbound_local_part }}" pattern="[a-z0-9][a-z0-9-]*" required></fieldset>
+      <fieldset><label for="dep-local">{{ 'modules/support/settings.inbound_local_part' | t }}</label><input id="dep-local" name="inbound_local_part" value="{{ edit.inbound_local_part }}" pattern="[a-z0-9][a-z0-9\-]*" required></fieldset>
       <fieldset><label for="dep-public">{{ 'modules/support/settings.public_address' | t }}</label><input id="dep-public" type="email" name="public_address" value="{{ edit.public_address }}"></fieldset>
       <fieldset><label for="dep-from-name">{{ 'modules/support/settings.from_name' | t }}</label><input id="dep-from-name" name="from_name" value="{{ edit.from_name }}"></fieldset>
       <fieldset><label for="dep-from">{{ 'modules/support/settings.from_address' | t }}</label><input id="dep-from" type="email" name="from_address" value="{{ edit.from_address }}" aria-describedby="dep-from-help"><p id="dep-from-help" class="pos-supplementary">{{ 'modules/support/settings.from_help' | t: domain: data.settings.sending_domain }}</p></fieldset>

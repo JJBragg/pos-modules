@@ -20,9 +20,9 @@
   assign kind = 'domain'
   if pattern contains '@'
     assign kind = 'address'
-    assign ok = pattern | matches: '^[^@\s]+@[a-z0-9-]+(\.[a-z0-9-]+)+$'
+    assign ok = pattern | matches: '\A[^@\s]+@[a-z0-9-]+(\.[a-z0-9-]+)+\z'
   else
-    assign ok = pattern | matches: '^[a-z0-9-]+(\.[a-z0-9-]+)+$'
+    assign ok = pattern | matches: '\A[a-z0-9-]+(\.[a-z0-9-]+)+\z'
   endif
   unless ok
     assign result.error = 'modules/support/blocklist.errors.pattern'

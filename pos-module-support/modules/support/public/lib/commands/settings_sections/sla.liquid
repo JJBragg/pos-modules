@@ -38,12 +38,13 @@
     assign targets[priority] = entry
   endfor
 
-  assign tz = params.tz | strip | default: 'UTC'
-  assign probe = '2026-01-05 09:00' | to_time: tz
-  if probe == blank
+  # checked against the list before any to_time: an unknown zone fails the request
+  assign tz = params.tz | strip
+  function zones = 'modules/support/helpers/time_zones'
+  unless zones contains tz
     assign result.error = 'modules/support/settings.errors.time_zone'
     return result
-  endif
+  endunless
   assign hours = { "days": {}, "holidays": [] }
   assign hours.tz = tz
   assign days = "mon,tue,wed,thu,fri,sat,sun" | split: ','
@@ -52,9 +53,21 @@
     assign close_key = day | append: '_close'
     assign open_at = params[open_key] | strip
     assign close_at = params[close_key] | strip
+    # a day with only one of its two times is refused, not silently dropped
+    assign filled = 0
+    if open_at != blank
+      assign filled = filled | plus: 1
+    endif
+    if close_at != blank
+      assign filled = filled | plus: 1
+    endif
+    if filled == 1
+      assign result.error = 'modules/support/settings.errors.hours'
+      return result
+    endif
     if open_at != blank and close_at != blank
-      assign valid_open = open_at | matches: '^([01]\d|2[0-3]):[0-5]\d$'
-      assign valid_close = close_at | matches: '^([01]\d|2[0-3]):[0-5]\d$'
+      assign valid_open = open_at | matches: '\A([01]\d|2[0-3]):[0-5]\d\z'
+      assign valid_close = close_at | matches: '\A([01]\d|2[0-3]):[0-5]\d\z'
       if valid_open == false or valid_close == false or open_at >= close_at
         assign result.error = 'modules/support/settings.errors.hours'
         return result
@@ -68,7 +81,15 @@
   assign holidays = params.holidays | split: ','
   for holiday in holidays
     assign day = holiday | strip
-    assign valid_day = day | matches: '^\d{4}-\d{2}-\d{2}$'
+    # month and day in range first (to_date fails the request on month 13), then
+    # the date must read back unchanged, which refuses 2026-02-30
+    assign valid_day = day | matches: '\A\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])\z'
+    if valid_day
+      assign read_back = day | to_date | strftime: '%Y-%m-%d'
+      if read_back != day
+        assign valid_day = false
+      endif
+    endif
     if valid_day
       assign hours.holidays << day
     elsif day != blank

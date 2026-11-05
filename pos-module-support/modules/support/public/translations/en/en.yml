@@ -732,6 +732,8 @@ en:
       department: Enter a name and an inbound address name (lower-case letters, digits, dashes).
       from_address: Enter a valid sender address.
       local_part_taken: Another department already uses that inbound address.
+      from_domain: The sender address must be on your authenticated sending domain.
+      department_name_taken: Another department already has that name.
       not_found: That record no longer exists.
       default_needed: One department must stay the default. Make another one the default first.
       label: Enter a name.

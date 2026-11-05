@@ -57,7 +57,7 @@
   for key in colors
     assign value = params[key] | strip | downcase
     if value != blank
-      assign valid = value | matches: '^#[0-9a-f]{6}$'
+      assign valid = value | matches: '\A#[0-9a-f]{6}\z'
       unless valid
         assign result.error = 'modules/support/settings.errors.color'
         return result
@@ -69,7 +69,7 @@
   for key in images
     assign value = params[key] | strip
     if value != blank
-      assign valid = value | matches: '^https://[^\s"<>]+$'
+      assign valid = value | matches: '\Ahttps://[^\s"<>]+\z'
       unless valid
         assign result.error = 'modules/support/settings.errors.image_url'
         return result
