@@ -43,8 +43,9 @@
   {% endcase %}
   <span class="pos-support-brand-name pos-support-sr-only">{{ brand.app_name }}</span>
   {%- comment -%} the square mark replaces a wide logo in the collapsed sidebar (design review F) {%- endcomment -%}
-  <span class="pos-support-brand-mark" aria-hidden="true">{% if brand.icon_url != blank %}<img src="{{ brand.icon_url }}" alt="" width="28" height="28">{% else %}<span class="pos-support-brand-monogram">{{ brand.initial }}</span>{% endif %}</span>
+  <span class="pos-support-brand-mark" aria-hidden="true">{% if brand.icon_url != blank and brand.uses_monogram != true %}<img src="{{ brand.icon_url }}" alt="" width="28" height="28">{% else %}{% render 'modules/support/icons/emblem' %}{% endif %}</span>
 {% else %}
-  <span class="pos-support-brand-monogram" aria-hidden="true">{{ brand.initial }}</span>
+  {%- comment -%} no host logo: the default emblem in the brand colours (design review H) {%- endcomment -%}
+  {% render 'modules/support/icons/emblem' %}
   <span class="pos-support-brand-name">{{ brand.app_name }}</span>
 {% endif %}

@@ -133,49 +133,62 @@
   pickLogos();
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', pickLogos);
 
-  // default app icon (PRD WL-5): with no icon from the host, an admin's browser
-  // draws the sidebar monogram (letter, brand colours, font) as a 512 px PNG and
-  // stores it; redrawn when the signature changes. Drawn from the light look only,
-  // so switching the device to dark mode does not redraw it back and forth.
+  // default app icon (PRD WL-5, design review H): with no icon from the host, an
+  // admin's browser draws the default emblem (icons/emblem, in the brand colours)
+  // as a 512 px PNG and stores it; redrawn when the colours or the emblem version
+  // change. Drawn from the light look only, so switching the device to dark mode
+  // does not redraw it back and forth.
   const probe512 = document.querySelector('[data-support-monogram]');
   const deviceDark = document.documentElement.classList.contains('pos-theme-darkEnabled')
     && window.matchMedia('(prefers-color-scheme: dark)').matches;
   if (probe512 && !deviceDark && window.fetch) {
-    (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => {
-      const style = getComputedStyle(probe512);
-      const letter = probe512.dataset.supportMonogram;
-      // a short hash: font stacks are long and the server keeps 200 characters
-      const source = ['v2', letter, style.backgroundColor, style.color, style.fontFamily, style.fontWeight].join('|');
-      let hash = 5381;
-      for (let i = 0; i < source.length; i += 1) hash = ((hash * 33) ^ source.charCodeAt(i)) >>> 0;
-      const signature = `${letter}-${hash.toString(36)}`;
-      if (!letter || signature === probe512.dataset.supportMonogramSignature) return;
-      const canvas = document.createElement('canvas');
-      canvas.width = 512;
-      canvas.height = 512;
-      const ctx = canvas.getContext('2d');
-      ctx.fillStyle = style.backgroundColor;
-      ctx.fillRect(0, 0, 512, 512);
-      ctx.fillStyle = style.color;
-      ctx.font = `${style.fontWeight} 280px ${style.fontFamily}`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'alphabetic';
-      // centre the glyph's ink, not its line box
-      const box = ctx.measureText(letter);
-      ctx.fillText(letter, 256, 256 + (box.actualBoundingBoxAscent - box.actualBoundingBoxDescent) / 2);
-      const data = canvas.toDataURL('image/png').split(',')[1];
-      const body = new FormData();
-      body.append('authenticity_token', probe512.dataset.supportMonogramToken);
-      body.append('section', 'branding');
-      body.append('only', 'monogram');
-      body.append('signature', signature);
-      body.append('monogram[content_base64]', data);
-      body.append('monogram[content_type]', 'image/png');
-      body.append('monogram[filename]', 'monogram.png');
-      fetch('/support-desk/settings/save', { method: 'POST', body, credentials: 'same-origin', redirect: 'manual' })
-        .then(() => { probe512.dataset.supportMonogramSignature = signature; })
-        .catch(() => {});
-    });
+    const emblem = probe512.querySelector('svg');
+    // the probe is hidden; colours still compute, through a canvas so any CSS colour works
+    const solid = (css) => {
+      const x = document.createElement('canvas').getContext('2d');
+      x.fillStyle = css;
+      return x.fillStyle;
+    };
+    const bg = emblem && solid(getComputedStyle(emblem.querySelector('.pos-support-emblem-bg')).fill);
+    const fg = emblem && solid(getComputedStyle(emblem.querySelector('.pos-support-emblem-fg')).fill);
+    const source = ['emblem', emblem && emblem.dataset.emblemVersion, bg, fg].join('|');
+    let hash = 5381;
+    for (let i = 0; i < source.length; i += 1) hash = ((hash * 33) ^ source.charCodeAt(i)) >>> 0;
+    const signature = `emblem-${hash.toString(36)}`;
+    if (emblem && signature !== probe512.dataset.supportMonogramSignature) {
+      // the square icon fills its canvas: the platforms round or mask the corners themselves
+      const copy = emblem.cloneNode(true);
+      copy.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      copy.setAttribute('width', '512');
+      copy.setAttribute('height', '512');
+      copy.querySelector('.pos-support-emblem-bg').setAttribute('fill', bg);
+      copy.querySelector('.pos-support-emblem-bg').setAttribute('rx', '0');
+      copy.querySelector('.pos-support-emblem-fg').setAttribute('fill', fg);
+      copy.querySelector('.pos-support-emblem-mark').setAttribute('stroke', bg);
+      const image = new Image();
+      image.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(image, 0, 0, 512, 512);
+        // a browser that treats the drawn SVG as foreign refuses to export it: no icon then
+        let data;
+        try { data = canvas.toDataURL('image/png').split(',')[1]; } catch (e) { return; }
+        const body = new FormData();
+        body.append('authenticity_token', probe512.dataset.supportMonogramToken);
+        body.append('section', 'branding');
+        body.append('only', 'monogram');
+        body.append('signature', signature);
+        body.append('monogram[content_base64]', data);
+        body.append('monogram[content_type]', 'image/png');
+        body.append('monogram[filename]', 'monogram.png');
+        fetch('/support-desk/settings/save', { method: 'POST', body, credentials: 'same-origin', redirect: 'manual' })
+          .then(() => { probe512.dataset.supportMonogramSignature = signature; })
+          .catch(() => {});
+      };
+      image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(new XMLSerializer().serializeToString(copy))}`;
+    }
   }
 
   // branding images: a chosen file is read in the browser and posted as base64

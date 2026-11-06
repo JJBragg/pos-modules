@@ -1186,6 +1186,17 @@
     max-width: 8rem;
   }
 
+  /* default emblem (design review H), in the brand colours */
+  .pos-support-emblem {
+    flex: none;
+    inline-size: 1.75rem;
+    block-size: 1.75rem;
+  }
+
+  .pos-support-emblem-bg { fill: var(--pos-support-monogram-background); }
+  .pos-support-emblem-fg { fill: var(--pos-support-monogram-text); }
+  .pos-support-emblem-mark { stroke: var(--pos-support-monogram-background); }
+
   .pos-support-brand-mark {
     display: none;
   }

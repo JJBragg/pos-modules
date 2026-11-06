@@ -171,4 +171,14 @@
   function contract = 'modules/tests/assertions/equal', contract: contract, given: brand.app_name, expected: 'Harbor City Permits', field_name: 'host branding restored'
 
   function _ = 'modules/support/commands/settings/set', key: 'branding_override', value: original_override
+
+  # design review H: with no logo the sidebar shows the default emblem, not a letter
+  assign bare = { "app_name": "Nordvik Rail", "initial": "N", "logo_url": null, "logo_dark_url": null, "icon_url": null, "uses_monogram": true }
+  capture out
+    render 'modules/support/brand', brand: bare
+  endcapture
+  assign ok = out | matches: 'class="pos-support-emblem"'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: ok, expected: true, field_name: 'no logo: the emblem shows'
+  assign ok = out | matches: 'pos-support-brand-monogram'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: ok, expected: false, field_name: 'no letter monogram any more'
 %}
