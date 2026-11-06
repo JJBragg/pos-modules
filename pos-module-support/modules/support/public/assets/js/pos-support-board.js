@@ -121,7 +121,9 @@ if (root) {
     card.addEventListener('dragstart', (event) => {
       event.dataTransfer.setData('text/plain', card.dataset.ticketId);
       event.dataTransfer.effectAllowed = 'move';
+      card.classList.add('pos-support-dragging');
     });
+    card.addEventListener('dragend', () => card.classList.remove('pos-support-dragging'));
     const form = card.querySelector('form.pos-support-move');
     if (form) {
       form.addEventListener('submit', (event) => {

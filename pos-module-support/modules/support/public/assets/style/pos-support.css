@@ -2902,8 +2902,90 @@
     transition: box-shadow 160ms var(--pos-support-ease), transform 160ms var(--pos-support-ease);
   }
 
-  .pos-support-card:hover {
+  /* design review G: pointing at, focusing or dragging a card outlines it in the
+     brand colour and lifts it slightly; an overdue card outlines in the fixed SLA red */
+  .pos-support-card:is(:hover, :focus-within),
+  .pos-support-card.pos-support-dragging {
+    outline: 2px solid var(--pos-support-accent-ink);
+    outline-offset: -1px;
     box-shadow: var(--pos-support-shadow-md);
+    transform: scale(1.02);
+  }
+
+  .pos-support-card-overdue:is(:hover, :focus-within, .pos-support-dragging) {
+    outline-color: var(--pos-support-sla-overdue);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pos-support-card {
+      transition: none;
+    }
+
+    .pos-support-card:is(:hover, :focus-within),
+    .pos-support-card.pos-support-dragging {
+      transform: none;
+    }
+  }
+
+  .pos-support-overdue-flag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-inline-start: auto;
+    border-radius: var(--pos-support-radius-pill);
+    color: var(--pos-support-priority-p0-fg);
+    font-size: var(--pos-support-text-small);
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .pos-support-overdue-mark {
+    display: inline-grid;
+    place-items: center;
+    inline-size: 1.125rem;
+    block-size: 1.125rem;
+    border-radius: 50%;
+    background: var(--pos-support-priority-p0-bg);
+    color: var(--pos-support-priority-p0-fg);
+  }
+
+  /* at rest only the "!" shows; the word stays for screen readers */
+  .pos-support-overdue-text {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  .pos-support-card-overdue:is(:hover, :focus-within, .pos-support-dragging) .pos-support-overdue-flag {
+    padding-inline-end: 0.5rem;
+    background: var(--pos-support-priority-p0-bg);
+  }
+
+  .pos-support-card-overdue:is(:hover, :focus-within, .pos-support-dragging) .pos-support-overdue-text {
+    position: static;
+    inline-size: auto;
+    block-size: auto;
+    overflow: visible;
+    clip: auto;
+  }
+
+  /* no hover on touch screens: the pill shows all the time */
+  @media (hover: none) {
+    .pos-support-card-overdue .pos-support-overdue-flag {
+      padding-inline-end: 0.5rem;
+      background: var(--pos-support-priority-p0-bg);
+    }
+
+    .pos-support-card-overdue .pos-support-overdue-text {
+      position: static;
+      inline-size: auto;
+      block-size: auto;
+      overflow: visible;
+      clip: auto;
+    }
   }
 
   .pos-support-card:active {
@@ -2991,6 +3073,7 @@
      never moves the cards below. */
   .pos-support-js .pos-support-card .pos-support-move {
     position: absolute;
+    z-index: 1;
     inset-inline: 0.75rem;
     inset-block-end: 0.625rem;
     padding-block-start: 0;

@@ -19,11 +19,14 @@
     assign at_risk = true
   endif
 %}
-<article class="pos-support-card" draggable="true" data-ticket-id="{{ ticket.id }}" data-status-key="{{ status.key }}" data-priority="{{ ticket.priority }}" data-created="{{ created }}" aria-labelledby="card-{{ ticket.id }}">
+<article class="pos-support-card{% if ticket.sla_state == 'overdue' %} pos-support-card-overdue{% endif %}" draggable="true" data-ticket-id="{{ ticket.id }}" data-status-key="{{ status.key }}" data-priority="{{ ticket.priority }}" data-created="{{ created }}" aria-labelledby="card-{{ ticket.id }}">
   <p class="pos-support-card-meta">
     {% render 'modules/support/badges/priority', priority: ticket.priority %}
     <span class="pos-support-number">#{{ ticket.number }}</span>
-    {% if at_risk %}
+    {% if ticket.sla_state == 'overdue' %}
+      {%- comment -%} design review G: a red "!" that opens into an "! Overdue" pill on hover and focus; the word is always there for screen readers and touch {%- endcomment -%}
+      <span class="pos-support-overdue-flag"><span class="pos-support-overdue-mark" aria-hidden="true">!</span><span class="pos-support-overdue-text">{{ 'modules/support/sla.overdue' | t }}</span></span>
+    {% elsif at_risk %}
       {% render 'modules/support/badges/sla', state: ticket.sla_state %}
     {% endif %}
   </p>
