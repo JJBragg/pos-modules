@@ -1,7 +1,7 @@
 /* Demo host theme: overrides common-styling and support tokens.
-   The brand colour drives primary buttons, focus and the monogram; the rail
-   stays a quiet tinted neutral so the brand colour reads as an accent.
-   For a brand-coloured rail set --pos-support-rail-background to the brand
+   The brand colour drives primary buttons, focus and the monogram, and the
+   desk derives light brand tints for the rail, board columns and selected
+   controls from it (design review A). For a brand-coloured rail set --pos-support-rail-background to the brand
    colour and --pos-support-rail-text to #ffffff. */
 :root {
   --pos-color-button-primary-background: #1d4f91;
@@ -10,7 +10,6 @@
   --pos-color-button-primary-hover-background: #163d70;
   --pos-color-button-primary-hover-frame: #163d70;
   --pos-color-button-primary-hover-text: #ffffff;
-  --pos-support-rail-background: #f3f5f8;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -20,7 +19,6 @@
     --pos-color-button-primary-text: #ffffff;
     --pos-color-button-primary-hover-background: #2c62b3;
     --pos-color-button-primary-hover-frame: #2c62b3;
-    --pos-support-rail-background: #111419;
   }
 }
 
@@ -30,7 +28,6 @@
   --pos-color-button-primary-text: #ffffff;
   --pos-color-button-primary-hover-background: #2c62b3;
   --pos-color-button-primary-hover-frame: #2c62b3;
-  --pos-support-rail-background: #111419;
 }
 
 .host-page {

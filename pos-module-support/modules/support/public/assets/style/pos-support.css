@@ -47,14 +47,30 @@
     --pos-support-hover: color-mix(in srgb, var(--pos-color-content-text) 5%, transparent);
     --pos-support-selected: color-mix(in srgb, var(--pos-color-button-primary-background) 10%, transparent);
 
+    /* brand tints (design review A): the host's primary colour mixed into the
+       page background in oklch. Opaque, so contrast is known, and capped at 18%
+       brand, which keeps body text above 4.5:1 for any brand colour, very light
+       or very dark, in both themes. Dark mode follows because the page
+       background token switches. */
+    --pos-support-brand: var(--pos-color-button-primary-background);
+    --pos-support-tint-1: color-mix(in oklch, var(--pos-support-brand) 6%, var(--pos-color-page-background));
+    --pos-support-tint-2: color-mix(in oklch, var(--pos-support-brand) 11%, var(--pos-color-page-background));
+    --pos-support-tint-3: color-mix(in oklch, var(--pos-support-brand) 18%, var(--pos-color-page-background));
+    --pos-support-tint-border: color-mix(in oklch, var(--pos-support-brand) 45%, var(--pos-color-page-background));
+    --pos-support-scrollbar: color-mix(in oklch, var(--pos-support-brand) 30%, var(--pos-color-page-background));
+    /* the brand colour as text, borders or icons: a very light brand (yellow)
+       is darkened, a very dark one lightened in dark mode, so it keeps 3:1+
+       against the page; plain brand where relative colours are unsupported */
+    --pos-support-accent-ink: var(--pos-support-brand);
+
     /* rail */
     --pos-support-rail-width: 14.5rem;
-    --pos-support-rail-background: var(--pos-color-page-background);
+    --pos-support-rail-background: var(--pos-support-tint-1);
     --pos-support-rail-text: var(--pos-color-content-text);
     /* mixed with the rail background, not transparency, so its contrast is known: 4.5:1+ for small text */
     --pos-support-rail-muted: color-mix(in srgb, var(--pos-support-rail-text) 82%, var(--pos-support-rail-background));
-    --pos-support-rail-hover-background: color-mix(in srgb, var(--pos-support-rail-text) 6%, transparent);
-    --pos-support-rail-active-background: color-mix(in srgb, var(--pos-support-rail-text) 10%, transparent);
+    --pos-support-rail-hover-background: color-mix(in oklch, var(--pos-support-brand) 11%, var(--pos-support-rail-background));
+    --pos-support-rail-active-background: color-mix(in oklch, var(--pos-support-brand) 18%, var(--pos-support-rail-background));
     --pos-support-rail-active-text: var(--pos-support-rail-text);
     --pos-support-rail-frame: var(--pos-color-frame);
     --pos-support-monogram-background: var(--pos-color-button-primary-background);
@@ -200,6 +216,22 @@
     }
   }
 
+  @supports (color: oklch(from red l c h)) {
+    :root {
+      --pos-support-accent-ink: oklch(from var(--pos-support-brand) min(l, 0.5) c h);
+    }
+
+    :root.pos-theme-dark {
+      --pos-support-accent-ink: oklch(from var(--pos-support-brand) max(l, 0.78) c h);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root.pos-theme-darkEnabled {
+        --pos-support-accent-ink: oklch(from var(--pos-support-brand) max(l, 0.78) c h);
+      }
+    }
+  }
+
   /* ================================================================
      Base
      ================================================================ */
@@ -211,6 +243,7 @@
     font-size: var(--pos-support-text-body);
     line-height: 1.5;
     accent-color: var(--pos-support-accent);
+    scrollbar-color: var(--pos-support-scrollbar) transparent;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -460,7 +493,7 @@
   .pos-support :where(input:not([type="checkbox"], [type="radio"], [type="file"]), select, textarea):not(.pos-support-bare):focus-visible,
   .pos-support :where(input:not([type="checkbox"], [type="radio"], [type="file"]), select, textarea):not(.pos-support-bare):focus {
     outline: none;
-    border-color: var(--pos-support-accent);
+    border-color: var(--pos-support-accent-ink);
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--pos-support-accent) 22%, transparent);
   }
 
@@ -648,8 +681,8 @@
   }
 
   .pos-support .pos-button[aria-pressed="true"] {
-    background: var(--pos-support-selected);
-    border-color: color-mix(in srgb, var(--pos-support-accent) 45%, transparent);
+    background: var(--pos-support-tint-3);
+    border-color: var(--pos-support-tint-border);
     color: var(--pos-support-text);
   }
 
@@ -722,9 +755,9 @@
   }
 
   .pos-support-segmented :is(a[aria-current], button[aria-pressed="true"], label:has(input:checked)) {
-    background: var(--pos-support-bg);
+    background: var(--pos-support-tint-3);
     color: var(--pos-support-text);
-    box-shadow: var(--pos-support-shadow-sm), 0 0 0 1px var(--pos-support-border);
+    box-shadow: var(--pos-support-shadow-sm), 0 0 0 1px var(--pos-support-tint-border);
   }
 
   .pos-support .pos-support-segmented label > input {
@@ -926,6 +959,7 @@
     block-size: 100vh;
     block-size: 100dvh;
     overflow-y: auto;
+    scrollbar-width: thin;
     display: flex;
     flex-direction: column;
     gap: 0.125rem;
@@ -1033,6 +1067,11 @@
 
   .pos-support-rail-items a[aria-current="page"] .pos-support-icon {
     color: currentColor;
+  }
+
+  /* on the tinted active and hover rows the muted count would lose contrast */
+  .pos-support-rail-items a:is([aria-current="page"], :hover) .pos-support-count {
+    color: inherit;
   }
 
   /* Settings sits at the bottom of the rail, above the signed-in person */
@@ -2082,7 +2121,7 @@
   }
 
   .pos-support-composer:focus-within {
-    border-color: var(--pos-support-accent);
+    border-color: var(--pos-support-accent-ink);
     box-shadow: var(--pos-support-shadow-md), 0 0 0 3px color-mix(in srgb, var(--pos-support-accent) 20%, transparent);
   }
 
@@ -2497,6 +2536,7 @@
     gap: 0.75rem;
     align-items: stretch;
     overflow-x: auto;
+    scrollbar-width: thin;
     block-size: calc(100vh - 10.5rem);
     block-size: calc(100dvh - 10.5rem);
     min-block-size: 24rem;
@@ -2510,7 +2550,7 @@
     flex-direction: column;
     min-block-size: 0;
     border-radius: var(--pos-support-radius-panel);
-    background: color-mix(in srgb, var(--pos-support-text) 3.5%, var(--pos-support-bg-subtle));
+    background: var(--pos-support-tint-1);
     scroll-snap-align: start;
   }
 
@@ -2519,8 +2559,10 @@
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
-    margin: 0;
-    padding: 0.625rem 0.75rem 0.5rem;
+    margin: 0 0 0.375rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--pos-support-radius-panel) var(--pos-support-radius-panel) 0 0;
+    background: var(--pos-support-tint-2);
     font-size: var(--pos-support-text-body);
   }
 
@@ -2541,6 +2583,7 @@
     gap: 0.5rem;
     min-block-size: 3rem;
     overflow-y: auto;
+    scrollbar-width: thin;
     padding: 0.125rem 0.5rem 0.5rem;
   }
 
@@ -2741,7 +2784,7 @@
   }
 
   .pos-support-subnav a[aria-current="page"] .pos-support-icon {
-    color: var(--pos-support-accent);
+    color: var(--pos-support-accent-ink);
   }
 
   .pos-support-subnav-select {
