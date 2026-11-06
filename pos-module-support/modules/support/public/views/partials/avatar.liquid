@@ -66,7 +66,18 @@
     endif
   endif
 %}
-<span class="{{ css }}" {% if labelled and label != blank %}role="img" aria-label="{{ label }}"{% else %}aria-hidden="true"{% endif %}{% if label != blank %} title="{{ label }}"{% endif %}>
+{%- liquid
+  # design handoff 2b.1 markup hooks
+  assign person = 'team'
+  if kind == 'customer'
+    assign person = 'customer'
+  endif
+  assign senior = null
+  if kind == 'manager' or kind == 'admin' or kind == 'ai'
+    assign senior = kind
+  endif
+-%}
+<span class="{{ css }}" data-person="{{ person }}"{% if senior %} data-role="{{ senior }}"{% endif %}{% if presence and availability %} data-presence="{{ availability }}"{% endif %} {% if labelled and label != blank %}role="img" aria-label="{{ label }}"{% else %}aria-hidden="true"{% endif %}{% if label != blank %} title="{{ label }}"{% endif %}>
   {%- if kind == 'system' -%}{% render 'modules/support/icon', name: 'mail', size: 'sm' %}{%- else -%}{{ initials | upcase }}{%- endif -%}
   {%- if badge -%}<span class="pos-support-avatar-badge">{% render 'modules/support/icon', name: badge, size: null %}</span>{%- endif -%}
   {%- if presence and availability -%}<span class="pos-support-avatar-presence pos-support-presence-{{ availability }}"></span>{%- endif -%}

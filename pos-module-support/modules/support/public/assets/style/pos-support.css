@@ -137,7 +137,7 @@
     --pos-support-avatar-7: #e0e7ff; --pos-support-avatar-7-fg: #3730a3;
     --pos-support-email-frame-background: #ffffff;
     /* customer avatars (design review C): neutral grey, 8:1+ */
-    --pos-support-avatar-customer: #e5e7eb; --pos-support-avatar-customer-fg: #374151;
+    --pos-support-avatar-customer: #e3e6ea; --pos-support-avatar-customer-fg: #374151;
     /* department markers (design review B): solid colour, fixed, never the brand */
     --pos-support-dept-on: #ffffff;
     --pos-support-dept-default: #4a4f57;
@@ -528,40 +528,55 @@
     block-size: calc(var(--size) * 0.5);
   }
 
+  /* role badge top-right (handoff 2b.1): a 14px circle in the card colour
+     with a 9px glyph; shown only on avatars of 28px and more */
   .pos-support-avatar-badge {
     position: absolute;
-    inset-block-start: -0.1875rem;
+    inset-block-start: -0.25rem;
     inset-inline-end: -0.25rem;
     display: grid;
     place-items: center;
-    inline-size: 0.9375rem;
-    block-size: 0.9375rem;
+    inline-size: 0.875rem;
+    block-size: 0.875rem;
     border-radius: 50%;
-    background: var(--pos-support-accent);
-    color: var(--pos-support-accent-text);
-    box-shadow: 0 0 0 1.5px var(--pos-support-bg);
+    background: var(--pos-support-bg);
+    color: var(--pos-support-text);
+    box-shadow: 0 0 0 1px var(--pos-support-border);
   }
 
   .pos-support-avatar .pos-support-avatar-badge .pos-support-icon {
     inline-size: 0.5625rem;
     block-size: 0.5625rem;
     fill: currentColor;
+    stroke: none;
   }
 
-  /* availability: filled, half filled, hollow ring, so not by colour alone */
+  /* availability bottom-right: 10px (8px on small avatars) with a 2px ring in
+     the card colour; filled, half filled or hollow, never colour alone */
   .pos-support-avatar-presence {
     position: absolute;
     inset-block-end: -0.0625rem;
     inset-inline-end: -0.0625rem;
-    inline-size: max(0.5rem, calc(var(--size) * 0.3));
-    block-size: max(0.5rem, calc(var(--size) * 0.3));
+    box-sizing: border-box;
+    inline-size: 0.625rem;
+    block-size: 0.625rem;
     border-radius: 50%;
-    box-shadow: 0 0 0 1.5px var(--pos-support-bg);
+    box-shadow: 0 0 0 2px var(--pos-support-bg);
+  }
+
+  .pos-support-avatar-xs .pos-support-avatar-presence,
+  .pos-support-avatar:not(.pos-support-avatar-md, .pos-support-avatar-lg) .pos-support-avatar-presence {
+    inline-size: 0.5rem;
+    block-size: 0.5rem;
   }
 
   .pos-support-avatar-presence.pos-support-presence-available { background: var(--pos-support-presence-available); }
-  .pos-support-avatar-presence.pos-support-presence-away { background: linear-gradient(90deg, var(--pos-support-presence-away) 50%, var(--pos-support-bg) 50%); box-shadow: 0 0 0 1.5px var(--pos-support-bg), inset 0 0 0 1.5px var(--pos-support-presence-away); }
-  .pos-support-avatar-presence.pos-support-presence-off { background: var(--pos-support-bg); box-shadow: 0 0 0 1.5px var(--pos-support-bg), inset 0 0 0 1.5px var(--pos-support-presence-off); }
+  .pos-support-avatar-presence.pos-support-presence-away { background: linear-gradient(90deg, var(--pos-support-presence-away) 50%, var(--pos-support-bg) 50%); border: 2px solid var(--pos-support-presence-away); }
+  .pos-support-avatar-presence.pos-support-presence-off { background: var(--pos-support-bg); border: 2px solid var(--pos-support-presence-off); }
+
+  .pos-support-avatar:not(.pos-support-avatar-md, .pos-support-avatar-lg) .pos-support-avatar-presence:is(.pos-support-presence-away, .pos-support-presence-off) {
+    border-width: 1.5px;
+  }
 
   .pos-support-avatar-xs { --size: 1.375rem; }
   .pos-support-avatar-md { --size: 2rem; }
