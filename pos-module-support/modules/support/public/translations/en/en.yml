@@ -267,6 +267,19 @@ en:
     reply_delimiter: "##- Please type your reply above this line -##"
     ticket_reference: "%{brand} · ticket #%{number}"
     status_line: "Status: %{status}"
+  email_safety:
+    subject_prefix: "[test to %{recipients}]"
+    title: Non-production sending
+    env_note: "This instance reports environment %{environment}, so the desk will not mail real recipients unless you say so below. A production instance is never affected."
+    state_redirect: "Redirecting every email to %{address}. The real recipients are kept in the subject and in an X-Support-Original-To header."
+    state_allow: "Sending to real recipients. Anyone with an address on a ticket here can receive email from this instance."
+    state_blocked: Blocked. The desk will not send email from this instance until you give a redirect address or allow real recipients.
+    redirect_label: Send every email to this address instead
+    redirect_help: Leave empty to use the choice below. platformOS redirects its own notifications to the instance test address, but the desk talks to the provider directly, so it needs its own.
+    allow_label: Allow sending to real recipients from this non-production instance
+    save: Save
+    saved: Non-production sending updated.
+    invalid_address: Enter a valid email address, or leave it empty.
   settings_email:
     title: Email
     problems:

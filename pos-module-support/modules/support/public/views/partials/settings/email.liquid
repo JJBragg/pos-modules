@@ -16,6 +16,41 @@
 <h1 class="pos-heading-2">{{ 'modules/support/settings_email.title' | t }}</h1>
 <p class="pos-supplementary">{{ 'modules/support/settings_email.intro' | t }}</p>
 
+{% unless context.environment == 'production' %}
+  {%- liquid
+    # non-production recipient guard (#135)
+    assign redirect_to = settings.email_redirect_to | default: ''
+    assign allow_external = false
+    if settings.email_allow_external == true
+      assign allow_external = true
+    endif
+  -%}
+  <section class="pos-card pos-support-step" aria-labelledby="pos-support-email-safety">
+    <h2 id="pos-support-email-safety" class="pos-heading-3">{{ 'modules/support/email_safety.title' | t }}</h2>
+    <p class="pos-supplementary">{{ 'modules/support/email_safety.env_note' | t: environment: context.environment }}</p>
+    {% if redirect_to != blank %}
+      <p class="pos-support-ok">{{ 'modules/support/email_safety.state_redirect' | t: address: redirect_to }}</p>
+    {% elsif allow_external %}
+      <p class="pos-support-error">{{ 'modules/support/email_safety.state_allow' | t }}</p>
+    {% else %}
+      <p>{{ 'modules/support/email_safety.state_blocked' | t }}</p>
+    {% endif %}
+    <form action="/support-desk/settings/email" method="post" data-support-pending="{{ 'modules/support/settings_email.working' | t }}" class="pos-form">
+      <input type="hidden" name="authenticity_token" value="{{ context.authenticity_token }}">
+      <input type="hidden" name="step" value="safety">
+      <fieldset>
+        <label for="pos-support-email-redirect">{{ 'modules/support/email_safety.redirect_label' | t }}</label>
+        <input type="email" id="pos-support-email-redirect" name="redirect_to" value="{{ redirect_to }}" autocomplete="off">
+        <p class="pos-supplementary">{{ 'modules/support/email_safety.redirect_help' | t }}</p>
+      </fieldset>
+      <fieldset>
+        <label><input type="checkbox" name="allow_external" value="true"{% if allow_external %} checked{% endif %}> {{ 'modules/support/email_safety.allow_label' | t }}</label>
+      </fieldset>
+      <button type="submit" class="pos-button pos-button-primary">{{ 'modules/support/email_safety.save' | t }}</button>
+    </form>
+  </section>
+{% endunless %}
+
 <div class="pos-support-steps">
   <section class="pos-card pos-support-step" aria-labelledby="pos-support-email-step1">
     <h2 id="pos-support-email-step1" class="pos-heading-3">1. {{ 'modules/support/settings_email.step1.title' | t }}</h2>

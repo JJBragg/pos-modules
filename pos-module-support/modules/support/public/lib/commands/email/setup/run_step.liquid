@@ -3,7 +3,7 @@
   the email_status setting. Constants are written last in the request,
   because constant_set can hide other constants for the rest of it.
   Returns { ok, notice, error }.
-  @param {string} step - key | check | domain | inbound | test | check_inbound | events | rotate | enable | disable
+  @param {string} step - key | check | domain | inbound | test | check_inbound | events | rotate | enable | disable | safety
   @param {object} params - The posted form
   @param {object} current_profile - The admin running the step
 {% enddoc %}
@@ -13,7 +13,7 @@
   assign result = { "ok": false, "notice": null, "error": null }
   assign provider = settings.email_provider
   assign providers = ["sendgrid"]
-  if step != 'key' and provider == blank
+  if step != 'key' and step != 'safety' and provider == blank
     assign result.error = 'modules/support/settings_email.errors.provider'
     return result
   endif
@@ -221,6 +221,26 @@
     else
       assign result.notice = 'modules/support/settings_email.notices.rotated_manual'
     endif
+
+  when 'safety'
+    # non-production recipient guard (#135): a redirect address, or an
+    # explicit opt-in to mailing real recipients from this instance
+    assign address = params.redirect_to | default: '' | strip | downcase
+    if address != blank
+      assign valid_address = address | matches: '\A[^@\s]+@[a-z0-9-]+(\.[a-z0-9-]+)+\z'
+      unless valid_address
+        assign result.error = 'modules/support/email_safety.invalid_address'
+        return result
+      endunless
+    endif
+    function _ = 'modules/support/commands/settings/set', key: 'email_redirect_to', value: address
+    assign allow_external = false
+    if params.allow_external == 'true'
+      assign allow_external = true
+    endif
+    function _ = 'modules/support/commands/settings/set', key: 'email_allow_external', value: allow_external
+    assign result.ok = true
+    assign result.notice = 'modules/support/email_safety.saved'
 
   when 'enable'
     if status.test_ok != true or status.inbound_checked != true

@@ -1,6 +1,8 @@
 {% doc %}
   Sends one provider-neutral message through the adapter named by the
   email_provider setting (04 §0). Returns { ok, status, provider_message_id, error }.
+  On a non-production instance the recipient guard may rewrite the recipients
+  or refuse the send (#135).
   @param {object} message - { from{email,name}, reply_to, to[{email,name}], cc[], subject, text, html, headers{}, attachments[], tag, custom_args{} }
 {% enddoc %}
 {% liquid
@@ -18,7 +20,14 @@
     return result
   endif
 
+  function guard = 'modules/support/helpers/email/recipient_guard', message: message
+  if guard.action == 'block'
+    assign result.error = 'non_production_recipient_blocked'
+    log message.to, type: 'support.email_blocked_non_production'
+    return result
+  endif
+
   assign adapter = 'modules/support/commands/email/providers/' | append: provider | append: '/send'
-  function result = adapter, message: message
+  function result = adapter, message: guard.message
   return result
 %}

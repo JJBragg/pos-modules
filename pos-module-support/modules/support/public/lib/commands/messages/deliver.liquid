@@ -116,7 +116,7 @@
   elsif sent.status >= 400 and sent.status < 500
     assign permanent = true
   endif
-  assign permanent_errors = ["invalid_message", "email_provider_not_configured", "missing_api_key"]
+  assign permanent_errors = ["invalid_message", "email_provider_not_configured", "missing_api_key", "non_production_recipient_blocked"]
   if permanent_errors contains sent.error
     assign permanent = true
   endif
