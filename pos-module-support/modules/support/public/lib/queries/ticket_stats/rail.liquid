@@ -115,10 +115,12 @@
     unless all_departments or member.department_ids contains department.id
       continue
     endunless
-    assign item = { "id": null, "name": null, "short_code": null, "count": 0 }
+    assign item = { "id": null, "name": null, "short_code": null, "color": null, "count": 0 }
     assign item.id = department.id
     assign item.name = department.name
     assign item.short_code = department.short_code
+    function color = 'modules/support/helpers/department_color', department: department
+    assign item.color = color
     assign item.count = by_department[department.id] | default: 0
     assign departments.departments << item
   endfor

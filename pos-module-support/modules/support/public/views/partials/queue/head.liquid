@@ -15,8 +15,10 @@
   assign base = '/support-desk?' | append: page_data.query
   # the attention chips keep the department, like the rail's view links
   assign department_suffix = ''
+  assign current_department = null
   if filters.department_id != blank
     assign department_suffix = '&department_id=' | append: filters.department_id
+    assign current_department = page_data.department_counts.departments | where: 'id', filters.department_id | first
   endif
   assign filtered = false
   if filters.q != blank or filters.priority != blank or filters.status_key != blank or filters.assignee_id != blank
@@ -29,7 +31,7 @@
   assign layout_icons = { "list": "list", "board": "square-kanban" }
 %}
 <div class="pos-support-queue-head">
-  <h1 class="pos-support-title">{{ view_label }} <span class="pos-support-count-chip">{{ page_data.groups.total }}</span></h1>
+  <h1 class="pos-support-title">{% if current_department %}{% render 'modules/support/badges/department', department: current_department, variant: 'full' %} {% endif %}{{ view_label }} <span class="pos-support-count-chip">{{ page_data.groups.total }}</span></h1>
   <div class="pos-support-actions">
     <nav class="pos-support-segmented" aria-label="{{ 'modules/support/queue.group_by' | t }}">
       <span class="pos-support-segmented-label">{{ 'modules/support/queue.group_by' | t }}</span>

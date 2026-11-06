@@ -2,7 +2,7 @@
   Creates or updates a department. The inbound local part is lower-case
   letters, digits and dashes and unique; exactly one department is the
   default. Returns { valid, error, notice }.
-  @param {object} params - id?, name, short_code, inbound_local_part, public_address, from_name, from_address, signature, sla_policy_id, active, is_default
+  @param {object} params - id?, name, short_code, inbound_local_part, public_address, from_name, from_address, signature, sla_policy_id, active, is_default, color (a key of helpers/department_palette; blank keeps the current colour, or picks the next free one for a new department)
 {% enddoc %}
 {% liquid
   assign result = { "valid": false, "error": null, "notice": "modules/support/settings.saved" }
@@ -45,7 +45,22 @@
     endif
   endfor
 
+  # colour: one of the 10 palette keys; a new department without one gets the next free key
+  function palette = 'modules/support/helpers/department_palette'
+  assign color = params.color | strip | downcase
+  if color != blank
+    unless palette contains color
+      assign result.error = 'modules/support/settings.errors.department_color'
+      return result
+    endunless
+  elsif params.id == blank
+    function color = 'modules/support/helpers/next_department_color', departments: all_departments.records.results, except_id: null
+  endif
+
   assign values = { "active": true, "is_default": false }
+  if color != blank
+    assign values.color = color
+  endif
   assign values.name = name
   assign values.short_code = params.short_code | strip | upcase | truncate: 8, ''
   assign values.inbound_local_part = local

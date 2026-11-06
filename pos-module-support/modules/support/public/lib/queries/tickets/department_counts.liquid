@@ -26,10 +26,12 @@
     endunless
     assign counting.department_id = department.id
     function page = 'modules/support/queries/tickets/search', member: member, view: view, filters: counting, page: 1, per_page: 1, skip_lookup: true, include_waiting: include_waiting
-    assign item = { "id": null, "name": null, "short_code": null, "count": 0 }
+    assign item = { "id": null, "name": null, "short_code": null, "color": null, "count": 0 }
     assign item.id = department.id
     assign item.name = department.name
     assign item.short_code = department.short_code
+    function color = 'modules/support/helpers/department_color', department: department
+    assign item.color = color
     assign item.count = page.total_entries
     assign result.departments << item
   endfor

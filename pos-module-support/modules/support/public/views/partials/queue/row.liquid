@@ -32,7 +32,7 @@
 %}
 {%- if cacheable -%}
   {%- liquid
-    assign key = 'support-row|' | append: ticket.id | append: '|' | append: ticket.updated_at | append: '|' | append: link_query | append: '|' | append: clock.year | append: '|' | append: clock.zone | append: '|' | append: requester_name | append: '|' | append: requester.emails.first | append: '|' | append: organization.name | append: '|' | append: assignee_name | append: '|' | append: assignee.email | append: '|' | append: department.name | append: '|' | append: department.short_code | append: '|' | append: status.key | append: '|' | append: status.label | append: '|' | append: status.color
+    assign key = 'support-row|' | append: ticket.id | append: '|' | append: ticket.updated_at | append: '|' | append: link_query | append: '|' | append: clock.year | append: '|' | append: clock.zone | append: '|' | append: requester_name | append: '|' | append: requester.emails.first | append: '|' | append: organization.name | append: '|' | append: assignee_name | append: '|' | append: assignee.email | append: '|' | append: department.name | append: '|' | append: department.short_code | append: '|' | append: department.color | append: '|' | append: department.is_default | append: '|' | append: status.key | append: '|' | append: status.label | append: '|' | append: status.color
     assign key = key | digest: 'sha256'
   -%}
   {%- cache key, expire: 86400 -%}

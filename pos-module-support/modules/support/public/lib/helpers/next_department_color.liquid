@@ -1,0 +1,27 @@
+{% doc %}
+  The palette colour a new department receives: the first one no other
+  non-default department uses; when all 10 are taken, the cycle continues
+  from the number of coloured departments.
+  @param {object[]} departments - Existing department records
+  @param {string} [except_id] - A department to leave out (the one being saved)
+{% enddoc %}
+{% liquid
+  function palette = 'modules/support/helpers/department_palette'
+  assign used = []
+  for d in departments
+    if d.id == except_id or d.is_default
+      continue
+    endif
+    if palette contains d.color
+      assign used << d.color
+    endif
+  endfor
+  for key in palette
+    unless used contains key
+      return key
+    endunless
+  endfor
+  assign index = used.size | modulo: palette.size
+  assign key = palette[index]
+  return key
+%}

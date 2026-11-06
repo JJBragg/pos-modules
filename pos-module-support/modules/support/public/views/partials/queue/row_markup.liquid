@@ -26,7 +26,7 @@
   <td class="pos-support-cell-requester" title="{{ requester.emails.first }}">
     {{ requester_name }}{% if organization %}<span class="pos-supplementary">{{ organization.name }}</span>{% endif %}
   </td>
-  <td class="pos-support-cell-department"><span class="pos-tag" title="{{ department.name }}">{{ department.short_code | default: department.name }}</span></td>
+  <td class="pos-support-cell-department">{% render 'modules/support/badges/department', department: department, variant: null %}</td>
   <td class="pos-support-cell-status">{% render 'modules/support/badges/status', status: status %}</td>
   <td class="pos-support-cell-assignee">
     {% if assignee %}

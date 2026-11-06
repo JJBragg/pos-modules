@@ -63,7 +63,7 @@
           {% for department in nav.departments.departments %}
             <li>
               <a href="/support-desk?{{ department_query }}&department_id={{ department.id }}" {% if on_queue and current_department == department.id %}aria-current="page"{% endif %}>
-                <span class="pos-support-dept-mark" aria-hidden="true">{{ department.short_code | default: department.name | slice: 0 | upcase }}</span>
+                {% render 'modules/support/badges/department', department: department, variant: 'initial' %}
                 <span>{{ department.name }}</span>
                 <span class="pos-support-count">{{ department.count }}</span>
               </a>

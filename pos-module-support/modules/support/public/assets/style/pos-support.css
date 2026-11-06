@@ -120,6 +120,19 @@
     --pos-support-avatar-6: #ffedd5; --pos-support-avatar-6-fg: #9a3412;
     --pos-support-avatar-7: #e0e7ff; --pos-support-avatar-7-fg: #3730a3;
     --pos-support-email-frame-background: #ffffff;
+    /* department markers (design review B): solid colour, fixed, never the brand */
+    --pos-support-dept-fg: #ffffff;
+    --pos-support-dept-neutral: #4a4f57;
+    --pos-support-dept-indigo: #313da8;
+    --pos-support-dept-violet: #805db8;
+    --pos-support-dept-taupe: #926b49;
+    --pos-support-dept-olive: #4b6502;
+    --pos-support-dept-fuchsia: #a55095;
+    --pos-support-dept-cobalt: #0676a4;
+    --pos-support-dept-ocean: #017b80;
+    --pos-support-dept-copper: #a24409;
+    --pos-support-dept-plum: #6b2176;
+    --pos-support-dept-rose: #a43c5b;
   }
 
   /* dark values: forced (.pos-theme-dark) or following the system (.pos-theme-darkEnabled) */
@@ -171,6 +184,19 @@
     --pos-support-avatar-7: #262a5c; --pos-support-avatar-7-fg: #c7d2fe;
     --pos-support-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
     --pos-support-shadow-md: 0 4px 12px rgb(0 0 0 / 0.4), 0 1px 3px rgb(0 0 0 / 0.3);
+    /* department markers (design review B): solid colour, fixed, never the brand */
+    --pos-support-dept-fg: #15181d;
+    --pos-support-dept-neutral: #b4b8be;
+    --pos-support-dept-indigo: #96acfe;
+    --pos-support-dept-violet: #ceb5fe;
+    --pos-support-dept-taupe: #dfb490;
+    --pos-support-dept-olive: #b3d181;
+    --pos-support-dept-fuchsia: #f4b2e5;
+    --pos-support-dept-cobalt: #74c2ee;
+    --pos-support-dept-ocean: #85e3e8;
+    --pos-support-dept-copper: #f79e75;
+    --pos-support-dept-plum: #cd85d8;
+    --pos-support-dept-rose: #f68ca6;
   }
 
   @media (prefers-color-scheme: dark) {
@@ -213,6 +239,19 @@
       --pos-support-avatar-7: #262a5c; --pos-support-avatar-7-fg: #c7d2fe;
       --pos-support-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
       --pos-support-shadow-md: 0 4px 12px rgb(0 0 0 / 0.4), 0 1px 3px rgb(0 0 0 / 0.3);
+      /* department markers (design review B): solid colour, fixed, never the brand */
+      --pos-support-dept-fg: #15181d;
+      --pos-support-dept-neutral: #b4b8be;
+      --pos-support-dept-indigo: #96acfe;
+      --pos-support-dept-violet: #ceb5fe;
+      --pos-support-dept-taupe: #dfb490;
+      --pos-support-dept-olive: #b3d181;
+      --pos-support-dept-fuchsia: #f4b2e5;
+      --pos-support-dept-cobalt: #74c2ee;
+      --pos-support-dept-ocean: #85e3e8;
+      --pos-support-dept-copper: #f79e75;
+      --pos-support-dept-plum: #cd85d8;
+      --pos-support-dept-rose: #f68ca6;
     }
   }
 
@@ -1084,22 +1123,85 @@
     margin-block-start: 0.25rem;
   }
 
-  .pos-support-dept-mark {
-    display: inline-grid;
-    place-items: center;
+  /* Department markers (design review B): a tag with an arrow tip */
+  :where(.pos-support-dept-neutral) { --pos-support-dept: var(--pos-support-dept-neutral); }
+  .pos-support-dept-indigo { --pos-support-dept: var(--pos-support-dept-indigo); }
+  .pos-support-dept-violet { --pos-support-dept: var(--pos-support-dept-violet); }
+  .pos-support-dept-taupe { --pos-support-dept: var(--pos-support-dept-taupe); }
+  .pos-support-dept-olive { --pos-support-dept: var(--pos-support-dept-olive); }
+  .pos-support-dept-fuchsia { --pos-support-dept: var(--pos-support-dept-fuchsia); }
+  .pos-support-dept-cobalt { --pos-support-dept: var(--pos-support-dept-cobalt); }
+  .pos-support-dept-ocean { --pos-support-dept: var(--pos-support-dept-ocean); }
+  .pos-support-dept-copper { --pos-support-dept: var(--pos-support-dept-copper); }
+  .pos-support-dept-plum { --pos-support-dept: var(--pos-support-dept-plum); }
+  .pos-support-dept-rose { --pos-support-dept: var(--pos-support-dept-rose); }
+
+  .pos-support-dept {
+    --pos-support-dept-tip: 0.375rem;
+    display: inline-flex;
+    align-items: center;
     flex: none;
-    inline-size: 1rem;
-    block-size: 1rem;
-    border: 1px solid currentColor;
-    border-radius: 0.25rem;
-    color: var(--pos-support-rail-muted);
-    font-size: 0.5625rem;
+    block-size: 1.25rem;
+    padding-inline: 0.375rem calc(var(--pos-support-dept-tip) + 0.25rem);
+    border-radius: 0.25rem 0 0 0.25rem;
+    clip-path: polygon(0 0, calc(100% - var(--pos-support-dept-tip)) 0, 100% 50%, calc(100% - var(--pos-support-dept-tip)) 100%, 0 100%);
+    background: var(--pos-support-dept, var(--pos-support-dept-neutral));
+    color: var(--pos-support-dept-fg);
+    font-size: var(--pos-support-text-small);
     font-weight: 700;
+    letter-spacing: 0.02em;
     line-height: 1;
+    white-space: nowrap;
   }
 
-  .pos-support-rail-items a[aria-current="page"] .pos-support-dept-mark {
-    color: currentColor;
+  .pos-support-dept-initial {
+    justify-content: center;
+    inline-size: 1.375rem;
+    block-size: 1.125rem;
+    padding-inline: 0 calc(var(--pos-support-dept-tip) - 0.125rem);
+    font-size: 0.625rem;
+  }
+
+  .pos-support-dept-full {
+    block-size: 1.75rem;
+    padding-inline: 0.625rem calc(var(--pos-support-dept-tip) + 0.5rem);
+    font-size: var(--pos-support-text-body);
+    vertical-align: 0.25em;
+  }
+
+  .pos-support-dept-quiet {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3125rem;
+    color: var(--pos-support-text-muted);
+    font-size: var(--pos-support-text-small);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .pos-support-dept-flag {
+    flex: none;
+    inline-size: 0.5rem;
+    block-size: 0.6875rem;
+    clip-path: polygon(0 0, 45% 0, 100% 50%, 45% 100%, 0 100%);
+    background: var(--pos-support-dept, var(--pos-support-dept-neutral));
+  }
+
+  .pos-support-swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+  }
+
+  .pos-support-swatches legend {
+    margin-block-end: 0.375rem;
+  }
+
+  .pos-support-swatch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-weight: 400;
   }
 
   .pos-support-rail-foot {

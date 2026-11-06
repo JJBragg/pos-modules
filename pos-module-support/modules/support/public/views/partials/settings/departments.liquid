@@ -12,7 +12,7 @@
       <tbody>
         {% for d in data.departments %}
           <tr>
-            <td>{{ d.name }} {% if d.is_default %}<span class="pos-tag">{{ 'modules/support/settings.default' | t }}</span>{% endif %}</td>
+            <td>{% render 'modules/support/badges/department', department: d, variant: 'initial' %} {{ d.name }} {% if d.is_default %}<span class="pos-tag">{{ 'modules/support/settings.default' | t }}</span>{% endif %}</td>
             <td><code>{{ d.inbound_local_part }}@{{ data.settings.inbound_domain | default: '…' }}</code></td>
             <td>{{ d.from_name }} {{ d.from_address }}</td>
             <td>{% if d.active %}<span class="pos-tag pos-support-state-on">{{ 'modules/support/settings.active' | t }}</span>{% else %}<span class="pos-tag pos-support-state-off">{{ 'modules/support/settings.inactive' | t }}</span>{% endif %}</td>
@@ -43,6 +43,14 @@
           {% for p in data.policies %}<option value="{{ p.id }}" {% if p.id == edit.sla_policy_id %}selected{% endif %}>{{ p.name }}</option>{% endfor %}
         </select>
       </fieldset>
+      {% unless edit.is_default %}
+        <fieldset class="pos-support-swatches">
+          <legend>{{ 'modules/support/settings.department_color' | t }}</legend>
+          {% for key in data.department_palette %}
+            <label class="pos-support-swatch"><input type="radio" name="color" value="{{ key }}" {% if edit.color == key or edit == blank and data.next_department_color == key %}checked{% endif %}><span class="pos-support-dept pos-support-dept-initial pos-support-dept-{{ key }}" aria-hidden="true">{{ edit.short_code | default: edit.name | default: 'A' | slice: 0 | upcase }}</span><span>{{ 'modules/support/settings.colors.' | append: key | t }}</span></label>
+          {% endfor %}
+        </fieldset>
+      {% endunless %}
       <fieldset><label><input type="checkbox" name="active" value="true" {% if edit == blank or edit.active %}checked{% endif %}> {{ 'modules/support/settings.active' | t }}</label></fieldset>
       <fieldset><label><input type="checkbox" name="is_default" value="true" {% if edit.is_default %}checked{% endif %}> {{ 'modules/support/settings.default_help' | t }}</label></fieldset>
       <button type="submit" class="pos-button pos-button-primary">{{ 'modules/support/settings.save' | t }}</button>

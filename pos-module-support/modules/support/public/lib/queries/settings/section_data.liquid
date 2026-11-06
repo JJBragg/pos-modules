@@ -15,6 +15,10 @@
 
   case section
     when 'departments'
+      function palette = 'modules/support/helpers/department_palette'
+      assign data.department_palette = palette
+      function next_color = 'modules/support/helpers/next_department_color', departments: data.departments, except_id: null
+      assign data.next_department_color = next_color
       for item in data.departments
         if item.id == edit_id
           assign data.edit = item

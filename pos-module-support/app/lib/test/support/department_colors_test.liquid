@@ -1,0 +1,50 @@
+{% doc %}
+  @param {object} contract - The test contract object
+{% enddoc %}
+{% liquid
+  # design review B: department colours
+  assign default_dep = { "id": "1", "is_default": true, "color": "rose" }
+  function c = 'modules/support/helpers/department_color', department: default_dep
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: c, expected: 'neutral', field_name: 'the catch-all department is always neutral'
+  assign dep = { "id": "2", "is_default": false, "color": "ocean" }
+  function c = 'modules/support/helpers/department_color', department: dep
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: c, expected: 'ocean', field_name: 'a palette colour is used'
+  assign odd = { "id": "3", "is_default": false, "color": "#ff0000" }
+  function c = 'modules/support/helpers/department_color', department: odd
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: c, expected: 'neutral', field_name: 'anything outside the palette falls back to neutral'
+
+  assign deps = []
+  assign deps << default_dep
+  assign a = { "id": "4", "is_default": false, "color": "indigo" }
+  assign deps << a
+  assign b = { "id": "5", "is_default": false, "color": "taupe" }
+  assign deps << b
+  function n = 'modules/support/helpers/next_department_color', departments: deps, except_id: null
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: n, expected: 'violet', field_name: 'next colour is the first free one'
+  function n = 'modules/support/helpers/next_department_color', departments: deps, except_id: '4'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: n, expected: 'indigo', field_name: 'the department being saved does not block its own colour'
+
+  # markers: text always present, colour class from the palette
+  capture out
+    render 'modules/support/badges/department', department: dep, variant: null
+  endcapture
+  assign ok = out | matches: 'class="pos-support-dept pos-support-dept-ocean"[^>]*>'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: ok, expected: true, field_name: 'solid marker carries the colour class'
+  assign dep.short_code = 'OCN'
+  assign dep.name = 'Ocean team'
+  capture out
+    render 'modules/support/badges/department', department: dep, variant: 'quiet'
+  endcapture
+  assign ok = out | matches: 'pos-support-dept-quiet pos-support-dept-ocean.*OCN'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: ok, expected: true, field_name: 'quiet card marker shows the short code'
+  capture out
+    render 'modules/support/badges/department', department: dep, variant: 'full'
+  endcapture
+  assign ok = out | matches: 'Ocean team'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: ok, expected: true, field_name: 'header marker shows the full name'
+
+  # Settings refuses a colour outside the palette before writing anything
+  assign p = { "name": "Colour test dept", "inbound_local_part": "colour-test-dept", "color": "#ff0000" }
+  function r = 'modules/support/commands/settings_sections/department', params: p
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: r.error, expected: 'modules/support/settings.errors.department_color', field_name: 'colour outside the palette refused'
+%}

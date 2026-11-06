@@ -754,6 +754,18 @@ en:
     mode_auto: Follow the device
     mode_light: Always light
     mode_dark: Always dark
+    department_color: Colour (marker in the sidebar, lists and cards)
+    colors:
+      indigo: Indigo
+      violet: Violet
+      taupe: Taupe
+      olive: Olive
+      fuchsia: Fuchsia
+      cobalt: Cobalt
+      ocean: Ocean
+      copper: Copper
+      plum: Plum
+      rose: Rose
     sections:
       departments: Departments
       statuses: Statuses
@@ -770,6 +782,7 @@ en:
       minutes: Enter a whole number of minutes from 1 to 10080.
       spam_threshold: Enter a spam threshold from 0 to 100.
       use_host_with_overrides: "Untick \"Use the host app's branding\" to save your own name, colours or images."
+      department_color: Choose one of the department colours.
       theme_mode: Choose Follow the host app, Follow the device, Always light or Always dark.
       rail_theme: Choose how the sidebar logo is picked.
       section: Unknown settings section.

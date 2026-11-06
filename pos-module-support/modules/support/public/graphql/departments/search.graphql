@@ -21,6 +21,7 @@ query ($id: ID, $inbound_local_part: String, $limit: Int = 100) {
       sla_policy_id: property(name: "sla_policy_id")
       is_default: property_boolean(name: "is_default")
       active: property_boolean(name: "active")
+      color: property(name: "color")
     }
   }
 }

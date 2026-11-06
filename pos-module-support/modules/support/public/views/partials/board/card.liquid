@@ -31,7 +31,7 @@
   </p>
   <h3 id="card-{{ ticket.id }}" class="pos-support-card-title"><a href="/support-desk/tickets/{{ ticket.id }}">{{ ticket.subject }}</a></h3>
   <p class="pos-support-card-meta">
-    <span class="pos-tag" title="{{ department.name }}">{{ department.short_code | default: department.name }}</span>
+    {% render 'modules/support/badges/department', department: department, variant: 'quiet' %}
     <span class="pos-support-card-requester">{{ requester.name | default: requester.emails.first }}</span>
     {% if at_risk and assignee %}{% render 'modules/support/avatar', name: assignee_name, email: assignee.email, size: 'xs', labelled: true %}{% endif %}
   </p>

@@ -20,3 +20,5 @@ properties:
     type: boolean
   - name: active
     type: boolean
+  - name: color
+    type: string

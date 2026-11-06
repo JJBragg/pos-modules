@@ -36,6 +36,7 @@ query ($contact_ids: [ID!]!, $organization_ids: [ID!]!) {
       sla_policy_id: property(name: "sla_policy_id")
       is_default: property_boolean(name: "is_default")
       active: property_boolean(name: "active")
+      color: property(name: "color")
     }
   }
 }

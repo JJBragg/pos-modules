@@ -1,0 +1,42 @@
+{% doc %}
+  One-off data fix (design review B): gives every non-default department
+  without a colour the next free palette colour, oldest first, cycling
+  through the palette when all 10 are taken. Departments that already have
+  one keep it. Returns the number updated.
+{% enddoc %}
+{% liquid
+  assign updated = 0
+  function palette = 'modules/support/helpers/department_palette'
+  graphql d = 'modules/support/departments/search', limit: 100
+  assign used = []
+  for department in d.records.results
+    if department.is_default == false and palette contains department.color
+      assign used << department.color
+    endif
+  endfor
+  for department in d.records.results
+    if department.is_default or palette contains department.color
+      continue
+    endif
+    assign color = null
+    for key in palette
+      unless used contains key
+        assign color = key
+        break
+      endunless
+    endfor
+    if color == null
+      assign index = used.size | modulo: palette.size
+      assign color = palette[index]
+    endif
+    assign used << color
+    assign values = { "color": null }
+    assign values.color = color
+    function props = 'modules/support/helpers/props', values: values
+    # platformos-check-disable NestedGraphQLQuery
+    graphql u = 'modules/support/records/update', id: department.id, properties: props
+    # platformos-check-enable NestedGraphQLQuery
+    assign updated = updated | plus: 1
+  endfor
+  return updated
+%}
