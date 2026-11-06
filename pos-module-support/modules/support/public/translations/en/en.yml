@@ -76,6 +76,7 @@ en:
     any_priority: Any priority
     department: Department
     any_department: Any department
+    reset_filters: Reset all filters
     status: Status
     any_status: Any status
     apply: Filter

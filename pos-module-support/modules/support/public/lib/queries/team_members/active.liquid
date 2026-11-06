@@ -1,6 +1,6 @@
 {% doc %}
   Active team members with their profile names, for assignee pickers.
-  Returns [{ profile_id, role, department_ids, name }]. Read once per request
+  Returns [{ profile_id, role, department_ids, name, email }]. Read once per request
   (memo in context.exports, cleared by commands/team_members/forget).
 {% enddoc %}
 {% liquid
@@ -43,7 +43,8 @@
     endif
     assign listed << member.profile_id
     if names[member.profile_id]
-      assign item = { "profile_id": null, "role": null, "department_ids": [], "name": null }
+      assign item = { "profile_id": null, "role": null, "department_ids": [], "name": null, "email": null }
+      assign item.email = emails[member.profile_id]
       assign item.profile_id = member.profile_id
       assign item.role = member.role
       assign item.department_ids = member.department_ids

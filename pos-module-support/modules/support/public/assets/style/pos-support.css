@@ -3066,6 +3066,110 @@
     --pos-support-control-height-small: 1.875rem;
   }
 
+  /* filter dropdowns with markers (design review E, pos-support-select.js) */
+  .pos-support-richselect {
+    position: relative;
+    display: inline-flex;
+  }
+
+  .pos-support-richselect-box {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-block-size: var(--pos-support-control-height);
+    min-inline-size: 9rem;
+    padding: 0 2rem 0 0.75rem;
+    border: 1px solid var(--pos-support-border);
+    border-radius: var(--pos-support-radius-control);
+    background: var(--pos-support-bg);
+    color: var(--pos-support-text);
+    font-size: var(--pos-support-text-body);
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .pos-support-richselect-box::after {
+    content: "";
+    position: absolute;
+    inset-inline-end: 0.75rem;
+    inset-block-start: 50%;
+    inline-size: 0.4375rem;
+    block-size: 0.4375rem;
+    border-inline-end: 1.5px solid currentColor;
+    border-block-end: 1.5px solid currentColor;
+    transform: translateY(-70%) rotate(45deg);
+    opacity: 0.7;
+  }
+
+  .pos-support-richselect-box:hover {
+    border-color: color-mix(in oklch, var(--pos-support-text) 35%, var(--pos-support-border));
+  }
+
+  .pos-support-richselect-box:focus-visible {
+    outline: 2px solid var(--pos-color-focused, var(--pos-support-accent-ink));
+    outline-offset: 1px;
+  }
+
+  .pos-support-richselect-box.pos-support-richselect-set {
+    border-color: var(--pos-support-tint-border);
+    background: var(--pos-support-tint-1);
+  }
+
+  .pos-support-richselect-content {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-width: 0;
+  }
+
+  .pos-support-richselect-list {
+    position: absolute;
+    inset-block-start: calc(100% + 0.25rem);
+    inset-inline-start: 0;
+    z-index: 30;
+    min-inline-size: 100%;
+    max-inline-size: min(22rem, 90vw);
+    max-block-size: 20rem;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    margin: 0;
+    padding: 0.25rem;
+    list-style: none;
+    border: 1px solid var(--pos-support-border);
+    border-radius: var(--pos-support-radius-card);
+    background: var(--pos-support-bg);
+    box-shadow: var(--pos-support-shadow-lg);
+  }
+
+  .pos-support-richselect-list [role="option"] {
+    display: flex;
+    align-items: center;
+    padding: 0.375rem 0.5rem;
+    border-radius: var(--pos-support-radius-control);
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .pos-support-richselect-list .pos-support-richselect-active {
+    background: var(--pos-support-tint-2);
+  }
+
+  .pos-support-richselect-list [aria-selected="true"] {
+    font-weight: 600;
+  }
+
+  .pos-support-richselect-list [aria-selected="true"]::after {
+    content: "\2713";
+    margin-inline-start: auto;
+    padding-inline-start: 0.75rem;
+    color: var(--pos-support-accent-ink);
+  }
+
+  .pos-support-reset-filters {
+    color: var(--pos-support-text-muted);
+  }
+
   /* With JS cards move by dragging, but a drag can only reach a status that is
      a column, and Closed and Spam never are — so the form is the only way to
      them. It is revealed on hover as well as on focus, and laid over the card's

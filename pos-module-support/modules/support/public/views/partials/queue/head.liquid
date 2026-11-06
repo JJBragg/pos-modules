@@ -21,7 +21,7 @@
     assign current_department = page_data.department_counts.departments | where: 'id', filters.department_id | first
   endif
   assign filtered = false
-  if filters.q != blank or filters.priority != blank or filters.status_key != blank or filters.assignee_id != blank
+  if filters.q != blank or filters.priority != blank or filters.status_key != blank or filters.assignee_id != blank or filters.department_id != blank
     assign filtered = true
   endif
   assign sorts = "sla,priority,activity,newest,oldest" | split: ','
@@ -55,43 +55,84 @@
 
 <form class="pos-support-toolbar pos-form" method="get" action="/support-desk" role="search" data-support-autosubmit>
   <input type="hidden" name="view" value="{{ view }}">
-  {% if filters.department_id != blank %}<input type="hidden" name="department_id" value="{{ filters.department_id }}">{% endif %}
   <div class="pos-support-search">
     {% render 'modules/support/icon', name: 'search', size: null %}
     <label for="pos-support-q" class="pos-support-sr-only">{{ 'modules/support/queue.search' | t }}</label>
     <input type="search" id="pos-support-q" name="q" value="{{ filters.q }}" placeholder="{{ 'modules/support/queue.search_placeholder' | t }}" autocomplete="off" data-support-search>
   </div>
+  {%- comment -%}
+    design review E: each filter is a plain select (works without JavaScript)
+    with data-support-rich-select; the hidden block after it holds each
+    option's marker, rendered by the same partials as the board, which
+    pos-support-select.js turns into an accessible dropdown with markers
+  {%- endcomment -%}
   {% if page_data.group != 'priority' %}
-    <label for="pos-support-priority" class="pos-support-sr-only">{{ 'modules/support/queue.priority' | t }}</label>
-    <select id="pos-support-priority" name="priority">
+    <label id="pos-support-priority-label" for="pos-support-priority" class="pos-support-sr-only">{{ 'modules/support/queue.priority' | t }}</label>
+    <select id="pos-support-priority" name="priority" data-support-rich-select>
       <option value="">{{ 'modules/support/queue.any_priority' | t }}</option>
       {% for p in priorities %}<option value="{{ p }}" {% if filters.priority == p %}selected{% endif %}>{{ 'modules/support/priorities.' | append: p | t }}</option>{% endfor %}
     </select>
+    <div hidden data-support-options-for="pos-support-priority">
+      {% for p in priorities %}<span data-value="{{ p }}">{% render 'modules/support/badges/priority', priority: p %} {{ 'modules/support/priorities.' | append: p | t | split: '· ' | last }}</span>{% endfor %}
+    </div>
+  {% endif %}
+  {% assign visible_departments = page_data.department_counts.departments %}
+  {% if visible_departments.size > 1 %}
+    <label id="pos-support-department-label" for="pos-support-department" class="pos-support-sr-only">{{ 'modules/support/queue.department' | t }}</label>
+    <select id="pos-support-department" name="department_id" data-support-rich-select>
+      <option value="">{{ 'modules/support/queue.any_department' | t }}</option>
+      {% for d in visible_departments %}<option value="{{ d.id }}" {% if filters.department_id == d.id %}selected{% endif %}>{{ d.name }}</option>{% endfor %}
+    </select>
+    <div hidden data-support-options-for="pos-support-department">
+      {% for d in visible_departments %}<span data-value="{{ d.id }}">{% render 'modules/support/badges/department', department: d, variant: null %} {{ d.name }}</span>{% endfor %}
+    </div>
+  {% elsif filters.department_id != blank %}
+    <input type="hidden" name="department_id" value="{{ filters.department_id }}">
   {% endif %}
   {% if page_data.group != 'status' %}
-    <label for="pos-support-status" class="pos-support-sr-only">{{ 'modules/support/queue.status' | t }}</label>
-    <select id="pos-support-status" name="status_key">
+    <label id="pos-support-status-label" for="pos-support-status" class="pos-support-sr-only">{{ 'modules/support/queue.status' | t }}</label>
+    <select id="pos-support-status" name="status_key" data-support-rich-select>
       <option value="">{{ 'modules/support/queue.any_status' | t }}</option>
       {% for s in page_data.statuses %}<option value="{{ s.key }}" {% if filters.status_key == s.key %}selected{% endif %}>{{ s.label }}</option>{% endfor %}
     </select>
+    <div hidden data-support-options-for="pos-support-status">
+      {% for s in page_data.statuses %}<span data-value="{{ s.key }}">{% render 'modules/support/badges/status', status: s %}</span>{% endfor %}
+    </div>
   {% endif %}
   {% if view != 'mine' and view != 'unassigned' %}
-    <label for="pos-support-assignee-filter" class="pos-support-sr-only">{{ 'modules/support/queue.assignee' | t }}</label>
-    <select id="pos-support-assignee-filter" name="assignee_id">
+    {% liquid
+      # an agent sees only colleagues who can hold tickets in their own departments
+      assign assignee_options = []
+      for m in page_data.members
+        if m.profile_id == member.profile_id
+          continue
+        endif
+        assign shares_department = true
+        if member.role == 'agent' and m.role == 'agent'
+          assign shares_department = false
+          for d in m.department_ids
+            if member.department_ids contains d
+              assign shares_department = true
+            endif
+          endfor
+        endif
+        if shares_department
+          assign assignee_options << m
+        endif
+      endfor
+    %}
+    <label id="pos-support-assignee-filter-label" for="pos-support-assignee-filter" class="pos-support-sr-only">{{ 'modules/support/queue.assignee' | t }}</label>
+    <select id="pos-support-assignee-filter" name="assignee_id" data-support-rich-select>
       <option value="">{{ 'modules/support/queue.any_assignee' | t }}</option>
       <option value="{{ member.profile_id }}" {% if filters.assignee_id == member.profile_id %}selected{% endif %}>{{ 'modules/support/queue.assigned_to_me' | t }}</option>
       <option value="none" {% if filters.assignee_id == 'none' %}selected{% endif %}>{{ 'modules/support/ticket.unassigned' | t }}</option>
-      {%- comment -%} an agent sees only colleagues who can hold tickets in their own departments {%- endcomment -%}
-      {% for m in page_data.members %}
-        {% if m.profile_id == member.profile_id %}{% continue %}{% endif %}
-        {% assign shares_department = true %}
-        {% if member.role == 'agent' and m.role == 'agent' %}
-          {% assign shares_department = false %}
-          {% for d in m.department_ids %}{% if member.department_ids contains d %}{% assign shares_department = true %}{% endif %}{% endfor %}
-        {% endif %}
-        {% if shares_department %}<option value="{{ m.profile_id }}" {% if filters.assignee_id == m.profile_id %}selected{% endif %}>{{ m.name }}</option>{% endif %}
-      {% endfor %}
+      {% for m in assignee_options %}<option value="{{ m.profile_id }}" {% if filters.assignee_id == m.profile_id %}selected{% endif %}>{{ m.name }}</option>{% endfor %}
     </select>
+    <div hidden data-support-options-for="pos-support-assignee-filter">
+      <span data-value="{{ member.profile_id }}">{% render 'modules/support/avatar', name: null, email: context.current_user.email, size: 'xs', labelled: false, role: null, profile_id: member.profile_id, presence: false %} {{ 'modules/support/queue.assigned_to_me' | t }}</span>
+      <span data-value="none"><span class="pos-support-avatar pos-support-avatar-xs pos-support-avatar-empty" aria-hidden="true">{% render 'modules/support/icon', name: 'user-x', size: null %}</span> {{ 'modules/support/ticket.unassigned' | t }}</span>
+      {% for m in assignee_options %}<span data-value="{{ m.profile_id }}">{% render 'modules/support/avatar', name: m.name, email: m.email, size: 'xs', labelled: false, role: m.role, profile_id: null, presence: false %} {{ m.name }}</span>{% endfor %}
+    </div>
   {% endif %}
   <label for="pos-support-sort" class="pos-support-sr-only">{{ 'modules/support/queue.sort' | t }}</label>
   <select id="pos-support-sort" name="sort">
@@ -99,5 +140,6 @@
     {% for s in sorts %}<option value="{{ s }}" {% if filters.sort == s %}selected{% endif %}>{{ 'modules/support/queue.sorts.' | append: s | t }}</option>{% endfor %}
   </select>
   <button type="submit" class="pos-button" data-support-filter-button>{% render 'modules/support/icon', name: 'filter', size: 'sm' %}{{ 'modules/support/queue.apply' | t }}</button>
-  {% if filtered %}<a class="pos-button pos-button-ghost" href="/support-desk?view={{ view }}{% if filters.department_id != blank %}&department_id={{ filters.department_id }}{% endif %}">{{ 'modules/support/queue.clear' | t }}</a>{% endif %}
+  {%- comment -%} design review E: one button clears every filter, the department included; layout, grouping and sort stay {%- endcomment -%}
+  {% if filtered %}<a class="pos-button pos-button-ghost pos-button-icon pos-support-reset-filters" href="/support-desk?view={{ view }}" title="{{ 'modules/support/queue.reset_filters' | t }}" data-support-reset-filters>{% render 'modules/support/icon', name: 'rotate-ccw', size: null %}<span class="pos-support-sr-only">{{ 'modules/support/queue.reset_filters' | t }}</span></a>{% endif %}
 </form>
