@@ -59,7 +59,7 @@ Host hook (fired with `modules/core/commands/hook/fire`, `hook: 'support_brandin
   "support_email_name": "Harbor City Support"
 }
 ```
-Optional `rail_theme` (`auto|light|dark`) says which logo the sidebar shows: a brand-coloured rail is dark in both colour schemes. Defaults: `app_name` = the instance domain (`helpers/default_app_name`: the first label of a `*.platform-os.com` host, capitalised; otherwise the domain without `www.`); monogram icon generated from the first letter (module asset set); colours from common-styling.
+The sidebar logo follows the rail's actual background: with both logos, `pos-support-ui.js` measures it and picks the light- or dark-background logo (a brand-coloured rail is dark in both colour schemes). Optional `rail_theme` (`auto|light|dark`) pins the choice. Defaults: `app_name` = the instance domain (`helpers/default_app_name`: the first label of a `*.platform-os.com` host, capitalised; otherwise the domain without `www.`); monogram icon generated from the first letter (module asset set); colours from common-styling.
 
 The same `brand` feeds (WL-6): page titles and favicon, the rail logo, customer email templates (sender name, logo, link colour inline), agent alert emails, the PWA manifest, push `icon`, and the chat widget (I3).
 

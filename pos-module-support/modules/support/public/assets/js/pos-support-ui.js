@@ -100,6 +100,39 @@
     if (box && event.target.value.trim() !== '') box.checked = false;
   });
 
+  // the brand logo follows the background it actually sits on: a brand-coloured
+  // (dark) rail gets the dark-background logo in either colour scheme. A canvas
+  // parses any CSS colour the browser supports (hex, rgb, color-mix, oklch…).
+  const probe = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+  const backgroundOf = (element) => {
+    for (let el = element; el && probe; el = el.parentElement) {
+      probe.clearRect(0, 0, 1, 1);
+      probe.fillStyle = getComputedStyle(el).backgroundColor;
+      probe.fillRect(0, 0, 1, 1);
+      const [r, g, b, a] = probe.getImageData(0, 0, 1, 1).data;
+      if (a > 127) return [r, g, b];
+    }
+    return null;
+  };
+  const isDark = ([r, g, b]) => {
+    const lin = (v) => { const c = v / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+    // below this luminance white text has more contrast than black
+    return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b) < 0.179;
+  };
+  const pickLogos = () => {
+    document.querySelectorAll('img[data-support-logo-dark]').forEach((img) => {
+      const rgb = backgroundOf(img.parentElement);
+      if (!rgb) return;
+      const picture = img.closest('picture');
+      if (picture) picture.querySelectorAll('source').forEach((source) => source.remove());
+      const src = isDark(rgb) ? img.dataset.supportLogoDark : img.dataset.supportLogoLight;
+      if (img.getAttribute('src') !== src) img.setAttribute('src', src);
+      img.dataset.supportLogoPicked = isDark(rgb) ? 'dark' : 'light';
+    });
+  };
+  pickLogos();
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', pickLogos);
+
   const toggle = document.querySelector('[data-support-nav-toggle]');
   if (!toggle) return;
   const rail = document.getElementById('pos-support-rail');

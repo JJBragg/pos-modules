@@ -1,13 +1,15 @@
 {% doc %}
-  Logo (or monogram) and app name. The logo follows the rail, not the
-  device: brand.rail_theme dark or light pins the dark-background or
-  light-background logo (a brand-coloured rail is dark in both colour
-  schemes); auto follows brand.theme_mode, and the device setting when
-  that is auto too.
+  Logo (or monogram) and app name. The logo follows the background it sits
+  on, not the device: with both logos and rail_theme auto, pos-support-ui.js
+  measures the rail's background and picks the light- or dark-background
+  logo (a brand-coloured rail is dark in both colour schemes). The server's
+  pick, used before the script runs and without it, follows theme_mode and
+  then the device. rail_theme dark or light pins the choice.
   @param {object} brand - From helpers/branding
 {% enddoc %}
 {% liquid
   assign logo_mode = 'light'
+  assign auto_pick = false
   if brand.logo_dark_url != blank
     case brand.rail_theme
       when 'dark'
@@ -15,6 +17,7 @@
       when 'light'
         assign logo_mode = 'light'
       else
+        assign auto_pick = true
         case brand.theme_mode
           when 'dark'
             assign logo_mode = 'dark'
@@ -29,14 +32,14 @@
 {% if brand.logo_url %}
   {% case logo_mode %}
     {% when 'dark' %}
-      <img class="pos-support-brand-logo" src="{{ brand.logo_dark_url }}" alt="" width="128" height="32">
+      <img class="pos-support-brand-logo" src="{{ brand.logo_dark_url }}" alt="" width="128" height="32"{% if auto_pick %} data-support-logo-light="{{ brand.logo_url }}" data-support-logo-dark="{{ brand.logo_dark_url }}"{% endif %}>
     {% when 'device' %}
       <picture>
         <source srcset="{{ brand.logo_dark_url }}" media="(prefers-color-scheme: dark)">
-        <img class="pos-support-brand-logo" src="{{ brand.logo_url }}" alt="" width="128" height="32">
+        <img class="pos-support-brand-logo" src="{{ brand.logo_url }}" alt="" width="128" height="32" data-support-logo-light="{{ brand.logo_url }}" data-support-logo-dark="{{ brand.logo_dark_url }}">
       </picture>
     {% else %}
-      <img class="pos-support-brand-logo" src="{{ brand.logo_url }}" alt="" width="128" height="32">
+      <img class="pos-support-brand-logo" src="{{ brand.logo_url }}" alt="" width="128" height="32"{% if auto_pick %} data-support-logo-light="{{ brand.logo_url }}" data-support-logo-dark="{{ brand.logo_dark_url }}"{% endif %}>
   {% endcase %}
   <span class="pos-support-brand-name pos-support-sr-only">{{ brand.app_name }}</span>
 {% else %}

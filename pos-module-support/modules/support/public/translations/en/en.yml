@@ -741,7 +741,7 @@ en:
     background_color: Background colour (#rrggbb, app splash screen)
     favicon_url: Favicon URL (https)
     rail_theme: Logo on the sidebar
-    rail_theme_auto: Match the appearance
+    rail_theme_auto: Automatic (from the sidebar colour)
     rail_theme_light: Light sidebar (logo for light backgrounds)
     rail_theme_dark: Dark sidebar (logo for dark backgrounds)
     mixed_logos: You have overridden only one of the two logos, so the other one still comes from the host app. Set both to use one brand everywhere.

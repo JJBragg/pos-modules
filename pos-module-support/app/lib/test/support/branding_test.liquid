@@ -33,7 +33,13 @@
     render 'modules/support/brand', brand: b
   endcapture
   assign follows_device = out | matches: 'prefers-color-scheme: dark'
-  function contract = 'modules/tests/assertions/equal', contract: contract, given: follows_device, expected: true, field_name: 'auto rail follows the device'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: follows_device, expected: true, field_name: 'auto rail follows the device without the script'
+  assign b.theme_mode = 'light'
+  capture out
+    render 'modules/support/brand', brand: b
+  endcapture
+  assign script_picks = out | matches: 'data-support-logo-dark="https://x.test/dark.svg"'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: script_picks, expected: true, field_name: 'auto rail lets the script pick from the rail colour'
 
   # Appearance: host removes the override, the others set it (#129)
   assign p = { "only": "theme_mode", "theme_mode": "light" }

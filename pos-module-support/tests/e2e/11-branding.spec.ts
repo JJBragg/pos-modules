@@ -52,6 +52,39 @@ test('BR-1 a dark sidebar shows the dark logo in light mode; host icon replaces 
   expect(manifest.icons.map((i: any) => i.sizes)).toEqual(['192x192', '512x512']);
 });
 
+test('BR-3 with both logos and no rail_theme, the logo follows the sidebar colour automatically', async ({ browser }) => {
+  const { context, page } = await contextFor(browser, users.superadmin);
+  await page.emulateMedia({ colorScheme: 'light' });
+  const form = page.locator('form:has(#br-use-host)');
+  const logo = page.locator('.pos-support-rail .pos-support-brand-logo').first();
+  try {
+    await page.goto(desk('/support-desk/settings/branding'));
+    await page.fill('#br-logo', LIGHT);
+    await page.fill('#br-logo-dark', DARK);
+    await page.selectOption('#br-rail-theme', '');
+    await form.locator('button[type=submit]').click();
+    await expect(page.locator('#br-rail-theme')).toHaveValue('');
+
+    await page.goto(desk('/support-desk'));
+    await expect(logo).toHaveAttribute('data-support-logo-picked', 'light');
+    await expect(logo).toHaveAttribute('src', LIGHT);
+
+    // a host stylesheet paints the sidebar in a dark brand colour
+    await page.addStyleTag({ content: '.pos-support .pos-support-rail { background: #0e5c4a !important; }' });
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await page.emulateMedia({ colorScheme: 'light' });
+    await expect(logo).toHaveAttribute('data-support-logo-picked', 'dark');
+    await expect(logo).toHaveAttribute('src', DARK);
+  } finally {
+    await page.goto(desk('/support-desk/settings/branding'));
+    for (const id of ['#br-logo', '#br-logo-dark']) await page.fill(id, '');
+    await page.locator('#br-use-host').check();
+    await form.locator('button[type=submit]').click();
+    await expect(page.locator('#br-use-host')).toBeChecked();
+    await context.close();
+  }
+});
+
 test('BR-2 Appearance set here is reported as an override and can follow the host again', async ({ browser }) => {
   const { context, page } = await contextFor(browser, users.superadmin);
   try {

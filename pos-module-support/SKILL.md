@@ -16,7 +16,7 @@ description: Add a white-label support desk (email ticketing through a per-insta
 
 ## Make it look like the app
 - Colours, fonts and dark mode: the app's stylesheet returned by `app/lib/hooks/hook_headscripts.liquid` (common-styling `--pos-*` tokens win over the module CSS).
-- Name, logos, icon, theme colour, sender name: `app/lib/hooks/hook_support_branding.liquid` returns `{app_name, short_name, logo_url, logo_dark_url, icon_url, favicon_url, theme_color, background_color, theme_mode, rail_theme, support_email_name}` (all optional; `rail_theme: "dark"` for a brand-coloured sidebar; no `app_name` → the instance domain); admins can override them in Settings → Branding.
+- Name, logos, icon, theme colour, sender name: `app/lib/hooks/hook_support_branding.liquid` returns `{app_name, short_name, logo_url, logo_dark_url, icon_url, favicon_url, theme_color, background_color, theme_mode, rail_theme, support_email_name}` (all optional; the sidebar logo is picked automatically from the sidebar colour, `rail_theme` pins it; no `app_name` → the instance domain); admins can override them in Settings → Branding.
 - Rail colours: `--pos-support-rail-*` and `--pos-support-monogram-*`. Status/priority/SLA colours are semantic `--pos-support-status-*`, `--pos-support-priority-*`, `--pos-support-sla-*` tokens with checked contrast.
 
 ## Extend
