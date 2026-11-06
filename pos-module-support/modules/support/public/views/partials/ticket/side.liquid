@@ -31,17 +31,24 @@
         </div>
       </fieldset>
       <fieldset>
-        <label for="pos-support-side-assignee">{{ 'modules/support/queue.assignee' | t }}</label>
-        <select id="pos-support-side-assignee" name="assignee_id">
+        <label id="pos-support-side-assignee-label" for="pos-support-side-assignee">{{ 'modules/support/queue.assignee' | t }}</label>
+        <select id="pos-support-side-assignee" name="assignee_id" data-support-rich-select="block">
           <option value="">{{ 'modules/support/ticket.unassigned' | t }}</option>
           {% for m in data.members %}<option value="{{ m.profile_id }}" {% if m.profile_id == ticket.assignee_id %}selected{% endif %}>{{ m.name }}{% if m.outside %} ({{ 'modules/support/ticket.assignee_outside' | t }}){% endif %}</option>{% endfor %}
         </select>
+        {%- comment -%} handoff 3.24: the same dropdown as the filter row, a person looks the same everywhere {%- endcomment -%}
+        <div hidden data-support-options-for="pos-support-side-assignee">
+          {% for m in data.members %}<span data-value="{{ m.profile_id }}">{% render 'modules/support/avatar', name: m.name, email: m.email, size: 'xs', labelled: false, role: m.role, profile_id: null, presence: false %}<span class="pos-support-richselect-text">{{ m.name }}{% if m.outside %} ({{ 'modules/support/ticket.assignee_outside' | t }}){% endif %}</span></span>{% endfor %}
+        </div>
       </fieldset>
       <fieldset>
-        <label for="pos-support-side-department">{{ 'modules/support/queue.department' | t }}</label>
-        <select id="pos-support-side-department" name="department_id">
+        <label id="pos-support-side-department-label" for="pos-support-side-department">{{ 'modules/support/queue.department' | t }}</label>
+        <select id="pos-support-side-department" name="department_id" data-support-rich-select="block">
           {% for d in data.departments %}{% if d.active or d.id == ticket.department_id %}<option value="{{ d.id }}" {% if d.id == ticket.department_id %}selected{% endif %}>{{ d.name }}</option>{% endif %}{% endfor %}
         </select>
+        <div hidden data-support-options-for="pos-support-side-department">
+          {% for d in data.departments %}{% if d.active or d.id == ticket.department_id %}<span data-value="{{ d.id }}">{% render 'modules/support/badges/department', department: d, variant: null %}<span class="pos-support-richselect-text">{{ d.name }}</span></span>{% endif %}{% endfor %}
+        </div>
       </fieldset>
       <fieldset>
         <label for="pos-support-side-tags">{{ 'modules/support/ticket.tags_short' | t }}</label>

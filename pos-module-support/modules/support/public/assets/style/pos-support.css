@@ -3201,71 +3201,54 @@
     --pos-support-control-height-small: 1.875rem;
   }
 
-  /* filter dropdowns with markers (design review E, pos-support-select.js) */
+  /* 3.24 dropdowns with markers (pos-support-select.js) */
   .pos-support-richselect {
     position: relative;
     display: inline-flex;
   }
 
-  .pos-support-richselect-box {
-    position: relative;
+  .pos-support .pos-support-richselect-box {
     display: inline-flex;
     align-items: center;
-    gap: 0.375rem;
-    min-block-size: var(--pos-support-control-height);
-    min-inline-size: 9rem;
-    padding: 0 2rem 0 0.75rem;
-    border: 1px solid var(--pos-support-border);
+    gap: 0.5rem;
+    block-size: var(--pos-support-control-height);
+    padding: 0;
+    padding-inline: 0.625rem 0.5rem;
+    border: 1px solid var(--pos-color-input-frame, var(--pos-support-border));
     border-radius: var(--pos-support-radius-control);
     background: var(--pos-support-bg);
     color: var(--pos-support-text);
+    font: inherit;
     font-size: var(--pos-support-text-body);
     white-space: nowrap;
     cursor: pointer;
   }
 
-  .pos-support-richselect-box::after {
-    content: "";
-    position: absolute;
-    inset-inline-end: 0.75rem;
-    inset-block-start: 50%;
-    inline-size: 0.4375rem;
-    block-size: 0.4375rem;
-    border-inline-end: 1.5px solid currentColor;
-    border-block-end: 1.5px solid currentColor;
-    transform: translateY(-70%) rotate(45deg);
-    opacity: 0.7;
-  }
-
-  .pos-support-richselect-box:hover {
-    border-color: color-mix(in oklch, var(--pos-support-text) 35%, var(--pos-support-border));
-  }
-
-  .pos-support-richselect-box:focus-visible {
-    outline: 2px solid var(--pos-color-focused, var(--pos-support-accent-ink));
+  .pos-support .pos-support-richselect-box:focus-visible {
+    outline: 2px solid var(--pos-color-focused);
     outline-offset: 1px;
   }
 
-  .pos-support-richselect-box.pos-support-richselect-set {
-    border-color: var(--pos-support-tint-border);
-    background: var(--pos-support-tint-1);
+  .pos-support-richselect-chevron {
+    flex: none;
+    color: var(--pos-support-text-muted);
   }
 
-  .pos-support-richselect-content {
+  .pos-support-richselect-value {
     display: inline-flex;
     align-items: center;
-    gap: 0.375rem;
-    min-width: 0;
+    gap: 0.4375rem;
+    min-inline-size: 0;
+    white-space: nowrap;
   }
 
   .pos-support-richselect-list {
     position: absolute;
     inset-block-start: calc(100% + 0.25rem);
     inset-inline-start: 0;
-    z-index: 30;
+    z-index: 20;
     min-inline-size: 100%;
-    max-inline-size: min(22rem, 90vw);
-    max-block-size: 20rem;
+    max-block-size: 18rem;
     overflow-y: auto;
     scrollbar-width: thin;
     margin: 0;
@@ -3277,32 +3260,104 @@
     box-shadow: var(--pos-support-shadow-lg);
   }
 
+  .pos-support-richselect-list[hidden] {
+    display: none;
+  }
+
   .pos-support-richselect-list [role="option"] {
     display: flex;
     align-items: center;
+    gap: 0.5rem;
     padding: 0.375rem 0.5rem;
     border-radius: var(--pos-support-radius-control);
+    font-size: var(--pos-support-text-body);
     white-space: nowrap;
     cursor: pointer;
   }
 
-  .pos-support-richselect-list .pos-support-richselect-active {
-    background: var(--pos-support-tint-2);
+  .pos-support-richselect-list [role="option"]:is(:hover, .pos-support-richselect-active) {
+    background: var(--pos-support-row-hover);
+    outline: none;
   }
 
-  .pos-support-richselect-list [aria-selected="true"] {
+  .pos-support-richselect-list [role="option"][aria-selected="true"] {
+    background: var(--pos-support-row-checked);
     font-weight: 600;
   }
 
-  .pos-support-richselect-list [aria-selected="true"]::after {
-    content: "\2713";
-    margin-inline-start: auto;
-    padding-inline-start: 0.75rem;
-    color: var(--pos-support-accent-ink);
+  /* the ticket side panel: full width; a long value ends in an ellipsis */
+  .pos-support-richselect-block,
+  .pos-support .pos-support-richselect-block .pos-support-richselect-box {
+    inline-size: 100%;
   }
 
-  .pos-support-reset-filters {
-    color: var(--pos-support-text-muted);
+  .pos-support .pos-support-richselect-block .pos-support-richselect-box {
+    justify-content: space-between;
+  }
+
+  .pos-support-richselect-block .pos-support-richselect-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .pos-support-richselect-block .pos-support-richselect-list {
+    inline-size: max-content;
+    max-inline-size: 20rem;
+  }
+
+  /* 3.32 Reset all filters: a primary icon-only button, square */
+  .pos-support .pos-support-reset-filters {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    block-size: var(--pos-support-control-height);
+    inline-size: var(--pos-support-control-height);
+    padding: 0;
+  }
+
+  .pos-support .pos-support-reset-filters .pos-support-icon {
+    inline-size: 1.125rem;
+    block-size: 1.125rem;
+    stroke-width: 2;
+  }
+
+  /* one tooltip for icon-only buttons: [data-tooltip], on hover and keyboard
+     focus, below and right-aligned; Escape hides it until the pointer or
+     focus leaves (pos-support-ui.js, WCAG 1.4.13) */
+  .pos-support [data-tooltip] {
+    position: relative;
+  }
+
+  .pos-support [data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    inset-block-start: calc(100% + 0.375rem);
+    inset-inline-end: 0;
+    z-index: 30;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--pos-support-radius-control);
+    background: var(--pos-support-tooltip-bg);
+    color: var(--pos-support-tooltip-fg);
+    font-size: var(--pos-support-text-small);
+    font-weight: 500;
+    line-height: 1.4;
+    white-space: nowrap;
+    box-shadow: var(--pos-support-shadow-sm);
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 120ms var(--pos-support-ease) 300ms, visibility 0s linear 300ms;
+  }
+
+  .pos-support [data-tooltip]:is(:hover, :focus-visible):not(.pos-support-tip-off)::after {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pos-support [data-tooltip]::after {
+      transition: none;
+    }
   }
 
   /* With JS cards move by dragging, but a drag can only reach a status that is

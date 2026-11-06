@@ -1,25 +1,43 @@
-// Filter dropdowns with markers (design review E): each <select data-support-rich-select>
-// becomes a select-only combobox (WAI-ARIA APG pattern). Focus stays on the
-// combobox; the open listbox's active option is announced through
-// aria-activedescendant. The markers (priority chips, department tags,
-// avatars, status chips) are rendered by the server in the hidden
-// [data-support-options-for] block next to the select, so no colours or
-// labels live here. The select stays in the form: picking an option sets its
-// value and fires "change", so the queue's auto-submit works as before.
-// Without JavaScript the plain select is used.
+// Dropdowns with markers (design handoff 3.24): each <select data-support-rich-select>
+// becomes a select-only combobox (WAI-ARIA APG pattern) on a <button>, so the
+// field's <label for> opens it and names it. Focus stays on the button; the open
+// listbox's active option is announced through aria-activedescendant. The
+// markers (priority chips, department tags, avatars, status chips) are rendered
+// by the server in the hidden [data-support-options-for] block next to the
+// select, so no colours or labels live here. The select stays in the form:
+// picking an option sets its value and fires "change", so the queue's
+// auto-submit and the ticket panel work as before. data-support-rich-select="block"
+// makes it full width (ticket side panel). Without JavaScript the plain select is used.
 (function () {
   let uid = 0;
+  const SVG = 'http://www.w3.org/2000/svg';
+
+  const chevron = () => {
+    const svg = document.createElementNS(SVG, 'svg');
+    svg.setAttribute('class', 'pos-support-icon pos-support-richselect-chevron');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('focusable', 'false');
+    const use = document.createElementNS(SVG, 'use');
+    use.setAttribute('href', '#psi-chevron-down');
+    svg.append(use);
+    return svg;
+  };
 
   const enhance = (select) => {
     const markers = document.querySelector(`[data-support-options-for="${select.id}"]`);
-    const label = document.getElementById(`${select.id}-label`);
+    const label = document.querySelector(`label[for="${select.id}"]`);
     const markerFor = (value) => (markers ? markers.querySelector(`[data-value="${CSS.escape(value)}"]`) : null);
     const contentOf = (option) => {
       const marker = option.value === '' ? null : markerFor(option.value);
       const span = document.createElement('span');
-      span.className = 'pos-support-richselect-content';
+      span.className = 'pos-support-richselect-value';
       if (marker) span.innerHTML = marker.innerHTML;
-      else span.textContent = option.text;
+      else {
+        const text = document.createElement('span');
+        text.className = 'pos-support-richselect-text';
+        text.textContent = option.text;
+        span.append(text);
+      }
       return span;
     };
 
@@ -27,22 +45,27 @@
     const id = `pos-support-richselect-${uid}`;
     const wrap = document.createElement('div');
     wrap.className = 'pos-support-richselect';
-    const box = document.createElement('div');
+    if (select.dataset.supportRichSelect === 'block') wrap.classList.add('pos-support-richselect-block');
+    const box = document.createElement('button');
+    box.type = 'button';
     box.className = 'pos-support-richselect-box';
-    box.id = `${id}-box`;
-    box.tabIndex = 0;
+    box.id = `${select.id}-combobox`;
     box.setAttribute('role', 'combobox');
     box.setAttribute('aria-haspopup', 'listbox');
     box.setAttribute('aria-expanded', 'false');
     box.setAttribute('aria-controls', `${id}-list`);
-    if (label) box.setAttribute('aria-labelledby', `${label.id} ${box.id}`);
     const list = document.createElement('ul');
     list.className = 'pos-support-richselect-list';
     list.id = `${id}-list`;
     list.setAttribute('role', 'listbox');
     list.tabIndex = -1;
-    if (label) list.setAttribute('aria-labelledby', label.id);
     list.hidden = true;
+    if (label) {
+      if (!label.id) label.id = `${select.id}-label`;
+      label.htmlFor = box.id;
+      box.setAttribute('aria-labelledby', label.id);
+      list.setAttribute('aria-labelledby', label.id);
+    }
 
     const options = Array.from(select.options).map((option, index) => {
       const li = document.createElement('li');
@@ -56,8 +79,7 @@
 
     let active = Math.max(0, select.selectedIndex);
     const render = () => {
-      box.replaceChildren(contentOf(select.options[select.selectedIndex] || select.options[0]));
-      box.classList.toggle('pos-support-richselect-set', select.value !== '');
+      box.replaceChildren(contentOf(select.options[select.selectedIndex] || select.options[0]), chevron());
       options.forEach((li, i) => li.setAttribute('aria-selected', i === select.selectedIndex ? 'true' : 'false'));
     };
     const setActive = (index) => {
@@ -139,6 +161,8 @@
       const li = event.target.closest('[role="option"]');
       if (li) setActive(options.indexOf(li));
     });
+    // a click outside closes the list
+    document.addEventListener('pointerdown', (event) => { if (isOpen() && !wrap.contains(event.target)) close(); });
     box.addEventListener('blur', () => { if (isOpen()) close(); });
 
     select.hidden = true;

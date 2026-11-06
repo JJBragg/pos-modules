@@ -245,6 +245,31 @@
     });
   });
 
+  // tooltips ([data-tooltip], handoff 3.32): Escape hides the open one until the
+  // pointer or focus leaves it, without moving either (WCAG 1.4.13)
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    document.querySelectorAll('[data-tooltip]:hover, [data-tooltip]:focus-visible').forEach((el) => el.classList.add('pos-support-tip-off'));
+  });
+  const tipOn = (event) => {
+    const el = event.target.closest && event.target.closest('[data-tooltip].pos-support-tip-off');
+    if (el && !el.contains(event.relatedTarget)) el.classList.remove('pos-support-tip-off');
+  };
+  document.addEventListener('mouseout', tipOn);
+  document.addEventListener('focusout', tipOn);
+
+  // Reset all filters disappears after the reload, so focus goes to the search field
+  const focusKey = 'pos-support-focus-search';
+  const reset = document.querySelector('[data-support-reset-filters]');
+  if (reset) reset.addEventListener('click', () => { try { sessionStorage.setItem(focusKey, '1'); } catch (e) { /* private mode */ } });
+  try {
+    if (sessionStorage.getItem(focusKey)) {
+      sessionStorage.removeItem(focusKey);
+      const search = document.querySelector('[data-support-search]');
+      if (search) search.focus();
+    }
+  } catch (e) { /* storage unavailable: focus stays where the browser puts it */ }
+
   // desktop sidebar collapse (design review F): toggled at once, remembered
   // through a background post; without JavaScript the form posts and reloads
   const railForm = document.querySelector('[data-support-rail-toggle]');

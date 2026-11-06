@@ -80,7 +80,7 @@
       # after the page and the shell, so only the icons they drew are sent; live
       # rows and board cards can add the status and SLA icons
       function status_icons = 'modules/support/helpers/status_icons'
-      assign icon_names = "timer,triangle-alert" | split: ',' | concat: status_icons.allowed
+      assign icon_names = "timer,triangle-alert,chevron-down" | split: ',' | concat: status_icons.allowed
       assign drawn = context.exports.support_icons.icons | default: []
       assign icon_names = icon_names | concat: drawn | uniq
       render 'modules/support/icons/sprite', names: icon_names

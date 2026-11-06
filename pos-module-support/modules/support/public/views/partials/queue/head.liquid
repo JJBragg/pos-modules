@@ -141,5 +141,5 @@
   </select>
   <button type="submit" class="pos-button" data-support-filter-button>{% render 'modules/support/icon', name: 'filter', size: 'sm' %}{{ 'modules/support/queue.apply' | t }}</button>
   {%- comment -%} design review E: one button clears every filter, the department included; layout, grouping and sort stay {%- endcomment -%}
-  {% if filtered %}<a class="pos-button pos-button-ghost pos-button-icon pos-support-reset-filters" href="/support-desk?view={{ view }}" title="{{ 'modules/support/queue.reset_filters' | t }}" data-support-reset-filters>{% render 'modules/support/icon', name: 'rotate-ccw', size: null %}<span class="pos-support-sr-only">{{ 'modules/support/queue.reset_filters' | t }}</span></a>{% endif %}
+  {% if filtered %}<a class="pos-button pos-button-primary pos-button-icon pos-support-reset-filters" href="/support-desk?view={{ view }}" aria-label="{{ 'modules/support/queue.reset_filters' | t }}" data-tooltip="{{ 'modules/support/queue.reset_filters' | t }}" data-support-reset-filters>{% render 'modules/support/icon', name: 'refresh-ccw', size: null %}</a>{% endif %}
 </form>
