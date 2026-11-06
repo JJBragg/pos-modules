@@ -1050,6 +1050,100 @@
     display: none;
   }
 
+  /* sidebar header: brand, then the collapse button (design review F) */
+  .pos-support-rail-top {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-block-end: 0.5rem;
+  }
+
+  .pos-support-rail-top .pos-support-brand {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin-block-end: 0;
+  }
+
+  .pos-support-rail-collapse {
+    flex: none;
+  }
+
+  .pos-support-rail-collapse .pos-button {
+    color: var(--pos-support-rail-muted);
+  }
+
+  .pos-support-rail-collapse .pos-support-icon {
+    transition: transform 160ms var(--pos-support-ease);
+  }
+
+  /* collapsed: an icon strip; labels and counts stay for screen readers and
+     show as the links' tooltips (title) */
+  @media (min-width: 48.0625rem) {
+    .pos-support-rail-collapsed {
+      --pos-support-rail-width: 3.75rem;
+    }
+
+    .pos-support-rail-collapsed .pos-support-rail {
+      padding-inline: 0.5rem;
+      overflow-x: hidden;
+    }
+
+    .pos-support-rail-collapsed .pos-support-rail-top {
+      flex-direction: column;
+      gap: 0.375rem;
+    }
+
+    .pos-support-rail-collapsed .pos-support-brand {
+      justify-content: center;
+      padding-inline: 0;
+    }
+
+    .pos-support-rail-collapsed .pos-support-brand :is(.pos-support-brand-logo, picture) {
+      display: none;
+    }
+
+    .pos-support-rail-collapsed .pos-support-brand-mark {
+      display: inline-flex;
+    }
+
+    .pos-support-rail-collapsed .pos-support-brand-name,
+    .pos-support-rail-collapsed .pos-support-rail-text,
+    .pos-support-rail-collapsed .pos-support-rail-items .pos-support-count,
+    .pos-support-rail-collapsed .pos-support-rail-user-name {
+      position: absolute;
+      inline-size: 1px;
+      block-size: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+    }
+
+    .pos-support-rail-collapsed .pos-support-rail-collapse .pos-support-icon {
+      transform: rotate(180deg);
+    }
+
+    .pos-support-rail-collapsed .pos-support-rail-label {
+      block-size: 0;
+      margin-block: 0.5rem;
+      padding: 0;
+      overflow: hidden;
+      border-block-start: 1px solid var(--pos-support-rail-frame);
+      color: transparent;
+    }
+
+    .pos-support-rail-collapsed .pos-support-rail-items a,
+    .pos-support-rail-collapsed .pos-support-rail-user {
+      justify-content: center;
+      padding-inline: 0;
+    }
+
+    .pos-support-rail-collapsed .pos-support-rail-foot {
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+    }
+  }
+
   .pos-support-rail {
     position: sticky;
     inset-block-start: 0;
@@ -1090,6 +1184,16 @@
   .pos-support-brand-logo {
     max-height: 1.75rem;
     max-width: 8rem;
+  }
+
+  .pos-support-brand-mark {
+    display: none;
+  }
+
+  .pos-support-brand-mark img {
+    inline-size: 1.75rem;
+    block-size: 1.75rem;
+    border-radius: 0.4375rem;
   }
 
   .pos-support-brand-logo + .pos-support-brand-name {
@@ -3242,6 +3346,11 @@
   @media (max-width: 48rem) {
     .pos-support-shell {
       grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* phones use the slide-out drawer, not the desktop collapse */
+    .pos-support-rail-collapse {
+      display: none;
     }
 
     .pos-support-topbar {

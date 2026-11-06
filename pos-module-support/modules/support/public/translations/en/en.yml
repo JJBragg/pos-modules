@@ -8,6 +8,8 @@ en:
     sign_out: Sign out
     skip: Skip to content
     menu: Menu
+    collapse: Collapse sidebar
+    expand: Expand sidebar
     views: Views
     departments: Departments
     all_departments: All departments

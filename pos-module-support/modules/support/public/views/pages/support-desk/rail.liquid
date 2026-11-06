@@ -1,0 +1,39 @@
+---
+slug: support-desk/rail
+method: post
+layout: ''
+metadata:
+  permission: support.tickets.read
+---
+{% liquid
+  # design review F: remembers whether this person's desktop sidebar is
+  # collapsed. The shell button posts here; with JavaScript as a fetch
+  # (respond=json, answered 204), without it as a form that redirects back.
+  # platformos-check-disable ConvertIncludeToRender, UnreachableCode
+  include 'modules/support/helpers/require_member', permission: context.page.metadata.permission, ticket: null
+  # platformos-check-enable ConvertIncludeToRender, UnreachableCode
+
+  unless context.csrf_request_valid
+    response_status 422
+    render 'modules/support/forbidden'
+    break
+  endunless
+
+  assign state = 'expanded'
+  if context.params.rail == 'collapsed'
+    assign state = 'collapsed'
+  endif
+  function _ = 'modules/core/commands/session/set', key: 'support_rail', value: state
+
+  if context.params.respond == 'json'
+    response_status 204
+    break
+  endif
+  # back to the desk page the button was on; never off the desk
+  assign target = context.params.redirect_to | default: '/support-desk'
+  assign on_desk = target | matches: '\A/support-desk(/|\?|\z)'
+  unless on_desk
+    assign target = '/support-desk'
+  endunless
+  redirect_to target
+%}

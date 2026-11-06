@@ -42,6 +42,8 @@
       <img class="pos-support-brand-logo" src="{{ brand.logo_url }}" alt="" width="128" height="32"{% if auto_pick %} data-support-logo-light="{{ brand.logo_url }}" data-support-logo-dark="{{ brand.logo_dark_url }}"{% endif %}>
   {% endcase %}
   <span class="pos-support-brand-name pos-support-sr-only">{{ brand.app_name }}</span>
+  {%- comment -%} the square mark replaces a wide logo in the collapsed sidebar (design review F) {%- endcomment -%}
+  <span class="pos-support-brand-mark" aria-hidden="true">{% if brand.icon_url != blank %}<img src="{{ brand.icon_url }}" alt="" width="28" height="28">{% else %}<span class="pos-support-brand-monogram">{{ brand.initial }}</span>{% endif %}</span>
 {% else %}
   <span class="pos-support-brand-monogram" aria-hidden="true">{{ brand.initial }}</span>
   <span class="pos-support-brand-name">{{ brand.app_name }}</span>

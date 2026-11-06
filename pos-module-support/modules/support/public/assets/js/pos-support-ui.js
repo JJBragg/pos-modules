@@ -232,6 +232,28 @@
     });
   });
 
+  // desktop sidebar collapse (design review F): toggled at once, remembered
+  // through a background post; without JavaScript the form posts and reloads
+  const railForm = document.querySelector('[data-support-rail-toggle]');
+  const shell = document.querySelector('[data-support-shell]');
+  if (railForm && shell && window.fetch) {
+    railForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const collapse = !shell.classList.contains('pos-support-rail-collapsed');
+      shell.classList.toggle('pos-support-rail-collapsed', collapse);
+      const button = railForm.querySelector('button');
+      const label = collapse ? railForm.dataset.labelExpand : railForm.dataset.labelCollapse;
+      button.setAttribute('aria-expanded', collapse ? 'false' : 'true');
+      button.title = label;
+      button.querySelector('.pos-support-sr-only').textContent = label;
+      const body = new FormData(railForm);
+      body.set('rail', collapse ? 'collapsed' : 'expanded');
+      body.set('respond', 'json');
+      railForm.querySelector('[name="rail"]').value = collapse ? 'expanded' : 'collapsed';
+      fetch(railForm.action, { method: 'POST', body, credentials: 'same-origin' }).catch(() => {});
+    });
+  }
+
   const toggle = document.querySelector('[data-support-nav-toggle]');
   if (!toggle) return;
   const rail = document.getElementById('pos-support-rail');
