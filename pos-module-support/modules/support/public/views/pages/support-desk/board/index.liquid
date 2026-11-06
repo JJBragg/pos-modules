@@ -21,6 +21,13 @@ metadata:
   assign nav.filters = page_data.filters
   export nav, namespace: 'support_nav'
   assign title = 'modules/support/board.title' | t
+  # handoff 1.5: a department-filtered view names the department in the browser title
+  if page_data.filters.department_id != blank
+    assign filtered_department = page_data.department_counts.departments | where: 'id', page_data.filters.department_id | first
+    if filtered_department
+      assign title = title | append: ' · ' | append: filtered_department.name | append: ' (' | append: page_data.groups.total | append: ')'
+    endif
+  endif
   export title, namespace: 'support_page'
 
   render 'modules/support/board/index', page_data: page_data, member: member

@@ -1,18 +1,18 @@
 {% doc %}
-  The colour key of a department's marker (design review B): the default
-  (catch-all) department is always neutral; any other uses its stored
-  palette key, or neutral until it has one. The palette is
-  helpers/department_palette; the colours are --pos-support-dept-<key>-*
-  tokens in pos-support.css.
+  The colour of a department's marker (design handoff 1.1-1.3): "default"
+  (the neutral grey) for the catch-all department, bound to is_default
+  whatever its name (D12e); otherwise its stored palette number "1".."10",
+  or "default" until it has one. Used as data-dept-color on the marker.
   @param {object} department - A department record (is_default, color)
 {% enddoc %}
 {% liquid
   if department.is_default
-    return 'neutral'
+    return 'default'
   endif
   function palette = 'modules/support/helpers/department_palette'
-  if palette contains department.color
-    return department.color
+  assign color = department.color | append: ''
+  if palette contains color
+    return color
   endif
-  return 'neutral'
+  return 'default'
 %}

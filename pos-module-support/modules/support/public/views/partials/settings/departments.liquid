@@ -47,7 +47,7 @@
         <fieldset class="pos-support-swatches">
           <legend>{{ 'modules/support/settings.department_color' | t }}</legend>
           {% for key in data.department_palette %}
-            <label class="pos-support-swatch"><input type="radio" name="color" value="{{ key }}" {% if edit.color == key or edit == blank and data.next_department_color == key %}checked{% endif %}><span class="pos-support-dept pos-support-dept-initial pos-support-dept-{{ key }}" aria-hidden="true">{{ edit.short_code | default: edit.name | default: 'A' | slice: 0 | upcase }}</span><span>{{ 'modules/support/settings.colors.' | append: key | t }}</span></label>
+            <label class="pos-support-swatch"><input type="radio" name="color" value="{{ key }}" {% if edit.color == key or edit == blank and data.next_department_color == key %}checked{% endif %}><span class="pos-support-dept-label" data-dept-color="{{ key }}" aria-hidden="true">{{ edit.short_code | default: 'ABC' }}</span><span>{{ 'modules/support/settings.colors.' | append: key | t }}</span></label>
           {% endfor %}
         </fieldset>
       {% endunless %}

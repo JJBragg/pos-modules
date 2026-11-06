@@ -32,7 +32,7 @@
   </p>
   <h3 id="card-{{ ticket.id }}" class="pos-support-card-title"><a href="/support-desk/tickets/{{ ticket.id }}">{{ ticket.subject }}</a></h3>
   <p class="pos-support-card-meta">
-    {% render 'modules/support/badges/department', department: department, variant: 'quiet' %}
+    {% render 'modules/support/badges/department', department: department, variant: null %}
     <span class="pos-support-card-requester">{{ requester.name | default: requester.emails.first }}</span>
     {% if assignee %}<span class="pos-support-card-assignee">{% render 'modules/support/avatar', name: assignee_name, email: assignee.email, size: 'xs', labelled: true, profile_id: ticket.assignee_id, presence: true, role: null %}</span>{% endif %}
   </p>

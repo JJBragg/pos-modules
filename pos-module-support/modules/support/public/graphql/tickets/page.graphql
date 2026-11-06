@@ -141,6 +141,7 @@ query (
       sla_policy_id: property(name: "sla_policy_id")
       is_default: property_boolean(name: "is_default")
       active: property_boolean(name: "active")
+      color: property(name: "color")
     }
   }
   saved_replies: records(per_page: 100, filter: { table: { value: "modules/support/saved_reply" } }, sort: [{ properties: { name: "title", order: ASC } }]) {

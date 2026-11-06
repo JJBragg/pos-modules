@@ -135,7 +135,7 @@ test('E. filter dropdowns show markers, work by keyboard, and Reset all clears e
   // department filter with its tag; Escape closes without choosing
   const department = page.getByRole('combobox', { name: 'Department' });
   await department.click();
-  await expect(page.getByRole('listbox', { name: 'Department' }).locator('.pos-support-dept').first()).toBeVisible();
+  await expect(page.getByRole('listbox', { name: 'Department' }).locator('.pos-support-dept-label').first()).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(department).toHaveAttribute('aria-expanded', 'false');
   const option = page.getByRole('listbox', { name: 'Department' }).getByRole('option').nth(1);

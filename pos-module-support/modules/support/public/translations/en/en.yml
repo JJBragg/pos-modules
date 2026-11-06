@@ -76,6 +76,7 @@ en:
     any_priority: Any priority
     department: Department
     any_department: Any department
+    department_prefix: "Department:"
     reset_filters: Reset all filters
     status: Status
     any_status: Any status
@@ -761,16 +762,16 @@ en:
     status_icon: Icon
     status_icon_default: Same as the category
     colors:
-      indigo: Indigo
-      violet: Violet
-      taupe: Taupe
-      olive: Olive
-      fuchsia: Fuchsia
-      cobalt: Cobalt
-      ocean: Ocean
-      copper: Copper
-      plum: Plum
-      rose: Rose
+      "1": Indigo
+      "2": Violet
+      "3": Taupe
+      "4": Olive
+      "5": Fuchsia
+      "6": Cobalt
+      "7": Ocean
+      "8": Copper
+      "9": Plum
+      "10": Rose
     sections:
       departments: Departments
       statuses: Statuses

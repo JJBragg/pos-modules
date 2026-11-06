@@ -1,24 +1,25 @@
 {% doc %}
-  Department marker (design review B): a tag-shaped label in the
-  department's fixed colour, never the brand colour (WL-8). The text is
-  always there, so the colour is never the only cue.
+  Department marker (design handoff 1.1-1.6): a Gmail-like tag in the
+  department's fixed colour (data-dept-color, never the brand). The text
+  is always there, so the colour is never the only cue (D16).
   @param {object} department - Department record or rail item (name, short_code, color, is_default)
-  @param {string} [variant] - solid (default; list rows) | quiet (board cards: small flag + grey code) | initial (rail: first letter) | full (page header: full name)
+  @param {string} [variant] - solid (default: list rows, filters; quiet on board cards through CSS) | initial (rail: first letter, decorative) | header (queue title: full name, part of the heading) | ticket (ticket title: "Department: name")
 {% enddoc %}
 {%- if department -%}
-{% liquid
+{%- liquid
   function color = 'modules/support/helpers/department_color', department: department
   assign code = department.short_code | default: department.name
   assign kind = variant | default: 'solid'
-%}
+  assign prefix = 'modules/support/queue.department_prefix' | t
+-%}
 {%- case kind -%}
-  {%- when 'quiet' -%}
-    <span class="pos-support-dept-quiet pos-support-dept-{{ color }}" title="{{ department.name }}"><span class="pos-support-dept-flag" aria-hidden="true"></span>{{ code }}</span>
   {%- when 'initial' -%}
-    <span class="pos-support-dept pos-support-dept-initial pos-support-dept-{{ color }}" aria-hidden="true">{{ code | slice: 0 | upcase }}</span>
-  {%- when 'full' -%}
-    <span class="pos-support-dept pos-support-dept-full pos-support-dept-{{ color }}">{{ department.name }}</span>
+    <span class="pos-support-dept-label" data-dept-color="{{ color }}" aria-hidden="true">{{ code | slice: 0 | upcase }}</span>
+  {%- when 'header' -%}
+    <span class="pos-support-dept-label pos-support-dept-label-lg" data-dept-color="{{ color }}">{{ department.name }}<span class="pos-support-sr-only">:</span></span>
+  {%- when 'ticket' -%}
+    <span class="pos-support-dept-label pos-support-dept-label-lg" data-dept-color="{{ color }}" title="{{ prefix }} {{ department.name }}"><span class="pos-support-sr-only">{{ prefix }} </span>{{ department.name }}<span class="pos-support-sr-only">:</span></span>
   {%- else -%}
-    <span class="pos-support-dept pos-support-dept-{{ color }}" title="{{ department.name }}">{{ code }}</span>
+    <span class="pos-support-dept-label" data-dept-color="{{ color }}" title="{{ department.name }}"><span class="pos-support-sr-only">{{ prefix }} </span>{{ code }}</span>
 {%- endcase -%}
 {%- endif -%}

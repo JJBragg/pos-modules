@@ -56,11 +56,10 @@
     </div>
     <div class="pos-support-ticket-title">
       {% render 'modules/support/badges/priority', priority: ticket.priority %}
-      <h1 class="pos-support-title">{{ ticket.subject }}</h1>
+      <h1 class="pos-support-title">{% render 'modules/support/badges/department', department: department, variant: 'ticket' %} {{ ticket.subject }}</h1>
     </div>
     <p class="pos-support-ticket-badges">
       {% render 'modules/support/badges/status', status: status %}
-      {% if department %}<span class="pos-tag" title="{{ department.name }}">{% render 'modules/support/icon', name: 'building-2', size: 'sm' %}{{ department.name }}</span>{% endif %}
       {% if ticket.needs_reply %}<span class="pos-support-needs-reply">{{ 'modules/support/queue.needs_reply' | t }}</span>{% endif %}
       {% if ticket.merged_into_id %}<span class="pos-tag">{% render 'modules/support/icon', name: 'git-merge', size: 'sm' %}{{ 'modules/support/ticket.merged' | t }}</span>{% endif %}
       {% if ticket.follow_up_of_id %}<a href="/support-desk/tickets/{{ ticket.follow_up_of_id }}">{{ 'modules/support/ticket.follow_up_of' | t }}</a>{% endif %}

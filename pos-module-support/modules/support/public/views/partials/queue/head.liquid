@@ -31,7 +31,7 @@
   assign layout_icons = { "list": "list", "board": "square-kanban" }
 %}
 <div class="pos-support-queue-head">
-  <h1 class="pos-support-title">{% if current_department %}{% render 'modules/support/badges/department', department: current_department, variant: 'full' %} {% endif %}{{ view_label }} <span class="pos-support-count-chip">{{ page_data.groups.total }}</span></h1>
+  <h1 class="pos-support-title">{% if current_department %}{% render 'modules/support/badges/department', department: current_department, variant: 'header' %} {% endif %}{{ view_label }} <span class="pos-support-count-chip">{{ page_data.groups.total }}</span></h1>
   <div class="pos-support-actions">
     <nav class="pos-support-segmented" aria-label="{{ 'modules/support/queue.group_by' | t }}">
       <span class="pos-support-segmented-label">{{ 'modules/support/queue.group_by' | t }}</span>
