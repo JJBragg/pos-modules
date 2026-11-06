@@ -24,6 +24,15 @@ metadata:
     break
   endunless
   function result = 'modules/support/commands/settings_sections/save', section: section, params: context.params
+  # the monogram icon is stored by a background fetch (pos-support-ui.js): no flash, no page
+  if section == 'branding' and context.params.only == 'monogram'
+    if result.valid
+      response_status 204
+    else
+      response_status 422
+    endif
+    break
+  endif
   if result.valid
     function _ = 'modules/user/helpers/flash', notice: result.notice, error: null, info: null, force_clear: null
   else

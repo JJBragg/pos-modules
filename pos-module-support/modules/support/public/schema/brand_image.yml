@@ -1,0 +1,10 @@
+name: brand_image
+properties:
+  - name: key
+    type: string
+  - name: file
+    type: upload
+    options:
+      acl: public
+      content_length:
+        lte: 2048

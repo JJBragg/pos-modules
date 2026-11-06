@@ -76,6 +76,68 @@
   function r = 'modules/support/commands/settings_sections/branding', params: bad
   function contract = 'modules/tests/assertions/equal', contract: contract, given: r.valid, expected: false, field_name: 'non-https favicon refused'
 
+  # uploaded images (spec 08 §5, WL-7): checked before anything is stored
+  assign png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
+  assign file = { "content_base64": null, "content_type": "image/png", "filename": "logo.png" }
+  assign file.content_base64 = png
+  function e = 'modules/support/commands/branding/check_image', key: 'logo_url', file: file
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: e, expected: null, field_name: 'png logo accepted'
+  assign html = '<html>hi</html>' | base64_encode
+  assign fake = { "content_type": "image/png", "filename": "x.png" }
+  assign fake.content_base64 = html
+  function e = 'modules/support/commands/branding/check_image', key: 'logo_url', file: fake
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: e, expected: 'modules/support/settings.errors.image_type', field_name: 'file that is not a png refused'
+  assign svg = '<svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)"></svg>' | base64_encode
+  assign bad_svg = { "content_type": "image/svg+xml", "filename": "x.svg" }
+  assign bad_svg.content_base64 = svg
+  function e = 'modules/support/commands/branding/check_image', key: 'logo_url', file: bad_svg
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: e, expected: 'modules/support/settings.errors.image_unsafe', field_name: 'svg with an event handler refused'
+  assign svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect width="10" height="10"/></svg>' | base64_encode
+  assign good_svg = { "content_type": "image/svg+xml", "filename": "x.svg" }
+  assign good_svg.content_base64 = svg
+  function e = 'modules/support/commands/branding/check_image', key: 'logo_url', file: good_svg
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: e, expected: null, field_name: 'plain svg logo accepted'
+  function e = 'modules/support/commands/branding/check_image', key: 'icon_url', file: good_svg
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: e, expected: 'modules/support/settings.errors.image_type', field_name: 'svg app icon refused (PNG only)'
+
+  # a refused form stores nothing; a valid one stores the file and keeps its URL
+  assign uploads = { "logo_url": null }
+  assign uploads.logo_url = file
+  assign p = { "use_host": "false", "theme_color": "blue" }
+  assign p.uploads = uploads
+  function r = 'modules/support/commands/settings_sections/branding', params: p
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: r.valid, expected: false, field_name: 'upload with a bad colour refused'
+  assign p = { "use_host": "true" }
+  assign p.uploads = uploads
+  function r = 'modules/support/commands/settings_sections/branding', params: p
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: r.error, expected: 'modules/support/settings.errors.use_host_with_overrides', field_name: 'upload with use host ticked refused'
+  assign p = { "use_host": "false", "logo_url": "https://x.test/typed.svg" }
+  assign p.uploads = uploads
+  function r = 'modules/support/commands/settings_sections/branding', params: p
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: r.valid, expected: true, field_name: 'uploaded logo saved'
+  function brand = 'modules/support/helpers/branding'
+  assign stored = brand.logo_url | matches: '\Ahttps://\S+logo\.png'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: stored, expected: true, field_name: 'upload wins over the typed URL and is served over https'
+
+  # the monogram icon: stored with its signature, used when there is no icon
+  function s = 'modules/support/helpers/settings'
+  assign original_monogram = s.branding_monogram
+  assign p = { "only": "monogram", "signature": "T|rgb(1, 2, 3)" }
+  assign p.monogram = file
+  function r = 'modules/support/commands/settings_sections/branding', params: p
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: r.valid, expected: true, field_name: 'monogram stored'
+  assign p = { "use_host": "true" }
+  function r = 'modules/support/commands/settings_sections/branding', params: p
+  function brand = 'modules/support/helpers/branding'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: brand.monogram_signature, expected: 'T|rgb(1, 2, 3)', field_name: 'monogram signature kept'
+  assign uses_monogram = brand.icon_url | matches: '\Ahttps://\S+monogram\.png'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: uses_monogram, expected: true, field_name: 'no host icon: the monogram is the app icon'
+  assign p = { "only": "monogram", "signature": "" }
+  assign p.monogram = file
+  function r = 'modules/support/commands/settings_sections/branding', params: p
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: r.valid, expected: false, field_name: 'monogram without signature refused'
+  function _ = 'modules/support/commands/settings/set', key: 'branding_monogram', value: original_monogram
+
   # an override reaches the brand used by the rail, manifest, push and emails
   assign params = { "use_host": "false", "app_name": "Override Desk", "short_name": "Override", "support_email_name": "Override Support", "theme_color": "#123abc" }
   function saved = 'modules/support/commands/settings_sections/branding', params: params

@@ -2792,6 +2792,15 @@
     padding: 1.25rem;
   }
 
+  .pos-support-brand-upload {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-block-start: 0.5rem;
+    font-weight: 400;
+  }
+
   .pos-support-email-step-head {
     display: flex;
     align-items: center;

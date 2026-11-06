@@ -66,17 +66,18 @@
   <section class="pos-card pos-support-step" aria-labelledby="br-overrides">
     <h2 id="br-overrides" class="pos-heading-3">{{ 'modules/support/settings.overrides' | t }}</h2>
     {% if mixed_logos %}<p class="pos-supplementary" data-support-mixed-logos>{{ 'modules/support/settings.mixed_logos' | t }}</p>{% endif %}
-    <form action="/support-desk/settings/save" method="post" class="pos-form pos-support-settings-form">
+    <form action="/support-desk/settings/save" method="post" class="pos-form pos-support-settings-form" data-support-untick-id="br-use-host" data-support-chosen="{{ 'modules/support/settings.upload_chosen' | t }}" data-support-error-size="{{ 'modules/support/settings.errors.image_size' | t }}" data-support-error-square="{{ 'modules/support/settings.errors.icon_square' | t }}">
       <input type="hidden" name="authenticity_token" value="{{ context.authenticity_token }}">
       <input type="hidden" name="section" value="branding">
+      <p class="pos-supplementary">{{ 'modules/support/settings.upload_or_url' | t }}</p>
       <fieldset><label><input id="br-use-host" type="checkbox" name="use_host" value="true" {% if using_host %}checked{% endif %}> {{ 'modules/support/settings.use_host' | t }}</label></fieldset>
       <fieldset><label for="br-name">{{ 'modules/support/settings.app_name' | t }}</label><input id="br-name" name="app_name" value="{{ o.app_name }}" placeholder="{{ brand.app_name }}" data-support-untick="br-use-host"></fieldset>
       <fieldset><label for="br-short">{{ 'modules/support/settings.short_name' | t }}</label><input id="br-short" name="short_name" value="{{ o.short_name }}" placeholder="{{ brand.short_name }}" data-support-untick="br-use-host"></fieldset>
       <fieldset><label for="br-email-name">{{ 'modules/support/settings.email_name' | t }}</label><input id="br-email-name" name="support_email_name" value="{{ o.support_email_name }}" placeholder="{{ brand.support_email_name }}" data-support-untick="br-use-host"></fieldset>
       <fieldset><label for="br-theme">{{ 'modules/support/settings.theme_color' | t }}</label><input id="br-theme" name="theme_color" value="{{ o.theme_color }}" placeholder="#1d4f91" pattern="#[0-9a-fA-F]{6}" data-support-untick="br-use-host"></fieldset>
       <fieldset><label for="br-background">{{ 'modules/support/settings.background_color' | t }}</label><input id="br-background" name="background_color" value="{{ o.background_color }}" placeholder="#ffffff" pattern="#[0-9a-fA-F]{6}" data-support-untick="br-use-host"></fieldset>
-      <fieldset><label for="br-logo">{{ 'modules/support/settings.logo_url' | t }}</label><input id="br-logo" type="url" name="logo_url" value="{{ o.logo_url }}" placeholder="https://" data-support-untick="br-use-host"></fieldset>
-      <fieldset><label for="br-logo-dark">{{ 'modules/support/settings.logo_dark_url' | t }}</label><input id="br-logo-dark" type="url" name="logo_dark_url" value="{{ o.logo_dark_url }}" placeholder="https://" data-support-untick="br-use-host"></fieldset>
+      <fieldset><label for="br-logo">{{ 'modules/support/settings.logo_url' | t }}</label><input id="br-logo" type="url" name="logo_url" value="{{ o.logo_url }}" placeholder="https://" data-support-untick="br-use-host"><label class="pos-support-brand-upload">{{ 'modules/support/settings.upload_file' | t }} <input type="file" id="br-logo-file" accept="image/png,image/svg+xml,image/webp,image/jpeg" data-support-brand-file="logo_url"></label><span data-support-brand-upload="logo_url"></span><span class="pos-supplementary" role="status" data-support-brand-chosen="logo_url"></span></fieldset>
+      <fieldset><label for="br-logo-dark">{{ 'modules/support/settings.logo_dark_url' | t }}</label><input id="br-logo-dark" type="url" name="logo_dark_url" value="{{ o.logo_dark_url }}" placeholder="https://" data-support-untick="br-use-host"><label class="pos-support-brand-upload">{{ 'modules/support/settings.upload_file' | t }} <input type="file" id="br-logo-dark-file" accept="image/png,image/svg+xml,image/webp,image/jpeg" data-support-brand-file="logo_dark_url"></label><span data-support-brand-upload="logo_dark_url"></span><span class="pos-supplementary" role="status" data-support-brand-chosen="logo_dark_url"></span></fieldset>
       <fieldset>
         <label for="br-rail-theme">{{ 'modules/support/settings.rail_theme' | t }}</label>
         <select id="br-rail-theme" name="rail_theme" data-support-untick="br-use-host">
@@ -84,8 +85,8 @@
           {% for r in rail_themes %}<option value="{{ r }}" {% if o.rail_theme == r %}selected{% endif %}>{{ 'modules/support/settings.rail_theme_' | append: r | t }}</option>{% endfor %}
         </select>
       </fieldset>
-      <fieldset><label for="br-icon">{{ 'modules/support/settings.icon_url' | t }}</label><input id="br-icon" type="url" name="icon_url" value="{{ o.icon_url }}" placeholder="https://" data-support-untick="br-use-host"></fieldset>
-      <fieldset><label for="br-favicon">{{ 'modules/support/settings.favicon_url' | t }}</label><input id="br-favicon" type="url" name="favicon_url" value="{{ o.favicon_url }}" placeholder="https://" data-support-untick="br-use-host"></fieldset>
+      <fieldset><label for="br-icon">{{ 'modules/support/settings.icon_url' | t }}</label><input id="br-icon" type="url" name="icon_url" value="{{ o.icon_url }}" placeholder="https://" data-support-untick="br-use-host"><label class="pos-support-brand-upload">{{ 'modules/support/settings.upload_file' | t }} <input type="file" id="br-icon-file" accept="image/png" data-support-brand-file="icon_url"></label><span data-support-brand-upload="icon_url"></span><span class="pos-supplementary" role="status" data-support-brand-chosen="icon_url"></span></fieldset>
+      <fieldset><label for="br-favicon">{{ 'modules/support/settings.favicon_url' | t }}</label><input id="br-favicon" type="url" name="favicon_url" value="{{ o.favicon_url }}" placeholder="https://" data-support-untick="br-use-host"><label class="pos-support-brand-upload">{{ 'modules/support/settings.upload_file' | t }} <input type="file" id="br-favicon-file" accept="image/png,image/svg+xml,image/x-icon,image/vnd.microsoft.icon,.ico" data-support-brand-file="favicon_url"></label><span data-support-brand-upload="favicon_url"></span><span class="pos-supplementary" role="status" data-support-brand-chosen="favicon_url"></span></fieldset>
       <button type="submit" class="pos-button pos-button-primary">{{ 'modules/support/settings.save' | t }}</button>
     </form>
   </section>

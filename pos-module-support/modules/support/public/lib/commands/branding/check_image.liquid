@@ -1,0 +1,47 @@
+{% doc %}
+  Checks one uploaded branding image before anything is stored (08 §5).
+  The type must be allowed for the field and match the file's first bytes;
+  at most 2 MB; an SVG may not carry scripts, event handlers or external
+  content. Returns null when the file is fine, otherwise a translation key.
+  Image dimensions are checked in the browser (pos-support-ui.js).
+  @param {string} key - logo_url, logo_dark_url, icon_url, favicon_url or monogram
+  @param {object} file - { content_base64, content_type, filename }
+{% enddoc %}
+{% liquid
+  assign allowed = { "logo_url": ["image/png", "image/svg+xml", "image/webp", "image/jpeg"], "logo_dark_url": ["image/png", "image/svg+xml", "image/webp", "image/jpeg"], "icon_url": ["image/png"], "favicon_url": ["image/png", "image/svg+xml", "image/x-icon", "image/vnd.microsoft.icon"], "monogram": ["image/png"] }
+  assign magic = { "image/png": "iVBORw0KGgo", "image/jpeg": "/9j/", "image/webp": "UklGR", "image/x-icon": "AAABAA", "image/vnd.microsoft.icon": "AAABAA" }
+
+  assign types = allowed[key]
+  assign content_type = file.content_type | downcase
+  unless types contains content_type
+    return 'modules/support/settings.errors.image_type'
+  endunless
+
+  assign encoded = file.content_base64 | default: '' | replace_regex: '\s', ''
+  if encoded == blank
+    return 'modules/support/settings.errors.image_type'
+  endif
+  assign bytes = encoded | size | times: 3 | divided_by: 4
+  if bytes > 2097152
+    return 'modules/support/settings.errors.image_size'
+  endif
+
+  if content_type == 'image/svg+xml'
+    assign text = encoded | base64_decode | downcase
+    unless text contains '<svg'
+      return 'modules/support/settings.errors.image_type'
+    endunless
+    assign unsafe = text | matches: '<script|<foreignobject|javascript:|\son[a-z]+\s*=|<iframe|<embed|<object|xlink:href\s*=\s*["\x27]?https?:|href\s*=\s*["\x27]?https?:'
+    if unsafe
+      return 'modules/support/settings.errors.image_unsafe'
+    endif
+    return null
+  endif
+
+  assign prefix = magic[content_type]
+  assign head = encoded | slice: 0, prefix.size
+  if head != prefix
+    return 'modules/support/settings.errors.image_type'
+  endif
+  return null
+%}

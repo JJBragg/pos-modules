@@ -59,7 +59,7 @@ Host hook (fired with `modules/core/commands/hook/fire`, `hook: 'support_brandin
   "support_email_name": "Harbor City Support"
 }
 ```
-The sidebar logo follows the rail's actual background: with both logos, `pos-support-ui.js` measures it and picks the light- or dark-background logo (a brand-coloured rail is dark in both colour schemes). Optional `rail_theme` (`auto|light|dark`) pins the choice. Defaults: `app_name` = the instance domain (`helpers/default_app_name`: the first label of a `*.platform-os.com` host, capitalised; otherwise the domain without `www.`); monogram icon generated from the first letter (module asset set); colours from common-styling.
+The sidebar logo follows the rail's actual background: with both logos, `pos-support-ui.js` measures it and picks the light- or dark-background logo (a brand-coloured rail is dark in both colour schemes). Optional `rail_theme` (`auto|light|dark`) pins the choice. Defaults: `app_name` = the instance domain (`helpers/default_app_name`: the first label of a `*.platform-os.com` host, capitalised; otherwise the domain without `www.`); monogram icon generated from the first letter: an admin's browser draws the sidebar monogram as a 512 px PNG (`pos-support-ui.js`), posts it to `settings/save` (`only=monogram`, with a signature of letter, colours and font) and the `branding_monogram` setting keeps its URL; it is redrawn when the signature changes; colours from common-styling.
 
 The same `brand` feeds (WL-6): page titles and favicon, the rail logo, customer email templates (sender name, logo, link colour inline), agent alert emails, the PWA manifest, push `icon`, and the chat widget (I3).
 
@@ -82,4 +82,4 @@ Each badge also carries a triangle glyph and text, so meaning never depends on c
 
 ## 5. Branding settings page (WL-7)
 
-`support-desk/settings/branding`: three source rows (host theme detected = headscripts hook returned content; host hook detected = `support_branding` returned keys; overrides), live preview (rail, button, link, status badge, install card, email "From"), and "Use the host app's branding" switch (on by default) that unlocks overrides for name, logos and icon (uploads go to a `setting`-owned upload via presigned URL).
+`support-desk/settings/branding`: three source rows (host theme detected = headscripts hook returned content; host hook detected = `support_branding` returned keys; overrides), live preview (rail, button, link, status badge, install card, email "From"), and "Use the host app's branding" switch (on by default) that unlocks overrides for name, logos and icon (uploads: the browser posts the file as base64 (decision-9); `commands/branding/check_image` checks type, first bytes, size and SVG content before anything is written; `commands/branding/store_image` stores it through a presigned POST into the public `brand_image` table, and the override keeps the file's https URL).

@@ -32,6 +32,15 @@
   endfor
 
   assign brand.initial = brand.short_name | default: brand.app_name | slice: 0 | upcase
+
+  # no icon from the host or an override: the monogram PNG an admin's browser
+  # drew from the sidebar monogram (PRD WL-5); signature tells it when to redraw
+  assign brand.uses_monogram = false
+  if brand.icon_url == blank
+    assign brand.uses_monogram = true
+    assign brand.monogram_signature = settings.branding_monogram.signature
+    assign brand.icon_url = settings.branding_monogram.url
+  endif
   case brand.theme_mode
     when 'dark'
       # common-styling switches its dark tokens only when both classes are present

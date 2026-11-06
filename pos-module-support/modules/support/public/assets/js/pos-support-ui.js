@@ -133,6 +133,105 @@
   pickLogos();
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', pickLogos);
 
+  // default app icon (PRD WL-5): with no icon from the host, an admin's browser
+  // draws the sidebar monogram (letter, brand colours, font) as a 512 px PNG and
+  // stores it; redrawn when the signature changes. Drawn from the light look only,
+  // so switching the device to dark mode does not redraw it back and forth.
+  const probe512 = document.querySelector('[data-support-monogram]');
+  const deviceDark = document.documentElement.classList.contains('pos-theme-darkEnabled')
+    && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if (probe512 && !deviceDark && window.fetch) {
+    (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => {
+      const style = getComputedStyle(probe512);
+      const letter = probe512.dataset.supportMonogram;
+      // a short hash: font stacks are long and the server keeps 200 characters
+      const source = ['v2', letter, style.backgroundColor, style.color, style.fontFamily, style.fontWeight].join('|');
+      let hash = 5381;
+      for (let i = 0; i < source.length; i += 1) hash = ((hash * 33) ^ source.charCodeAt(i)) >>> 0;
+      const signature = `${letter}-${hash.toString(36)}`;
+      if (!letter || signature === probe512.dataset.supportMonogramSignature) return;
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = style.backgroundColor;
+      ctx.fillRect(0, 0, 512, 512);
+      ctx.fillStyle = style.color;
+      ctx.font = `${style.fontWeight} 280px ${style.fontFamily}`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'alphabetic';
+      // centre the glyph's ink, not its line box
+      const box = ctx.measureText(letter);
+      ctx.fillText(letter, 256, 256 + (box.actualBoundingBoxAscent - box.actualBoundingBoxDescent) / 2);
+      const data = canvas.toDataURL('image/png').split(',')[1];
+      const body = new FormData();
+      body.append('authenticity_token', probe512.dataset.supportMonogramToken);
+      body.append('section', 'branding');
+      body.append('only', 'monogram');
+      body.append('signature', signature);
+      body.append('monogram[content_base64]', data);
+      body.append('monogram[content_type]', 'image/png');
+      body.append('monogram[filename]', 'monogram.png');
+      fetch('/support-desk/settings/save', { method: 'POST', body, credentials: 'same-origin', redirect: 'manual' })
+        .then(() => { probe512.dataset.supportMonogramSignature = signature; })
+        .catch(() => {});
+    });
+  }
+
+  // branding images: a chosen file is read in the browser and posted as base64
+  // (decision-9), checked here for size and, for the app icon, a square of at
+  // least 512 px; the server checks the type and content again
+  document.querySelectorAll('input[type="file"][data-support-brand-file]').forEach((input) => {
+    const key = input.dataset.supportBrandFile;
+    const form = input.form;
+    const holder = form.querySelector(`[data-support-brand-upload="${key}"]`);
+    const status = form.querySelector(`[data-support-brand-chosen="${key}"]`);
+    const fail = (message) => {
+      input.value = '';
+      holder.replaceChildren();
+      status.textContent = '';
+      input.setCustomValidity(message);
+      input.reportValidity();
+    };
+    input.addEventListener('change', () => {
+      input.setCustomValidity('');
+      holder.replaceChildren();
+      status.textContent = '';
+      const file = input.files[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) { fail(form.dataset.supportErrorSize); return; }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const url = String(reader.result);
+        const store = () => {
+          const add = (name, value) => {
+            const field = document.createElement('input');
+            field.type = 'hidden';
+            field.name = `uploads[${key}][${name}]`;
+            field.value = value;
+            holder.append(field);
+          };
+          add('content_base64', url.slice(url.indexOf(',') + 1));
+          add('content_type', file.type || 'application/octet-stream');
+          add('filename', file.name);
+          status.textContent = form.dataset.supportChosen.replace('%{name}', file.name);
+          const box = document.getElementById(form.dataset.supportUntickId);
+          if (box) box.checked = false;
+        };
+        if (key !== 'icon_url') { store(); return; }
+        const image = new Image();
+        image.onload = () => {
+          if (image.naturalWidth !== image.naturalHeight || image.naturalWidth < 512) fail(form.dataset.supportErrorSquare);
+          else store();
+        };
+        image.onerror = () => fail(form.dataset.supportErrorSquare);
+        image.src = url;
+      };
+      reader.onerror = () => fail(form.dataset.supportErrorSize);
+      reader.readAsDataURL(file);
+    });
+  });
+
   const toggle = document.querySelector('[data-support-nav-toggle]');
   if (!toggle) return;
   const rail = document.getElementById('pos-support-rail');

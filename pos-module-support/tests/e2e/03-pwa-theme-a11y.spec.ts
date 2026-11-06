@@ -13,7 +13,7 @@ test('9. manifest and service worker are served with the right types and scope, 
   expect(json.scope).toMatch(/^\/support-desk\/?$/);
   expect(json.start_url).toMatch(/^\/support-desk/);
   expect(json.display).toBe('standalone');
-  expect(json.icons.map((i: any) => i.sizes)).toEqual(expect.arrayContaining(['192x192', '512x512']));
+  expect(json.icons.map((i: any) => i.sizes)).toContain('512x512');
 
   const sw = await request.get(desk('/support-desk/sw.js'));
   expect(sw.status()).toBe(200);

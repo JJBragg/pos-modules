@@ -1,0 +1,70 @@
+{% doc %}
+  Stores one checked branding image (commands/branding/check_image first) in
+  public storage and returns its https URL, or null when the upload failed.
+  The URL is what the branding override keeps, so everything that reads the
+  brand (rail, emails, manifest, push) works unchanged.
+  @param {string} key - logo_url, logo_dark_url, icon_url, favicon_url or monogram
+  @param {object} file - { content_base64, content_type, filename }
+{% enddoc %}
+{% liquid
+  assign extensions = { "image/png": "png", "image/svg+xml": "svg", "image/webp": "webp", "image/jpeg": "jpg", "image/x-icon": "ico", "image/vnd.microsoft.icon": "ico" }
+  assign content_type = file.content_type | downcase
+  assign stored_name = key | replace: '_url', '' | append: '.' | append: extensions[content_type]
+
+  # a presigned POST is single use, so each attempt asks for a fresh one
+  assign file_url = null
+  for attempt in (1..3)
+    # platformos-check-disable NestedGraphQLQuery
+    graphql p = 'modules/support/uploads/presign_brand_image'
+    assign form_data = []
+    # the policy allows any Content-Type; without one the file is served as
+    # binary/octet-stream, which browsers will not show as an image
+    assign type_keys = ["Content-Type"]
+    assign payload = p.presign.upload_url_payload | hash_except: type_keys
+    for pair in payload
+      assign part = { "name": null, "value": null }
+      assign part.name = pair[0]
+      assign part.value = pair[1] | append: ''
+      assign form_data << part
+    endfor
+    assign type_part = { "name": "Content-Type", "value": null }
+    assign type_part.value = content_type
+    assign form_data << type_part
+    assign file_part = { "name": "file", "file": {} }
+    assign file_part.file.content_base64 = file.content_base64 | replace_regex: '\s', ''
+    assign file_part.file.filename = stored_name
+    assign file_part.file.content_type = content_type
+    assign form_data << file_part
+    graphql sent = 'modules/support/uploads/send', url: p.presign.upload_url, form_data: form_data
+    # platformos-check-enable NestedGraphQLQuery
+    assign status = sent.api_call_send.response.status
+    if status >= 200 and status < 300
+      assign upload_key = p.presign.upload_url_payload.key | replace: '${filename}', stored_name
+      assign file_url = p.presign.upload_url | append: '/' | append: upload_key
+      break
+    endif
+    assign detail = { "status": null, "key": null, "attempt": null }
+    assign detail.status = status
+    assign detail.key = key
+    assign detail.attempt = attempt
+    log detail, type: 'WARN modules/support/commands/branding/store_image: upload failed'
+    # 4xx is the request itself; only 5xx and transport failures are worth a retry
+    if status >= 400 and status < 500
+      break
+    endif
+  endfor
+  if file_url == blank
+    return null
+  endif
+
+  assign props = []
+  assign key_prop = { "name": "key" }
+  assign key_prop.value = key
+  assign props << key_prop
+  assign file_prop = { "name": "file" }
+  assign file_prop.value = file_url
+  assign props << file_prop
+  graphql r = 'modules/support/branding/image_create', properties: props
+  assign url = r.record.file.url
+  return url
+%}

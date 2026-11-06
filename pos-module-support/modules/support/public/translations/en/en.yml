@@ -740,6 +740,9 @@ en:
     logo_dark_url: Logo for dark backgrounds, URL (https)
     background_color: Background colour (#rrggbb, app splash screen)
     favicon_url: Favicon URL (https)
+    upload_or_url: Upload a file, or paste an https link below.
+    upload_file: Upload file
+    upload_chosen: "Will be uploaded when you save: %{name}"
     rail_theme: Logo on the sidebar
     rail_theme_auto: Automatic (from the sidebar colour)
     rail_theme_light: Light sidebar (logo for light backgrounds)
@@ -788,6 +791,11 @@ en:
       confirmation_days: The confirmation period is 1 to 28 days.
       color: Colours must look like #1d4f91.
       image_url: Image links must start with https://.
+      image_type: "That file type is not allowed here. Logos: PNG, SVG, WebP or JPEG; app icon: PNG; favicon: ICO, PNG or SVG."
+      image_size: Images can be at most 2 MB.
+      image_unsafe: This SVG contains scripts, event handlers or external links, which are not allowed.
+      image_upload: The image could not be stored. Try again.
+      icon_square: The app icon must be a square PNG of at least 512 × 512 px.
       base_url: The desk address must look like https://support.example.com, with no path or trailing slash.
   customer_emails:
     ack_intro: "Thank you for contacting %{brand}. We have received your request:"

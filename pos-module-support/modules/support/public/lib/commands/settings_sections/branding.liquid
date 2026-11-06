@@ -1,10 +1,12 @@
 {% doc %}
   Saves the branding override (08 §5). "Use the host app's branding" clears
   it; otherwise non-blank fields override the host hook per key. Colours
-  must be #rrggbb; images must be https URLs. Appearance is saved on its
+  must be #rrggbb; images are https URLs or uploaded files (uploads[<key>],
+  checked before anything is written, stored by commands/branding/store_image;
+  an upload wins over a typed URL). Appearance is saved on its
   own: host removes the override so the host hook's theme_mode applies
   again; auto, light and dark override it. Returns { valid, error, notice }.
-  @param {object} params - use_host, app_name, short_name, support_email_name, theme_color, background_color, logo_url, logo_dark_url, icon_url, favicon_url, rail_theme (auto | light | dark); or only=theme_mode with theme_mode (host | auto | light | dark), saved on its own
+  @param {object} params - use_host, app_name, short_name, support_email_name, theme_color, background_color, logo_url, logo_dark_url, icon_url, favicon_url, rail_theme (auto | light | dark), uploads ({ <image key>: { content_base64, content_type, filename } }); or only=theme_mode with theme_mode (host | auto | light | dark), saved on its own; or only=monogram with monogram (PNG file as above) and signature, the generated default icon (pos-support-ui.js)
 {% enddoc %}
 {% liquid
   assign result = { "valid": false, "error": null, "notice": "modules/support/settings.saved" }
@@ -30,7 +32,40 @@
     return result
   endif
 
+  # the default icon drawn in an admin's browser from the sidebar monogram
+  if params.only == 'monogram'
+    assign result.notice = null
+    assign signature = params.signature | strip | truncate: 200, ''
+    if signature == blank
+      assign result.error = 'modules/support/settings.errors.image_type'
+      return result
+    endif
+    function error = 'modules/support/commands/branding/check_image', key: 'monogram', file: params.monogram
+    if error
+      assign result.error = error
+      return result
+    endif
+    function url = 'modules/support/commands/branding/store_image', key: 'monogram', file: params.monogram
+    if url == blank
+      assign result.error = 'modules/support/settings.errors.image_upload'
+      return result
+    endif
+    assign monogram = { "url": null, "signature": null }
+    assign monogram.url = url
+    assign monogram.signature = signature
+    function _ = 'modules/support/commands/settings/set', key: 'branding_monogram', value: monogram
+    assign result.valid = true
+    return result
+  endif
+
+  assign images = "logo_url,logo_dark_url,icon_url,favicon_url" | split: ','
   if params.use_host == 'true'
+    for key in images
+      if params.uploads[key].content_base64 != blank
+        assign result.error = 'modules/support/settings.errors.use_host_with_overrides'
+        return result
+      endif
+    endfor
     # an override typed in with the box still ticked would be thrown away
     # without a word; values already saved (ticking the box to clear them) pass
     assign fields = "app_name,short_name,support_email_name,theme_color,background_color,logo_url,logo_dark_url,icon_url,favicon_url" | split: ','
@@ -77,8 +112,18 @@
       assign override[key] = value
     endif
   endfor
-  assign images = "logo_url,logo_dark_url,icon_url,favicon_url" | split: ','
+  assign pending = {}
   for key in images
+    assign upload = params.uploads[key]
+    if upload.content_base64 != blank
+      function error = 'modules/support/commands/branding/check_image', key: key, file: upload
+      if error
+        assign result.error = error
+        return result
+      endif
+      assign pending[key] = upload
+      continue
+    endif
     assign value = params[key] | strip
     if value != blank
       assign valid = value | matches: '\Ahttps://[^\s"<>]+\z'
@@ -101,6 +146,15 @@
   if current_mode != blank
     assign override.theme_mode = current_mode
   endif
+  # stored last, after every field passed, so a refused form stores no file
+  for pair in pending
+    function url = 'modules/support/commands/branding/store_image', key: pair[0], file: pair[1]
+    if url == blank
+      assign result.error = 'modules/support/settings.errors.image_upload'
+      return result
+    endif
+    assign override[pair[0]] = url
+  endfor
   function _ = 'modules/support/commands/settings/set', key: 'branding_override', value: override
   assign result.valid = true
   return result

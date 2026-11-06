@@ -1,0 +1,8 @@
+mutation ($properties: [PropertyInputType]) {
+  record: record_create(record: { table: "modules/support/brand_image", properties: $properties }) {
+    id
+    file: property_upload(name: "file") {
+      url
+    }
+  }
+}

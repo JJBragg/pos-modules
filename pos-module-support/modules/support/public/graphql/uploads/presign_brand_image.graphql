@@ -1,0 +1,6 @@
+mutation {
+  presign: property_upload_presigned_url(table: "modules/support/brand_image", property_name: "file", include_content_type: true) {
+    upload_url
+    upload_url_payload
+  }
+}
