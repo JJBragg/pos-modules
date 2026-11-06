@@ -129,6 +129,7 @@ properties:
   - { name: sla_policy_id, type: string }
   - { name: is_default, type: boolean }
   - { name: active, type: boolean }
+  - { name: color, type: string }                # design handoff 1.3 (D15): palette token number "1".."10", never a hex; the is_default department is always the neutral default
 ```
 
 ### contact.yml
