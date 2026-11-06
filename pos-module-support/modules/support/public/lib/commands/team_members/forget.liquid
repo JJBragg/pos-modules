@@ -1,6 +1,6 @@
 {% doc %}
   Clears the per-request memo of queries/team_members/all_active, active and
-  find. Call it after every team_member write, so a later read in the same
+  find, and of helpers/member_roles. Call it after every team_member write, so a later read in the same
   request sees the change.
 {% enddoc %}
 {% liquid
@@ -8,5 +8,7 @@
   assign named = null
   assign by_profile = {}
   export active, named, by_profile, namespace: 'support_team_members'
+  assign map = null
+  export map, namespace: 'support_member_roles'
   return true
 %}

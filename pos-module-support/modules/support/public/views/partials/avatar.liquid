@@ -1,19 +1,55 @@
 {% doc %}
-  Initials avatar. The colour comes from a fixed semantic palette picked by a
-  hash of the email (or name), so the same person keeps the same colour.
+  Initials avatar, styled by role (design review C):
+  - agent: a pale colour picked by a hash of the email (or name), so the same person keeps the same colour;
+  - manager / admin: the solid brand colour, with a star / shield badge top-right;
+  - system: the mail icon on the brand colour;
+  - customer: neutral grey.
+  Pass role, or profile_id to read the role from the team (helpers/member_roles);
+  neither gives today's agent look. Availability shows as a dot bottom-right
+  that differs in shape (filled, half, hollow), not only colour. Badge and dot
+  are decorative; the name and role are in the accessible name when labelled.
   @param {string} [name] - Display name
   @param {string} [email] - Email, used for the colour and as a fallback for the initials
   @param {string} [size] - xs | md | lg (default 1.5rem)
   @param {boolean} [labelled] - Expose the name to assistive technology instead of hiding the avatar
+  @param {string} [role] - agent | manager | admin | system | customer
+  @param {string} [profile_id] - Team member's profile id, to look up role and availability
+  @param {boolean} [presence] - Show the availability dot (team members only)
 {% enddoc %}
 {% liquid
   assign source = name | default: email | strip
-  assign css = 'pos-support-avatar'
+  assign kind = role
+  assign availability = null
+  if kind == blank and profile_id != blank
+    function roles = 'modules/support/helpers/member_roles'
+    assign member_info = roles[profile_id]
+    assign kind = member_info.role
+    assign availability = member_info.availability
+  endif
+  assign kind = kind | default: 'agent'
+  assign css = 'pos-support-avatar pos-support-avatar-role-' | append: kind
   if size
     assign css = css | append: ' pos-support-avatar-' | append: size
   endif
+  # a role badge only where there is room for it (md, lg); small avatars show at most the dot
+  assign badge = null
+  if size == 'md' or size == 'lg'
+    case kind
+      when 'manager'
+        assign badge = 'star'
+      when 'admin'
+        assign badge = 'shield'
+    endcase
+  endif
+  assign label = source
+  if badge
+    assign role_label = 'modules/support/team.roles.' | append: kind | t
+    assign label = source | append: ' (' | append: role_label | append: ')'
+  endif
   assign initials = ''
-  if source == blank
+  if kind == 'system'
+    assign initials = ''
+  elsif source == blank
     assign css = css | append: ' pos-support-avatar-empty'
   else
     assign words = source | replace: '@', ' ' | replace: '.', ' ' | replace: '_', ' ' | replace: '-', ' ' | split: ' ' | array_compact
@@ -22,10 +58,16 @@
       assign second = words[1] | slice: 0
       assign initials = initials | append: second
     endif
-    assign key = email | default: name | downcase | digest: 'md5' | slice: 0
-    assign hues = { "0": 0, "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 0, "9": 1, "a": 2, "b": 3, "c": 4, "d": 5, "e": 6, "f": 7 }
-    assign hue = hues[key] | default: 0
-    assign css = css | append: ' pos-support-avatar-h' | append: hue
+    if kind == 'agent'
+      assign key = email | default: name | downcase | digest: 'md5' | slice: 0
+      assign hues = { "0": 0, "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 0, "9": 1, "a": 2, "b": 3, "c": 4, "d": 5, "e": 6, "f": 7 }
+      assign hue = hues[key] | default: 0
+      assign css = css | append: ' pos-support-avatar-h' | append: hue
+    endif
   endif
 %}
-<span class="{{ css }}" {% if labelled and source != blank %}role="img" aria-label="{{ source }}"{% else %}aria-hidden="true"{% endif %}{% if source != blank %} title="{{ source }}"{% endif %}>{{ initials | upcase }}</span>
+<span class="{{ css }}" {% if labelled and label != blank %}role="img" aria-label="{{ label }}"{% else %}aria-hidden="true"{% endif %}{% if label != blank %} title="{{ label }}"{% endif %}>
+  {%- if kind == 'system' -%}{% render 'modules/support/icon', name: 'mail', size: 'sm' %}{%- else -%}{{ initials | upcase }}{%- endif -%}
+  {%- if badge -%}<span class="pos-support-avatar-badge">{% render 'modules/support/icon', name: badge, size: null %}</span>{%- endif -%}
+  {%- if presence and availability -%}<span class="pos-support-avatar-presence pos-support-presence-{{ availability }}"></span>{%- endif -%}
+</span>

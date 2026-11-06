@@ -35,7 +35,7 @@
 %}
 {% if message.author_type == 'system' %}
   <article class="{{ css }}" id="message-{{ message.id }}" aria-labelledby="message-{{ message.id }}-summary">
-    <span class="pos-support-avatar" aria-hidden="true">{% render 'modules/support/icon', name: 'mail', size: 'sm' %}</span>
+    {% render 'modules/support/avatar', name: author, email: null, size: 'md', labelled: false, role: 'system', profile_id: null, presence: false %}
     <details class="pos-support-system">
       <summary id="message-{{ message.id }}-summary"><strong>{{ author }}</strong> · {{ 'modules/support/ticket.delivery_' | append: message.delivery_state | t }} · {% render 'modules/support/time', time: message.created_at, style: 'relative' %} <span class="pos-support-muted">{{ 'modules/support/ticket.show' | t }}</span></summary>
       {% render 'modules/support/ticket/message_card', message: message, attachments: attachments, author: author, author_email: author_email, is_note: is_note %}
@@ -43,7 +43,11 @@
   </article>
 {% else %}
   <article class="{{ css }}" id="message-{{ message.id }}" aria-labelledby="message-{{ message.id }}-author">
-    {% render 'modules/support/avatar', name: author, email: author_email, size: 'md', labelled: false %}
+    {% if message.author_type == 'customer' %}
+      {% render 'modules/support/avatar', name: author, email: author_email, size: 'md', labelled: false, role: 'customer', profile_id: null, presence: false %}
+    {% else %}
+      {% render 'modules/support/avatar', name: author, email: author_email, size: 'md', labelled: false, role: null, profile_id: message.author_id, presence: false %}
+    {% endif %}
     {% render 'modules/support/ticket/message_card', message: message, attachments: attachments, author: author, author_email: author_email, is_note: is_note %}
   </article>
 {% endif %}

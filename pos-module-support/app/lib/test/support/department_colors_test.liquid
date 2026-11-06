@@ -35,7 +35,7 @@
   capture out
     render 'modules/support/badges/department', department: dep, variant: 'quiet'
   endcapture
-  assign ok = out | matches: 'pos-support-dept-quiet pos-support-dept-ocean.*OCN'
+  assign ok = out | matches: 'pos-support-dept-quiet pos-support-dept-ocean[\s\S]*OCN'
   function contract = 'modules/tests/assertions/equal', contract: contract, given: ok, expected: true, field_name: 'quiet card marker shows the short code'
   capture out
     render 'modules/support/badges/department', department: dep, variant: 'full'

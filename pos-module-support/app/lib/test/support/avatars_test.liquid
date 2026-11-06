@@ -1,0 +1,53 @@
+{% doc %}
+  @param {object} contract - The test contract object
+{% enddoc %}
+{% liquid
+  # design review C: avatars by role
+  capture out
+    render 'modules/support/avatar', name: 'Mark Adams', email: 'mark@example.com', size: 'md', labelled: true, role: 'manager', profile_id: null, presence: false
+  endcapture
+  assign ok = out | matches: 'pos-support-avatar-role-manager'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: ok, expected: true, field_name: 'manager avatar has the brand role class'
+  assign ok = out | matches: 'pos-support-avatar-badge[\s\S]*psi-star'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: ok, expected: true, field_name: 'manager avatar carries the star badge'
+  assign ok = out | matches: 'aria-label="Mark Adams \(Manager\)"'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: ok, expected: true, field_name: 'the role is in the accessible name'
+  assign ok = out | matches: 'pos-support-avatar-h[0-7]'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: ok, expected: false, field_name: 'manager avatar does not use the pale palette'
+
+  capture out
+    render 'modules/support/avatar', name: 'Dana Reed', email: 'dana@example.com', size: 'xs', labelled: true, role: 'admin', profile_id: null, presence: false
+  endcapture
+  assign ok = out | matches: 'pos-support-avatar-badge'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: ok, expected: false, field_name: 'small avatars show no role badge'
+
+  capture out
+    render 'modules/support/avatar', name: 'Jane Doe', email: 'jane@example.com', size: 'md', labelled: false, role: 'customer', profile_id: null, presence: false
+  endcapture
+  assign ok = out | matches: 'pos-support-avatar-role-customer'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: ok, expected: true, field_name: 'customer avatar is grey'
+
+  capture out
+    render 'modules/support/avatar', name: 'Automatic email', email: null, size: 'md', labelled: false, role: 'system', profile_id: null, presence: false
+  endcapture
+  assign ok = out | matches: 'pos-support-avatar-role-system[\s\S]*psi-mail'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: ok, expected: true, field_name: 'system avatar shows the mail icon'
+
+  capture out
+    render 'modules/support/avatar', name: 'Agnes Miller', email: 'agnes@example.com', size: 'md', labelled: false, role: null, profile_id: null, presence: false
+  endcapture
+  assign ok = out | matches: 'pos-support-avatar-role-agent pos-support-avatar-md pos-support-avatar-h[0-7]'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: ok, expected: true, field_name: 'agent avatar keeps the pale per-person colour'
+
+  # role and availability come from the team when only the profile id is known
+  function members = 'modules/support/queries/team_members/all_active'
+  assign member = members.first
+  capture out
+    render 'modules/support/avatar', name: 'Someone', email: 'someone@example.com', size: 'xs', labelled: false, role: null, profile_id: member.profile_id, presence: true
+  endcapture
+  assign expected_class = 'pos-support-avatar-role-' | append: member.role
+  assign ok = out | matches: expected_class
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: ok, expected: true, field_name: 'role looked up from the profile id'
+  assign ok = out | matches: 'pos-support-avatar-presence pos-support-presence-'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: ok, expected: true, field_name: 'availability dot shown'
+%}

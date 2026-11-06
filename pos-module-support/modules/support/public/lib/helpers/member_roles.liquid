@@ -1,0 +1,22 @@
+{% doc %}
+  Role and availability of every active team member, keyed by profile id:
+  { "<profile_id>": { "role": "agent|manager|admin", "availability": "available|away|off" } }.
+  Built once per request from queries/team_members/all_active (itself
+  memoised), for avatars (design review C).
+{% enddoc %}
+{% liquid
+  assign cached = context.exports.support_member_roles.map
+  if cached != blank
+    return cached
+  endif
+  function members = 'modules/support/queries/team_members/all_active'
+  assign map = {}
+  for m in members
+    assign entry = { "role": null, "availability": null }
+    assign entry.role = m.role
+    assign entry.availability = m.availability | default: 'available'
+    assign map[m.profile_id] = entry
+  endfor
+  export map, namespace: 'support_member_roles'
+  return map
+%}

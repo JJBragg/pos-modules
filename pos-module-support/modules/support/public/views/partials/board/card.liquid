@@ -25,15 +25,13 @@
     <span class="pos-support-number">#{{ ticket.number }}</span>
     {% if at_risk %}
       {% render 'modules/support/badges/sla', state: ticket.sla_state %}
-    {% elsif assignee %}
-      {% render 'modules/support/avatar', name: assignee_name, email: assignee.email, size: 'xs', labelled: true %}
     {% endif %}
   </p>
   <h3 id="card-{{ ticket.id }}" class="pos-support-card-title"><a href="/support-desk/tickets/{{ ticket.id }}">{{ ticket.subject }}</a></h3>
   <p class="pos-support-card-meta">
     {% render 'modules/support/badges/department', department: department, variant: 'quiet' %}
     <span class="pos-support-card-requester">{{ requester.name | default: requester.emails.first }}</span>
-    {% if at_risk and assignee %}{% render 'modules/support/avatar', name: assignee_name, email: assignee.email, size: 'xs', labelled: true %}{% endif %}
+    {% if assignee %}<span class="pos-support-card-assignee">{% render 'modules/support/avatar', name: assignee_name, email: assignee.email, size: 'xs', labelled: true, profile_id: ticket.assignee_id, presence: true, role: null %}</span>{% endif %}
   </p>
   <form action="/support-desk/board/move" method="post" class="pos-support-move">
     <input type="hidden" name="authenticity_token" value="{{ context.authenticity_token }}">

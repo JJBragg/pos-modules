@@ -120,6 +120,8 @@
     --pos-support-avatar-6: #ffedd5; --pos-support-avatar-6-fg: #9a3412;
     --pos-support-avatar-7: #e0e7ff; --pos-support-avatar-7-fg: #3730a3;
     --pos-support-email-frame-background: #ffffff;
+    /* customer avatars (design review C): neutral grey, 8:1+ */
+    --pos-support-avatar-customer: #e5e7eb; --pos-support-avatar-customer-fg: #374151;
     /* department markers (design review B): solid colour, fixed, never the brand */
     --pos-support-dept-fg: #ffffff;
     --pos-support-dept-neutral: #4a4f57;
@@ -182,6 +184,7 @@
     --pos-support-avatar-5: #11403c; --pos-support-avatar-5-fg: #99f6e4;
     --pos-support-avatar-6: #4a2610; --pos-support-avatar-6-fg: #fed7aa;
     --pos-support-avatar-7: #262a5c; --pos-support-avatar-7-fg: #c7d2fe;
+    --pos-support-avatar-customer: #3a3f47; --pos-support-avatar-customer-fg: #e5e7eb;
     --pos-support-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
     --pos-support-shadow-md: 0 4px 12px rgb(0 0 0 / 0.4), 0 1px 3px rgb(0 0 0 / 0.3);
     /* department markers (design review B): solid colour, fixed, never the brand */
@@ -237,6 +240,7 @@
       --pos-support-avatar-5: #11403c; --pos-support-avatar-5-fg: #99f6e4;
       --pos-support-avatar-6: #4a2610; --pos-support-avatar-6-fg: #fed7aa;
       --pos-support-avatar-7: #262a5c; --pos-support-avatar-7-fg: #c7d2fe;
+      --pos-support-avatar-customer: #3a3f47; --pos-support-avatar-customer-fg: #e5e7eb;
       --pos-support-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
       --pos-support-shadow-md: 0 4px 12px rgb(0 0 0 / 0.4), 0 1px 3px rgb(0 0 0 / 0.3);
       /* department markers (design review B): solid colour, fixed, never the brand */
@@ -446,6 +450,7 @@
   /* avatars */
   .pos-support-avatar {
     --size: 1.5rem;
+    position: relative;
     display: inline-grid;
     place-items: center;
     flex: none;
@@ -462,6 +467,59 @@
     user-select: none;
     box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 14%, transparent);
   }
+
+  /* roles (design review C): managers, admins and the system in the solid brand
+     colour, customers grey; agents keep their pale per-person colour */
+  .pos-support-avatar:is(.pos-support-avatar-role-manager, .pos-support-avatar-role-admin, .pos-support-avatar-role-system) {
+    --pos-support-avatar-bg: var(--pos-support-accent);
+    --pos-support-avatar-fg: var(--pos-support-accent-text);
+    box-shadow: none;
+  }
+
+  .pos-support-avatar-role-customer {
+    --pos-support-avatar-bg: var(--pos-support-avatar-customer);
+    --pos-support-avatar-fg: var(--pos-support-avatar-customer-fg);
+  }
+
+  .pos-support-avatar .pos-support-icon {
+    inline-size: calc(var(--size) * 0.5);
+    block-size: calc(var(--size) * 0.5);
+  }
+
+  .pos-support-avatar-badge {
+    position: absolute;
+    inset-block-start: -0.1875rem;
+    inset-inline-end: -0.25rem;
+    display: grid;
+    place-items: center;
+    inline-size: 0.9375rem;
+    block-size: 0.9375rem;
+    border-radius: 50%;
+    background: var(--pos-support-accent);
+    color: var(--pos-support-accent-text);
+    box-shadow: 0 0 0 1.5px var(--pos-support-bg);
+  }
+
+  .pos-support-avatar .pos-support-avatar-badge .pos-support-icon {
+    inline-size: 0.5625rem;
+    block-size: 0.5625rem;
+    fill: currentColor;
+  }
+
+  /* availability: filled, half filled, hollow ring, so not by colour alone */
+  .pos-support-avatar-presence {
+    position: absolute;
+    inset-block-end: -0.0625rem;
+    inset-inline-end: -0.0625rem;
+    inline-size: max(0.5rem, calc(var(--size) * 0.3));
+    block-size: max(0.5rem, calc(var(--size) * 0.3));
+    border-radius: 50%;
+    box-shadow: 0 0 0 1.5px var(--pos-support-bg);
+  }
+
+  .pos-support-avatar-presence.pos-support-presence-available { background: var(--pos-support-presence-available); }
+  .pos-support-avatar-presence.pos-support-presence-away { background: linear-gradient(90deg, var(--pos-support-presence-away) 50%, var(--pos-support-bg) 50%); box-shadow: 0 0 0 1.5px var(--pos-support-bg), inset 0 0 0 1.5px var(--pos-support-presence-away); }
+  .pos-support-avatar-presence.pos-support-presence-off { background: var(--pos-support-bg); box-shadow: 0 0 0 1.5px var(--pos-support-bg), inset 0 0 0 1.5px var(--pos-support-presence-off); }
 
   .pos-support-avatar-xs { --size: 1.375rem; }
   .pos-support-avatar-md { --size: 2rem; }
@@ -2178,11 +2236,10 @@
     align-items: center;
   }
 
+  /* automatic emails: the mail icon on the brand colour (design review C) */
   .pos-support-message-system > .pos-support-avatar {
     --size: 2rem;
-    background: var(--pos-support-bg);
-    color: var(--pos-support-text-muted);
-    box-shadow: 0 0 0 3px var(--pos-support-bg-subtle), inset 0 0 0 1px var(--pos-support-border);
+    box-shadow: 0 0 0 3px var(--pos-support-bg-subtle);
   }
 
   .pos-support-system {
@@ -2772,8 +2829,15 @@
   }
 
   .pos-support-card-meta > .pos-support-avatar,
-  .pos-support-card-meta > .pos-support-sla {
+  .pos-support-card-meta > .pos-support-sla,
+  .pos-support-card-assignee {
     margin-inline-start: auto;
+  }
+
+  /* the assignee always sits bottom-right (design review C) */
+  .pos-support-card-assignee {
+    display: inline-flex;
+    flex: none;
   }
 
   .pos-support-card-meta .pos-support-card-requester {

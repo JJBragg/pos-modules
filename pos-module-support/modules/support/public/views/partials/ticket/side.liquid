@@ -72,7 +72,7 @@
   <section class="pos-support-side-section" aria-labelledby="pos-support-side-requester">
     <h2 id="pos-support-side-requester">{{ 'modules/support/ticket.requester' | t }}</h2>
     <div class="pos-support-contact">
-      {% render 'modules/support/avatar', name: data.requester.name, email: requester_email, size: 'md', labelled: false %}
+      {% render 'modules/support/avatar', name: data.requester.name, email: requester_email, size: 'md', labelled: false, role: 'customer', profile_id: null, presence: false %}
       <a href="/support-desk/contacts/{{ data.requester.id }}"><strong>{{ data.requester.name | default: requester_email }}</strong></a>
       <span class="pos-support-contact-email">{{ data.requester.emails | join: ', ' }}</span>
     </div>

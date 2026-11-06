@@ -30,7 +30,7 @@
   <td class="pos-support-cell-status">{% render 'modules/support/badges/status', status: status %}</td>
   <td class="pos-support-cell-assignee">
     {% if assignee %}
-      <span class="pos-support-person">{% render 'modules/support/avatar', name: assignee_name, email: assignee.email, size: 'xs', labelled: false %}<span class="pos-support-person-name">{{ assignee_name }}</span></span>
+      <span class="pos-support-person">{% render 'modules/support/avatar', name: assignee_name, email: assignee.email, size: 'xs', labelled: false, profile_id: assignee.id, presence: true, role: null %}<span class="pos-support-person-name">{{ assignee_name }}</span></span>
     {% else %}
       <span class="pos-support-muted">{{ 'modules/support/ticket.unassigned' | t }}</span>
     {% endif %}

@@ -84,7 +84,7 @@
       <div class="pos-support-rail-foot">
         <a class="pos-support-rail-user" href="/support-desk/profile" {% if pathname == '/support-desk/profile' %}aria-current="page"{% endif %}>
           <span class="pos-support-avatar-wrap">
-            {% render 'modules/support/avatar', name: me_name, email: me_email, size: null, labelled: false %}
+            {% render 'modules/support/avatar', name: me_name, email: me_email, size: null, labelled: false, role: member.role, profile_id: null, presence: false %}
           </span>
           <span class="pos-support-rail-user-name">
             <span>{{ me_name }}</span>
