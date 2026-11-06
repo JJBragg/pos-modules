@@ -1,0 +1,25 @@
+{% doc %}
+  One-off data fix (design review D): the seeded "Under review" (review)
+  and "Spam" (spam) statuses get their own icons (eye, ban) when nobody has
+  picked one yet, so they no longer look like In progress and Closed.
+  Returns the number updated.
+{% enddoc %}
+{% liquid
+  assign updated = 0
+  assign defaults = { "review": "eye", "spam": "ban" }
+  function statuses = 'modules/support/queries/statuses/all'
+  for pair in defaults
+    assign status = statuses.by_key[pair[0]]
+    if status == blank or status.icon != blank
+      continue
+    endif
+    assign values = { "icon": null }
+    assign values.icon = pair[1]
+    function props = 'modules/support/helpers/props', values: values
+    # platformos-check-disable NestedGraphQLQuery
+    graphql u = 'modules/support/records/update', id: status.id, properties: props
+    # platformos-check-enable NestedGraphQLQuery
+    assign updated = updated | plus: 1
+  endfor
+  return updated
+%}

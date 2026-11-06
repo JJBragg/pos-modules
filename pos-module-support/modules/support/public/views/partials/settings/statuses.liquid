@@ -58,6 +58,13 @@
         </select>
         <p class="pos-supplementary">{{ 'modules/support/settings.category_lock' | t }}</p>
       </fieldset>
+      <fieldset class="pos-support-icon-picker">
+        <legend>{{ 'modules/support/settings.status_icon' | t }}</legend>
+        <label><input type="radio" name="icon" value="" {% if edit.icon == blank %}checked{% endif %}>{{ 'modules/support/settings.status_icon_default' | t }}</label>
+        {% for name in data.status_icons.allowed %}
+          <label title="{{ name }}"><input type="radio" name="icon" value="{{ name }}" {% if edit.icon == name %}checked{% endif %}>{% render 'modules/support/icon', name: name, size: null %}<span class="pos-support-sr-only">{{ name | replace: '-', ' ' }}</span></label>
+        {% endfor %}
+      </fieldset>
       <fieldset><label for="st-position">{{ 'modules/support/settings.position' | t }}</label><input id="st-position" type="number" name="position" value="{{ edit.position | default: 50 }}" min="1" max="99"></fieldset>
       <fieldset><label><input type="checkbox" name="active" value="true" {% if edit == blank or edit.active %}checked{% endif %} {% if edit.system %}disabled{% endif %}> {{ 'modules/support/settings.active' | t }}</label>{% if edit.system %}<input type="hidden" name="active" value="true">{% endif %}</fieldset>
       <button type="submit" class="pos-button pos-button-primary">{{ 'modules/support/settings.save' | t }}</button>

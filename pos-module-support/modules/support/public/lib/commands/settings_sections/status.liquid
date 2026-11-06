@@ -2,7 +2,7 @@
   Creates or updates a status (labels over the fixed categories, D-5). A
   status's category is locked once a ticket used it; system statuses (New,
   Closed, Spam) stay active. Returns { valid, error, notice }.
-  @param {object} params - id?, key (new only), label, customer_label, category, position, active
+  @param {object} params - id?, key (new only), label, customer_label, category, position, active, icon (one of helpers/status_icons allowed; blank = the category's icon)
 {% enddoc %}
 {% liquid
   assign result = { "valid": false, "error": null, "notice": "modules/support/settings.saved" }
@@ -14,7 +14,17 @@
     return result
   endif
 
+  function status_icons = 'modules/support/helpers/status_icons'
+  assign icon = params.icon | strip
+  if icon != blank
+    unless status_icons.allowed contains icon
+      assign result.error = 'modules/support/settings.errors.status_icon'
+      return result
+    endunless
+  endif
+
   assign values = { "active": true }
+  assign values.icon = icon
   assign values.label = label | truncate: 40, ''
   assign values.customer_label = params.customer_label | strip | truncate: 60, ''
   assign values.position = params.position | default: 50 | plus: 0

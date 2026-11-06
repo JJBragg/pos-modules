@@ -1,9 +1,15 @@
 {% doc %}
-  Status pill: semantic token per colour key plus an icon and text (never colour alone).
-  @param {object} status - Status record (label, color)
+  Status pill: semantic token per colour key plus an icon and text (never
+  colour alone). The icon is the status's own (design review D) or, when
+  it has none, its colour category's.
+  @param {object} status - Status record (label, color, icon)
 {% enddoc %}
 {% liquid
   assign color = status.color | default: 'open'
-  assign icons = { "new": "sparkles", "open": "circle-dot", "pending": "clock", "onhold": "circle-pause", "onhold-eng": "rocket", "solved": "circle-check", "closed": "archive" }
+  function icons = 'modules/support/helpers/status_icons'
+  assign icon = icons.by_color[color] | default: 'circle-dot'
+  if icons.allowed contains status.icon
+    assign icon = status.icon
+  endif
 %}
-<span class="pos-support-badge pos-support-status pos-support-status-{{ color }}">{% render 'modules/support/icon', name: icons[color], size: null %}{{ status.label | default: '—' }}</span>
+<span class="pos-support-badge pos-support-status pos-support-status-{{ color }}">{% render 'modules/support/icon', name: icon, size: null %}{{ status.label | default: '—' }}</span>

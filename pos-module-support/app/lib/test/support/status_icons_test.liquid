@@ -1,0 +1,41 @@
+{% doc %}
+  @param {object} contract - The test contract object
+{% enddoc %}
+{% liquid
+  # design review D: each status can carry its own icon
+  assign own = { "label": "Under review", "color": "open", "icon": "eye" }
+  capture out
+    render 'modules/support/badges/status', status: own
+  endcapture
+  assign ok = out | matches: 'psi-eye'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: ok, expected: true, field_name: 'a status with its own icon shows it'
+
+  assign plain = { "label": "In progress", "color": "open", "icon": null }
+  capture out
+    render 'modules/support/badges/status', status: plain
+  endcapture
+  assign ok = out | matches: 'psi-circle-dot'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: ok, expected: true, field_name: 'without one it shows the category icon'
+
+  assign odd = { "label": "Odd", "color": "closed", "icon": "javascript" }
+  capture out
+    render 'modules/support/badges/status', status: odd
+  endcapture
+  assign ok = out | matches: 'psi-archive'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: ok, expected: true, field_name: 'an unknown icon falls back to the category icon'
+
+  # Settings: only listed icons are saved
+  function statuses = 'modules/support/queries/statuses/all'
+  assign review = statuses.by_key.review
+  assign p = { "label": null, "customer_label": null, "position": null, "active": "true", "icon": "skull" }
+  assign p.id = review.id
+  assign p.label = review.label
+  assign p.customer_label = review.customer_label
+  assign p.position = review.position
+  function r = 'modules/support/commands/settings_sections/status', params: p
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: r.error, expected: 'modules/support/settings.errors.status_icon', field_name: 'an icon outside the list is refused'
+
+  # the seeded statuses got their icons (migration or seed)
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: review.icon, expected: 'eye', field_name: 'Under review shows the eye'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: statuses.by_key.spam.icon, expected: 'ban', field_name: 'Spam shows the ban sign'
+%}

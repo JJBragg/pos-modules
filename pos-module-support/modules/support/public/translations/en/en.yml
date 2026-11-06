@@ -755,6 +755,8 @@ en:
     mode_light: Always light
     mode_dark: Always dark
     department_color: Colour (marker in the sidebar, lists and cards)
+    status_icon: Icon
+    status_icon_default: Same as the category
     colors:
       indigo: Indigo
       violet: Violet
@@ -783,6 +785,7 @@ en:
       spam_threshold: Enter a spam threshold from 0 to 100.
       use_host_with_overrides: "Untick \"Use the host app's branding\" to save your own name, colours or images."
       department_color: Choose one of the department colours.
+      status_icon: Choose one of the listed icons.
       theme_mode: Choose Follow the host app, Follow the device, Always light or Always dark.
       rail_theme: Choose how the sidebar logo is picked.
       section: Unknown settings section.

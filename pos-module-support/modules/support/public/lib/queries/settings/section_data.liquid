@@ -25,6 +25,8 @@
         endif
       endfor
     when 'statuses'
+      function status_icons = 'modules/support/helpers/status_icons'
+      assign data.status_icons = status_icons
       function statuses = 'modules/support/queries/statuses/all'
       assign data.statuses = statuses.list
       assign data.edit = statuses.by_id[edit_id]

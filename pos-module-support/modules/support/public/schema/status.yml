@@ -16,3 +16,5 @@ properties:
     type: boolean
   - name: active
     type: boolean
+  - name: icon
+    type: string

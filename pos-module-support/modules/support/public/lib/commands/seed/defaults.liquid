@@ -33,14 +33,14 @@
 %}
 {% assign statuses = [
     { "key": "new", "label": "New", "customer_label": "Received", "category": "new", "color": "new", "position": 1, "system": true, "active": true },
-    { "key": "review", "label": "Under review", "customer_label": "In progress", "category": "open", "color": "open", "position": 2, "system": false, "active": true },
+    { "key": "review", "label": "Under review", "customer_label": "In progress", "category": "open", "color": "open", "icon": "eye", "position": 2, "system": false, "active": true },
     { "key": "progress", "label": "In progress", "customer_label": "In progress", "category": "open", "color": "open", "position": 3, "system": false, "active": true },
     { "key": "customer", "label": "Waiting on customer", "customer_label": "Awaiting your reply", "category": "pending", "color": "pending", "position": 4, "system": false, "active": true },
     { "key": "deploy", "label": "Waiting on deploy", "customer_label": "In progress", "category": "on_hold", "color": "onhold-eng", "position": 5, "system": false, "active": true },
     { "key": "hold", "label": "On hold", "customer_label": "In progress", "category": "on_hold", "color": "onhold", "position": 6, "system": false, "active": true },
     { "key": "confirm", "label": "Confirmation", "customer_label": "Resolved, please confirm", "category": "solved", "color": "solved", "position": 7, "system": false, "active": true },
     { "key": "closed", "label": "Closed", "customer_label": "Closed", "category": "closed", "color": "closed", "position": 8, "system": true, "active": true },
-    { "key": "spam", "label": "Spam", "customer_label": "", "category": "closed", "color": "closed", "position": 9, "system": true, "active": true }
+    { "key": "spam", "label": "Spam", "customer_label": "", "category": "closed", "color": "closed", "icon": "ban", "position": 9, "system": true, "active": true }
   ] %}
 {% liquid
   assign status_keys = existing.statuses.results | map: 'key'

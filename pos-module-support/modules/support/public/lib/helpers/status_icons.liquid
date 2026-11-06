@@ -1,0 +1,10 @@
+{% doc %}
+  Icons a status can carry (design review D): every status shows an icon
+  next to its text. The default comes from its colour category; an admin
+  can pick another one from this list in Settings → Statuses.
+  Returns { allowed: [names], by_color: { color key: default icon } }.
+{% enddoc %}
+{% liquid
+  assign icons = { "allowed": ["sparkles", "eye", "circle-dot", "clock", "hourglass", "alarm-clock", "rocket", "circle-pause", "circle-check", "check", "archive", "ban", "lock", "bell", "user", "users", "mail", "tag", "git-merge", "triangle-alert"], "by_color": { "new": "sparkles", "open": "circle-dot", "pending": "clock", "onhold": "circle-pause", "onhold-eng": "rocket", "solved": "circle-check", "closed": "archive" } }
+  return icons
+%}

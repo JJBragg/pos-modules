@@ -10,6 +10,7 @@ query {
       position: property_int(name: "position")
       system: property_boolean(name: "system")
       active: property_boolean(name: "active")
+      icon: property(name: "icon")
     }
   }
 }
