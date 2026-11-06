@@ -47,7 +47,8 @@ test('FIX-04 a board column over 200 cards has a pager', async ({ browser }) => 
   await newColumn.getByRole('link', { name: /Show more/ }).click();
   await newColumn.locator('a[rel=next]').click();
   await expect(page).toHaveURL(/lane_page=2/);
-  await expect(newColumn.locator('.pos-support-card')).toHaveCount(total - 200);
+  // a page holds at most 200 cards; the E2E department keeps growing
+  await expect(newColumn.locator('.pos-support-card')).toHaveCount(Math.min(total - 200, 200));
   await page.goto(desk(`/support-desk?view=all_open&layout=list&group=status&department_id=${department}&expand=new&lane_page=99`));
   await expect(page.locator('.pos-support-lane-pager').first()).not.toContainText('801');
   await context.close();
@@ -114,8 +115,11 @@ test('FIX-11 a reply keeps the queue context; a department change keeps the draf
 
   const draft = unique('draft kept');
   await page.fill('#pos-support-body', draft);
-  const other = await page.locator('#pos-support-side-department option:not(:checked)').first().getAttribute('value');
-  await Promise.all([page.waitForEvent('load'), page.selectOption('#pos-support-side-department', other!)]);
+  // the department field is the marker dropdown (design handoff 3.24); pick another department
+  const department = page.getByRole('combobox', { name: 'Department' });
+  await department.click();
+  const other = page.getByRole('listbox', { name: 'Department' }).locator('[role=option][aria-selected=false]').first();
+  await Promise.all([page.waitForEvent('load'), other.click()]);
   await expect(page.locator('#pos-support-body')).toHaveValue(draft, { timeout: 15000 });
   await context.close();
 });

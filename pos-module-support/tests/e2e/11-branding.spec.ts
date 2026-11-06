@@ -27,14 +27,20 @@ test('BR-1 a dark sidebar shows the dark logo in light mode; host icon replaces 
 
     await page.fill('#br-logo-dark', DARK);
     await page.selectOption('#br-rail-theme', 'dark');
-    await page.fill('#br-icon', ICON);
     await form.locator('button[type=submit]').click();
     await expect(page.locator('[data-support-mixed-logos]')).toHaveCount(0);
     await expect(page.locator('#br-rail-theme')).toHaveValue('dark');
     await expect(page.locator('.pos-support-brand-preview .pos-support-brand-logo')).toHaveAttribute('src', DARK);
 
     await page.goto(desk('/support-desk'));
-    await expect(page.locator('.pos-support-rail .pos-support-brand-logo').first()).toHaveAttribute('src', DARK);
+    await expect(page.locator('#pos-support-rail .pos-support-brand-logo').first()).toHaveAttribute('src', DARK);
+
+    // a host icon then wins in the sidebar (design handoff 3.20) and replaces the module icons
+    await page.goto(desk('/support-desk/settings/branding'));
+    await page.fill('#br-icon', ICON);
+    await form.locator('button[type=submit]').click();
+    await page.goto(desk('/support-desk'));
+    await expect(page.locator('#pos-support-rail .pos-support-brand-logo').first()).toHaveAttribute('src', ICON);
     await expect(page.locator('link[rel=apple-touch-icon]')).toHaveAttribute('href', ICON);
 
     const manifest = await (await request.get(desk('/support-desk/manifest.json'))).json();
@@ -56,7 +62,7 @@ test('BR-3 with both logos and no rail_theme, the logo follows the sidebar colou
   const { context, page } = await contextFor(browser, users.superadmin);
   await page.emulateMedia({ colorScheme: 'light' });
   const form = page.locator('form:has(#br-use-host)');
-  const logo = page.locator('.pos-support-rail .pos-support-brand-logo').first();
+  const logo = page.locator('#pos-support-rail .pos-support-brand-logo').first();
   try {
     await page.goto(desk('/support-desk/settings/branding'));
     await page.fill('#br-logo', LIGHT);
@@ -132,7 +138,8 @@ test('BR-4 logos and the app icon can be uploaded; a non-square icon is refused 
     expect(served.status()).toBe(200);
     expect(served.headers()['content-type']).toBe('image/png');
     await page.goto(desk('/support-desk'));
-    await expect(page.locator('.pos-support-rail .pos-support-brand-logo').first()).toHaveAttribute('src', logo);
+    // with both, the uploaded icon is the sidebar mark (design handoff 3.20)
+    await expect(page.locator('#pos-support-rail .pos-support-brand-logo').first()).toHaveAttribute('src', icon);
     await expect(page.locator('link[rel=apple-touch-icon]')).toHaveAttribute('href', icon);
   } finally {
     await page.goto(desk('/support-desk/settings/branding'));

@@ -93,15 +93,12 @@ for (const scheme of ['light', 'dark'] as const) {
   });
 }
 
-// design A: any host brand colour keeps the tinted surfaces readable, e.g. a very
-// light yellow and a deep green (what a host's headscripts stylesheet would set)
-const brands = [
-  { name: 'light yellow', bg: '#ffd400', fg: '#1a1a1a' },
-  { name: 'deep green', bg: '#0e5c4a', fg: '#ffffff' },
-];
-for (const brand of brands) {
+// design handoff 4.1: the designer's five host themes, light and dark, keep every
+// page accessible (Sample host 3's too-light brand is shifted by the server)
+const themes = ['default', 'pos', 'sample-host-1', 'sample-host-2', 'sample-host-3'];
+for (const theme of themes) {
   for (const scheme of ['light', 'dark'] as const) {
-    test(`accessibility with a ${brand.name} brand (${scheme})`, async ({ browser }) => {
+    test(`accessibility in the ${theme} theme (${scheme})`, async ({ browser }) => {
       const ticket = liquid(`{% liquid
   graphql r = 'modules/support/tickets/search', limit: 1
   assign out = { "id": null }
@@ -110,14 +107,16 @@ for (const brand of brands) {
 %}`);
       const { context, page } = await contextFor(browser, users.superadmin, { colorScheme: scheme });
       const problems: string[] = [];
+      await page.goto(`${BASE}/support-desk?host_theme=${theme}`);
       for (const path of ['/support-desk', '/support-desk/board', `/support-desk/tickets/${ticket.id}`, '/support-desk/settings/branding']) {
         await page.goto(`${BASE}${path}`);
-        await page.addStyleTag({ content: `:root { --pos-color-button-primary-background: ${brand.bg} !important; --pos-color-button-primary-text: ${brand.fg} !important; }` });
+        if (scheme === 'dark') await page.evaluate(() => document.documentElement.classList.add('pos-theme-dark', 'pos-theme-darkEnabled'));
         const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
         for (const v of results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')) {
           problems.push(`${path}: ${v.id} (${v.impact}) × ${v.nodes.length}: ${v.nodes.slice(0, 3).map((n) => n.target.join(' ')).join(' | ')}`);
         }
       }
+      await page.goto(`${BASE}/support-desk?host_theme=default`);
       expect(problems, problems.join('\n')).toEqual([]);
       await context.close();
     });
