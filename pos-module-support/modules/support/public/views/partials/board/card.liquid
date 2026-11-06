@@ -20,13 +20,12 @@
   endif
 %}
 <article class="pos-support-card{% if ticket.sla_state == 'overdue' %} pos-support-card-overdue{% endif %}" draggable="true" data-ticket-id="{{ ticket.id }}" data-status-key="{{ status.key }}" data-priority="{{ ticket.priority }}" data-created="{{ created }}" aria-labelledby="card-{{ ticket.id }}">
+  <span class="pos-support-card-grip" aria-hidden="true">{% render 'modules/support/icon', name: 'grip-vertical', size: null %}</span>
   <p class="pos-support-card-meta">
     {% render 'modules/support/badges/priority', priority: ticket.priority %}
     <span class="pos-support-number">#{{ ticket.number }}</span>
-    {% if ticket.sla_state == 'overdue' %}
-      {%- comment -%} design review G: a red "!" that opens into an "! Overdue" pill on hover and focus; the word is always there for screen readers and touch {%- endcomment -%}
-      <span class="pos-support-overdue-flag"><span class="pos-support-overdue-mark" aria-hidden="true">!</span><span class="pos-support-overdue-text">{{ 'modules/support/sla.overdue' | t }}</span></span>
-    {% elsif at_risk %}
+    {%- comment -%} overdue: the red "!" pinned to the card edge that opens to "! Overdue" (handoff 3.25) {%- endcomment -%}
+    {% if at_risk %}
       {% render 'modules/support/badges/sla', state: ticket.sla_state %}
     {% endif %}
   </p>

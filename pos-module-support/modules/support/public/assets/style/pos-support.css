@@ -2950,7 +2950,7 @@
     min-block-size: 3rem;
     overflow-y: auto;
     scrollbar-width: thin;
-    padding: 0.125rem 0.5rem 0.5rem;
+    padding: 0.75rem 0.875rem 0.875rem 1rem;
   }
 
   .pos-support-column-cards:empty::before {
@@ -2985,98 +2985,147 @@
     background: var(--pos-support-bg);
     box-shadow: var(--pos-support-shadow-sm);
     cursor: grab;
-    transition: box-shadow 160ms var(--pos-support-ease), transform 160ms var(--pos-support-ease);
   }
 
-  /* design review G: pointing at, focusing or dragging a card outlines it in the
-     brand colour and lifts it slightly; an overdue card outlines in the fixed SLA red */
-  .pos-support-card:is(:hover, :focus-within),
-  .pos-support-card.pos-support-dragging {
-    outline: 2px solid var(--pos-support-accent-ink);
-    outline-offset: -1px;
-    box-shadow: var(--pos-support-shadow-md);
-    transform: scale(1.02);
+  /* 3.18 card hover and drag (design handoff): only the background grows.
+     The surface, border and shadow live on ::before, which expands 6px
+     vertically, 3px right and 8px left (room for the drag handle) with a 3px
+     translucent brand ring and a spreading brand shadow; the content stays put. */
+  .pos-support-card {
+    isolation: isolate;
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
   }
 
-  .pos-support-card-overdue:is(:hover, :focus-within, .pos-support-dragging) {
-    outline-color: var(--pos-support-sla-overdue);
+  .pos-support-card::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    z-index: -1;
+    border: 1px solid var(--pos-support-border);
+    border-radius: var(--pos-support-radius-card);
+    background: var(--pos-support-bg);
+    box-shadow: var(--pos-support-shadow-sm);
+    transition: inset 160ms var(--pos-support-ease), border-radius 160ms var(--pos-support-ease), box-shadow 160ms var(--pos-support-ease);
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .pos-support-card {
-      transition: none;
-    }
-
-    .pos-support-card:is(:hover, :focus-within),
-    .pos-support-card.pos-support-dragging {
-      transform: none;
-    }
+  .pos-support-card:is(:hover, :active, .pos-support-dragging) {
+    z-index: 1;
   }
 
-  .pos-support-overdue-flag {
+  .pos-support-card:is(:hover, :active, .pos-support-dragging)::before {
+    inset: -7px -4px -7px -9px;
+    border-color: transparent;
+    border-radius: calc(var(--pos-support-radius-card) + 4px);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--pos-support-brand) 22%, transparent), var(--card-lift-shadow);
+  }
+
+  /* keyboard focus inside a card: the same ring, so it is visible without a pointer */
+  .pos-support-card:focus-within::before {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--pos-support-brand) 22%, transparent), var(--pos-support-shadow-sm);
+  }
+
+  /* 3.25 an overdue card's hover uses the utility red, not the brand */
+  .pos-support-card-overdue:is(:hover, :active, .pos-support-dragging)::before {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--pos-support-sla-overdue) 35%, transparent), 0 4px 30px 2px color-mix(in srgb, var(--pos-support-sla-overdue) 28%, transparent);
+  }
+
+  /* 3.19 drag handle (Lucide grip-vertical) in the grown background's left band */
+  .pos-support-card-grip {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: -0.4375rem;
+    margin-block: auto;
+    inline-size: 0.875rem;
+    block-size: 1.125rem;
+    color: var(--pos-support-text-muted);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 120ms var(--pos-support-ease);
+  }
+
+  .pos-support-card-grip .pos-support-icon {
+    inline-size: 100%;
+    block-size: 100%;
+  }
+
+  .pos-support-card:is(:hover, :active, .pos-support-dragging) .pos-support-card-grip {
+    opacity: 1;
+  }
+
+  /* 3.25 overdue: a red "!" pinned to the card's right edge, sticking out,
+     centred on the first row. At rest a 1rem dot with a looping ping ring; on
+     hover or focus it grows to 1.25rem, opens leftwards to "! Overdue" and stops.
+     The word is always in the DOM. */
+  .pos-support-card .pos-support-sla-overdue {
+    position: absolute;
+    inset-block-start: 0.6875rem;
+    inset-inline-end: -0.5rem;
+    z-index: 2;
     display: inline-flex;
     align-items: center;
-    gap: 0.25rem;
-    margin-inline-start: auto;
-    border-radius: var(--pos-support-radius-pill);
+    gap: 0;
+    box-sizing: border-box;
+    block-size: 1rem;
+    max-inline-size: 1rem;
+    margin: 0;
+    padding: 0;
+    border-radius: 999px;
+    overflow: hidden;
+    background: var(--pos-support-priority-p0-bg);
     color: var(--pos-support-priority-p0-fg);
     font-size: var(--pos-support-text-small);
     font-weight: 700;
-    line-height: 1;
-  }
-
-  .pos-support-overdue-mark {
-    display: inline-grid;
-    place-items: center;
-    inline-size: 1.125rem;
-    block-size: 1.125rem;
-    border-radius: 50%;
-    background: var(--pos-support-priority-p0-bg);
-    color: var(--pos-support-priority-p0-fg);
-  }
-
-  /* at rest only the "!" shows; the word stays for screen readers */
-  .pos-support-overdue-text {
-    position: absolute;
-    inline-size: 1px;
-    block-size: 1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
     white-space: nowrap;
+    animation: pos-support-overdue-ping 1.8s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
+    transition: max-inline-size 200ms var(--pos-support-ease), padding 200ms var(--pos-support-ease), block-size 200ms var(--pos-support-ease), inset 200ms var(--pos-support-ease);
   }
 
-  .pos-support-card-overdue:is(:hover, :focus-within, .pos-support-dragging) .pos-support-overdue-flag {
+  .pos-support-card .pos-support-sla-overdue > svg {
+    display: none;
+  }
+
+  .pos-support-card .pos-support-sla-overdue::before {
+    content: "!";
+    flex: none;
+    inline-size: 1rem;
+    text-align: center;
+    font-size: 0.6875rem;
+    font-weight: 800;
+    transition: inline-size 200ms var(--pos-support-ease), margin 200ms var(--pos-support-ease);
+  }
+
+  .pos-support-card:is(:hover, :active, :focus-within) .pos-support-sla-overdue {
+    block-size: 1.25rem;
+    max-inline-size: 7rem;
+    inset-block-start: 0.5625rem;
+    inset-inline-end: -0.625rem;
     padding-inline-end: 0.5rem;
-    background: var(--pos-support-priority-p0-bg);
+    animation: none;
   }
 
-  .pos-support-card-overdue:is(:hover, :focus-within, .pos-support-dragging) .pos-support-overdue-text {
-    position: static;
-    inline-size: auto;
-    block-size: auto;
-    overflow: visible;
-    clip: auto;
+  .pos-support-card:is(:hover, :active, :focus-within) .pos-support-sla-overdue::before {
+    inline-size: 0.75rem;
+    margin-inline: 0.1875rem 0.125rem;
+    font-size: 0.8125rem;
   }
 
-  /* no hover on touch screens: the pill shows all the time */
-  @media (hover: none) {
-    .pos-support-card-overdue .pos-support-overdue-flag {
-      padding-inline-end: 0.5rem;
-      background: var(--pos-support-priority-p0-bg);
-    }
+  @keyframes pos-support-overdue-ping {
+    0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--pos-support-priority-p0-bg) 60%, transparent); }
+    70% { box-shadow: 0 0 0 0.4375rem color-mix(in srgb, var(--pos-support-priority-p0-bg) 0%, transparent); }
+    100% { box-shadow: 0 0 0 0.4375rem color-mix(in srgb, var(--pos-support-priority-p0-bg) 0%, transparent); }
+  }
 
-    .pos-support-card-overdue .pos-support-overdue-text {
-      position: static;
-      inline-size: auto;
-      block-size: auto;
-      overflow: visible;
-      clip: auto;
+  @media (prefers-reduced-motion: reduce) {
+    .pos-support-card::before,
+    .pos-support-card .pos-support-sla-overdue,
+    .pos-support-card .pos-support-sla-overdue::before {
+      animation: none;
+      transition: none;
     }
   }
 
-  .pos-support-card:active {
-    cursor: grabbing;
-  }
 
   .pos-support-card[aria-busy="true"] {
     opacity: 0.6;
@@ -3263,15 +3312,27 @@
      never moves the cards below. */
   .pos-support-js .pos-support-card .pos-support-move {
     position: absolute;
-    z-index: 1;
+    z-index: 2;
     inset-inline: 0.75rem;
-    inset-block-end: 0.625rem;
+    inset-block-end: 0.5625rem;
+    align-items: center;
     padding-block-start: 0;
-    border-radius: var(--pos-support-radius-card);
+    border-radius: 0;
     background: var(--pos-support-bg);
+    box-shadow: 0 0 0 2px var(--pos-support-bg);
     opacity: 0;
     visibility: hidden;
     transition: opacity 120ms var(--pos-support-ease);
+  }
+
+  /* 3.23 the "Move to" form fits the 24px last row, never over the title */
+  .pos-support .pos-support-card .pos-support-move :is(select, .pos-button) {
+    --pos-support-control-height: 1.5rem;
+    --pos-support-control-height-small: 1.5rem;
+    block-size: 1.5rem;
+    min-block-size: 1.5rem;
+    padding-block: 0;
+    font-size: var(--pos-support-text-small);
   }
 
   .pos-support-js .pos-support-card:is(:hover, :focus-within) .pos-support-move {
