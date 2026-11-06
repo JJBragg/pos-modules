@@ -10,6 +10,7 @@
   function before = 'modules/support/helpers/settings'
   assign original_redirect = before.email_redirect_to | default: ''
   assign original_allow = before.email_allow_external
+  assign original_inbound = before.inbound_domain | default: ''
 
   assign message = { "subject": "Re: ticket [#42]", "headers": { "Message-ID": "<a@b>" } }
   assign message.from = { "email": "support@desk.test", "name": "Desk" }
@@ -49,6 +50,33 @@
   function sent = 'modules/support/commands/email/send', message: message
   function contract = 'modules/tests/assertions/equal', contract: contract, given: sent.ok, expected: false, field_name: 'a blocked message is not sent'
   function contract = 'modules/tests/assertions/equal', contract: contract, given: sent.error, expected: 'non_production_recipient_blocked', field_name: 'the reason reaches the caller'
+
+  # 5. the setup's own test message is exempt: it goes to the admin who
+  #    pressed the button, and Enable needs it to pass (#136 review)
+  function g = 'modules/support/helpers/email/recipient_guard', message: message, setup_test: true
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: g.action, expected: 'send', field_name: 'the setup test email is exempt'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: g.message.to.first.email, expected: 'customer@example.test', field_name: 'the setup test keeps its recipient'
+
+  # 6. the inbound check mails the desk's own inbound domain, which comes
+  #    straight back in: exempt, and not redirected even with an address set
+  function _ = 'modules/support/commands/settings/set', key: 'inbound_domain', value: 'in.desk.test'
+  function _ = 'modules/support/commands/settings/set', key: 'email_redirect_to', value: 'inbox@tester.test'
+  assign check = { "subject": "Inbound check" }
+  assign check.from = { "email": "support@desk.test", "name": "Desk" }
+  assign check_to = { "email": "check-abc123@in.desk.test" }
+  assign check.to = []
+  assign check.to << check_to
+  function g = 'modules/support/helpers/email/recipient_guard', message: check
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: g.action, expected: 'send', field_name: 'the inbound check is exempt'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: g.message.to.first.email, expected: 'check-abc123@in.desk.test', field_name: 'the inbound check address survives a redirect'
+
+  # a message to the inbound domain AND a customer is not exempt
+  assign outsider = { "email": "customer@example.test" }
+  assign check.to << outsider
+  function g = 'modules/support/helpers/email/recipient_guard', message: check
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: g.action, expected: 'redirect', field_name: 'one outside recipient ends the exemption'
+
+  function _ = 'modules/support/commands/settings/set', key: 'inbound_domain', value: original_inbound
 
   function _ = 'modules/support/commands/settings/set', key: 'email_redirect_to', value: original_redirect
   function _ = 'modules/support/commands/settings/set', key: 'email_allow_external', value: original_allow

@@ -5,6 +5,11 @@
   # AGENT_EMAIL is replaced by the suite before the file is executed.
   assign stub = 'https://' | append: context.location.host | append: '/test/sendgrid-stub'
   function _ = 'modules/support/commands/settings/set', key: 'email_api_base_url', value: stub
+  # the suite checks the recipient the desk addressed, so the
+  # non-production guard must neither redirect nor block it (#135).
+  # Nothing leaves the instance: email_api_base_url above is the stub.
+  function _ = 'modules/support/commands/settings/set', key: 'email_allow_external', value: true
+  function _ = 'modules/support/commands/settings/set', key: 'email_redirect_to', value: ''
   assign empty = []
   function _ = 'modules/support/commands/settings/set', key: 'test_stub_bodies', value: empty
 

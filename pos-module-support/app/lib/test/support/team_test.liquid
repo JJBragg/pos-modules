@@ -4,6 +4,16 @@
 {% liquid
   assign stub = 'https://' | append: context.location.host | append: '/test/sendgrid-stub'
   function _ = 'modules/support/commands/settings/set', key: 'email_api_base_url', value: stub
+  # the desk refuses real recipients on a non-production instance, and a
+  # redirect address rewrites them (#135). These cases assert on the
+  # address the desk chose, so they opt in, clear any redirect, and put
+  # both back at the end. Nothing leaves the instance: email_api_base_url
+  # above is this instance's own stub.
+  function email_safety_before = 'modules/support/helpers/settings'
+  assign original_allow_external = email_safety_before.email_allow_external
+  assign original_redirect_to = email_safety_before.email_redirect_to | default: ''
+  function _ = 'modules/support/commands/settings/set', key: 'email_allow_external', value: true
+  function _ = 'modules/support/commands/settings/set', key: 'email_redirect_to', value: ''
   assign suffix = 8 | random_string | downcase
 
   # an admin actor
@@ -146,4 +156,6 @@
   function contract = 'modules/tests/assertions/equal', contract: contract, given: offered_members, expected: 0, field_name: 'staff candidates exclude every member'
 
   function _ = 'modules/support/commands/settings/set', key: 'email_api_base_url', value: null
+  function _ = 'modules/support/commands/settings/set', key: 'email_allow_external', value: original_allow_external
+  function _ = 'modules/support/commands/settings/set', key: 'email_redirect_to', value: original_redirect_to
 %}

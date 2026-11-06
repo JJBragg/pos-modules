@@ -28,6 +28,16 @@
   # delivery against the example-app stub
   assign stub = 'https://' | append: context.location.host | append: '/test/sendgrid-stub'
   function _ = 'modules/support/commands/settings/set', key: 'email_api_base_url', value: stub
+  # the desk refuses real recipients on a non-production instance, and a
+  # redirect address rewrites them (#135). These cases assert on the
+  # address the desk chose, so they opt in, clear any redirect, and put
+  # both back at the end. Nothing leaves the instance: email_api_base_url
+  # above is this instance's own stub.
+  function email_safety_before = 'modules/support/helpers/settings'
+  assign original_allow_external = email_safety_before.email_allow_external
+  assign original_redirect_to = email_safety_before.email_redirect_to | default: ''
+  function _ = 'modules/support/commands/settings/set', key: 'email_allow_external', value: true
+  function _ = 'modules/support/commands/settings/set', key: 'email_redirect_to', value: ''
   function _ = 'modules/support/commands/settings/set', key: 'email_provider', value: 'sendgrid'
   function before = 'modules/support/helpers/settings'
   assign original_status = before.email_status | default: {}
@@ -100,5 +110,7 @@
   function contract = 'modules/tests/assertions/equal', contract: contract, given: message.delivery_state, expected: 'failed', field_name: '5xx on last attempt marks failed'
 
   function _ = 'modules/support/commands/settings/set', key: 'email_api_base_url', value: null
+  function _ = 'modules/support/commands/settings/set', key: 'email_allow_external', value: original_allow_external
+  function _ = 'modules/support/commands/settings/set', key: 'email_redirect_to', value: original_redirect_to
   function _ = 'modules/support/commands/settings/set', key: 'email_status', value: original_status
 %}

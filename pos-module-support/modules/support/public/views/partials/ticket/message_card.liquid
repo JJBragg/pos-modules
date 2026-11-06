@@ -64,7 +64,8 @@
     <div class="pos-support-message-body">{{ message.body_html | sanitize }}</div>
   {% endif %}
   {% if message.delivery_state == 'failed' %}
-    <p class="pos-support-error">{{ 'modules/support/ticket.not_delivered' | t }} {{ message.delivery_error }}</p>
+    {% function delivery_error = 'modules/support/helpers/email/delivery_error', error: message.delivery_error %}
+    <p class="pos-support-error">{{ 'modules/support/ticket.not_delivered' | t }} {{ delivery_error }}</p>
     {% unless attachments.size > 0 %}
       <form action="/support-desk/tickets/{{ message.ticket_id }}/update" method="post" class="pos-support-inline-form">
         <input type="hidden" name="authenticity_token" value="{{ context.authenticity_token }}">

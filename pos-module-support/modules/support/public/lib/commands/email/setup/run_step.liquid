@@ -120,7 +120,9 @@
     assign message.to = to
     assign message.subject = subject
     assign message.text = text
-    function sent = 'modules/support/commands/email/send', message: message
+    # the admin pressed the button and the message goes to their own
+    # address, so the non-production guard lets it through (#135)
+    function sent = 'modules/support/commands/email/send', message: message, setup_test: true
     assign status.test_ok = sent.ok
     assign status.test_error = sent.error
     assign status.test_sent_at = 'now' | to_time
