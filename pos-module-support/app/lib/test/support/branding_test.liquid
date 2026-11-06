@@ -172,13 +172,32 @@
 
   function _ = 'modules/support/commands/settings/set', key: 'branding_override', value: original_override
 
-  # design review H: with no logo the sidebar shows the default emblem, not a letter
-  assign bare = { "app_name": "Nordvik Rail", "initial": "N", "logo_url": null, "logo_dark_url": null, "icon_url": null, "uses_monogram": true }
+  # design handoff 3.20: no host logo or icon -> the support icon, framed and
+  # recoloured to the brand, with the app name and "Support desk"
+  assign bare = { "app_name": "Nordvik Rail", "initial": "N", "logo_url": null, "logo_dark_url": null, "icon_url": "https://x.test/generated.png", "uses_monogram": true }
   capture out
     render 'modules/support/brand', brand: bare
   endcapture
-  assign ok = out | matches: 'class="pos-support-emblem"'
-  function contract = 'modules/tests/assertions/equal', contract: contract, given: ok, expected: true, field_name: 'no logo: the emblem shows'
-  assign ok = out | matches: 'pos-support-brand-monogram'
-  function contract = 'modules/tests/assertions/equal', contract: contract, given: ok, expected: false, field_name: 'no letter monogram any more'
+  assign ok = out | matches: 'pos-support-brand-frame pos-support-brand-recolour[\s\S]*images/pos-support-icon\.png'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: ok, expected: true, field_name: 'no host icon: the framed, recoloured support icon'
+  assign ok = out | matches: 'pos-support-brand-name">Nordvik Rail</span><span class="pos-support-brand-sub">Support desk'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: ok, expected: true, field_name: 'app name with Support desk below'
+  assign ok = out | matches: 'generated\.png'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: ok, expected: false, field_name: 'the generated app icon is not shown in the sidebar'
+
+  # a host icon is shown as is; the module's own icon as the host icon stays framed but not recoloured (pOS)
+  assign hosted = { "app_name": "Host", "icon_url": "https://x.test/host-icon.png", "uses_monogram": false }
+  capture out
+    render 'modules/support/brand', brand: hosted
+  endcapture
+  assign ok = out | matches: 'pos-support-brand-logo-square" src="https://x.test/host-icon.png"'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: ok, expected: true, field_name: 'host icon shown as is'
+  assign hosted.icon_url = 'modules/support/images/pos-support-icon.png' | asset_url
+  capture out
+    render 'modules/support/brand', brand: hosted
+  endcapture
+  assign recoloured = out | matches: 'pos-support-brand-recolour'
+  assign framed = out | matches: 'pos-support-brand-frame'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: framed, expected: true, field_name: 'the module icon as host icon is framed'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: recoloured, expected: false, field_name: 'and keeps its own colours'
 %}

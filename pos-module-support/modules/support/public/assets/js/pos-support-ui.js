@@ -133,46 +133,56 @@
   pickLogos();
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', pickLogos);
 
-  // default app icon (PRD WL-5, design review H): with no icon from the host, an
-  // admin's browser draws the default emblem (icons/emblem, in the brand colours)
-  // as a 512 px PNG and stores it; redrawn when the colours or the emblem version
-  // change. Drawn from the light look only, so switching the device to dark mode
-  // does not redraw it back and forth.
+  // default app icon (PRD WL-5, design handoff 3.20): with no icon from the
+  // host, an admin's browser draws the module's support icon in its frame (a
+  // dark shade of the brand, the icon recoloured to the brand, as in the
+  // sidebar) as a 512 px PNG and stores it; redrawn when the brand colour or
+  // the icon changes. Drawn from the light look only, so switching the device
+  // to dark mode does not redraw it back and forth.
   const probe512 = document.querySelector('[data-support-monogram]');
   const deviceDark = document.documentElement.classList.contains('pos-theme-darkEnabled')
     && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  if (probe512 && !deviceDark && window.fetch) {
-    const emblem = probe512.querySelector('svg');
+  const frame = probe512 && probe512.querySelector('.pos-support-brand-frame');
+  const icon = frame && frame.querySelector('img');
+  if (frame && icon && !deviceDark && window.fetch) {
     // the probe is hidden; colours still compute, through a canvas so any CSS colour works
     const solid = (css) => {
       const x = document.createElement('canvas').getContext('2d');
       x.fillStyle = css;
       return x.fillStyle;
     };
-    const bg = emblem && solid(getComputedStyle(emblem.querySelector('.pos-support-emblem-bg')).fill);
-    const fg = emblem && solid(getComputedStyle(emblem.querySelector('.pos-support-emblem-fg')).fill);
-    const source = ['emblem', emblem && emblem.dataset.emblemVersion, bg, fg].join('|');
+    const style = getComputedStyle(frame);
+    const shade = solid(style.backgroundColor);
+    const brand = solid(style.getPropertyValue('--pos-support-brand').trim());
+    const source = ['support-icon', icon.getAttribute('src'), shade, brand].join('|');
     let hash = 5381;
     for (let i = 0; i < source.length; i += 1) hash = ((hash * 33) ^ source.charCodeAt(i)) >>> 0;
-    const signature = `emblem-${hash.toString(36)}`;
-    if (emblem && signature !== probe512.dataset.supportMonogramSignature) {
-      // the square icon fills its canvas: the platforms round or mask the corners themselves
-      const copy = emblem.cloneNode(true);
-      copy.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-      copy.setAttribute('width', '512');
-      copy.setAttribute('height', '512');
-      copy.querySelector('.pos-support-emblem-bg').setAttribute('fill', bg);
-      copy.querySelector('.pos-support-emblem-bg').setAttribute('rx', '0');
-      copy.querySelector('.pos-support-emblem-fg').setAttribute('fill', fg);
-      copy.querySelector('.pos-support-emblem-mark').setAttribute('stroke', bg);
+    const signature = `icon-${hash.toString(36)}`;
+    if (signature !== probe512.dataset.supportMonogramSignature) {
       const image = new Image();
+      // the asset CDN is another origin: a CORS image keeps the canvas exportable
+      image.crossOrigin = 'anonymous';
       image.onload = () => {
         const canvas = document.createElement('canvas');
         canvas.width = 512;
         canvas.height = 512;
         const ctx = canvas.getContext('2d');
-        ctx.drawImage(image, 0, 0, 512, 512);
-        // a browser that treats the drawn SVG as foreign refuses to export it: no icon then
+        // full-bleed square: the platforms round or mask the corners themselves
+        ctx.fillStyle = shade;
+        ctx.fillRect(0, 0, 512, 512);
+        const pad = 96;
+        const box = 512 - pad * 2;
+        const scale = Math.min(box / image.naturalWidth, box / image.naturalHeight);
+        const w = image.naturalWidth * scale;
+        const h = image.naturalHeight * scale;
+        ctx.filter = 'grayscale(1) contrast(1.1)';
+        ctx.drawImage(image, (512 - w) / 2, (512 - h) / 2, w, h);
+        ctx.filter = 'none';
+        ctx.globalCompositeOperation = 'color';
+        ctx.fillStyle = brand;
+        ctx.fillRect(0, 0, 512, 512);
+        ctx.globalCompositeOperation = 'source-over';
+        // a browser that still treats the image as foreign refuses to export it: no icon then
         let data;
         try { data = canvas.toDataURL('image/png').split(',')[1]; } catch (e) { return; }
         const body = new FormData();
@@ -187,7 +197,7 @@
           .then(() => { probe512.dataset.supportMonogramSignature = signature; })
           .catch(() => {});
       };
-      image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(new XMLSerializer().serializeToString(copy))}`;
+      image.src = icon.getAttribute('src');
     }
   }
 
@@ -270,6 +280,37 @@
     }
   } catch (e) { /* storage unavailable: focus stays where the browser puts it */ }
 
+  // sidebar tooltips (handoff 3.34): name and count of each item to its right,
+  // only while the sidebar is collapsed (the collapse button always); position:
+  // fixed so the rail's overflow cannot clip it; Escape dismisses (WCAG 1.4.13).
+  // Decorative: the items keep their full accessible names.
+  let railTip = null;
+  const shellForTip = document.querySelector('[data-support-shell]');
+  const showRailTip = (el) => {
+    if (!shellForTip || window.matchMedia('(max-width: 48rem)').matches) return;
+    if (!el.matches('.pos-support-rail-toggle') && !shellForTip.classList.contains('pos-support-rail-collapsed')) return;
+    if (!railTip) {
+      railTip = document.createElement('div');
+      railTip.className = 'pos-support-rail-tip';
+      railTip.setAttribute('aria-hidden', 'true');
+      railTip.hidden = true;
+      document.body.append(railTip);
+    }
+    const box = el.getBoundingClientRect();
+    railTip.textContent = el.dataset.supportTip;
+    railTip.style.left = `${Math.round(box.right + 8)}px`;
+    railTip.style.top = `${Math.round(box.top + box.height / 2)}px`;
+    railTip.hidden = false;
+  };
+  const hideRailTip = () => { if (railTip) railTip.hidden = true; };
+  document.querySelectorAll('.pos-support-rail [data-support-tip]').forEach((el) => {
+    el.addEventListener('mouseenter', () => showRailTip(el));
+    el.addEventListener('mouseleave', hideRailTip);
+    el.addEventListener('focus', () => { if (el.matches(':focus-visible')) showRailTip(el); });
+    el.addEventListener('blur', hideRailTip);
+  });
+  document.addEventListener('keydown', (event) => { if (event.key === 'Escape') hideRailTip(); });
+
   // desktop sidebar collapse (design review F): toggled at once, remembered
   // through a background post; without JavaScript the form posts and reloads
   const railForm = document.querySelector('[data-support-rail-toggle]');
@@ -282,8 +323,9 @@
       const button = railForm.querySelector('button');
       const label = collapse ? railForm.dataset.labelExpand : railForm.dataset.labelCollapse;
       button.setAttribute('aria-expanded', collapse ? 'false' : 'true');
-      button.title = label;
-      button.querySelector('.pos-support-sr-only').textContent = label;
+      button.setAttribute('aria-label', label);
+      button.dataset.supportTip = label;
+      if (railTip && !railTip.hidden) railTip.textContent = label;
       const body = new FormData(railForm);
       body.set('rail', collapse ? 'collapsed' : 'expanded');
       body.set('respond', 'json');

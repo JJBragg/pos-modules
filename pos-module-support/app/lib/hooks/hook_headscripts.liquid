@@ -1,6 +1,11 @@
 {% liquid
-  # Demo host theme, loaded by the support layout after the module CSS.
+  # Demo host theme, loaded by the support layout after the module CSS. The
+  # five test themes of the design handoff (4.1) are picked with ?host_theme=.
+  function theme = 'support_test_helpers/host_theme'
   assign href = 'style/host-theme.css' | asset_url
+  if theme != 'default'
+    assign href = 'style/themes/' | append: theme | append: '.css' | asset_url
+  endif
   assign tag = '<link rel="stylesheet" href="' | append: href | append: '">'
   return tag
 %}

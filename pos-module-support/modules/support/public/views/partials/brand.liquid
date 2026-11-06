@@ -1,16 +1,35 @@
 {% doc %}
-  Logo (or monogram) and app name. The logo follows the background it sits
-  on, not the device: with both logos and rail_theme auto, pos-support-ui.js
-  measures the rail's background and picks the light- or dark-background
-  logo (a brand-coloured rail is dark in both colour schemes). The server's
-  pick, used before the script runs and without it, follows theme_mode and
-  then the device. rail_theme dark or light pins the choice.
+  The brand block (design handoff 3.20): a 3rem mark plus the app name with
+  "Support desk" below.
+  - The host gives an app icon (icon_url): shown as is.
+  - The host gives only a logo (logo_url): the logo as is, its name for
+    screen readers. With both logos and rail_theme auto, pos-support-ui.js
+    picks the light- or dark-background logo from the rail colour; without
+    the script the pick follows theme_mode, then the device; rail_theme pins it.
+  - Neither: the module's support icon in a frame of a dark shade of the
+    brand, recoloured to the brand (partials/brand_frame). An icon_url that
+    is the module's own icon is framed but not recoloured (our pOS installation).
+  The collapsed sidebar shows the square mark (pos-support-brand-mark).
   @param {object} brand - From helpers/branding
 {% enddoc %}
 {% liquid
+  assign module_icon = 'modules/support/images/pos-support-icon.png' | asset_url
+  assign host_icon = null
+  if brand.icon_url != blank and brand.uses_monogram != true
+    assign host_icon = brand.icon_url
+  endif
+  assign mark = 'framed'
+  if host_icon == module_icon
+    assign mark = 'framed-plain'
+  elsif host_icon
+    assign mark = 'icon'
+  elsif brand.logo_url != blank
+    assign mark = 'logo'
+  endif
+
   assign logo_mode = 'light'
   assign auto_pick = false
-  if brand.logo_dark_url != blank
+  if mark == 'logo' and brand.logo_dark_url != blank
     case brand.rail_theme
       when 'dark'
         assign logo_mode = 'dark'
@@ -28,24 +47,33 @@
         endcase
     endcase
   endif
+  assign sub = 'modules/support/shell.support_desk' | t
 %}
-{% if brand.logo_url %}
-  {% case logo_mode %}
-    {% when 'dark' %}
-      <img class="pos-support-brand-logo" src="{{ brand.logo_dark_url }}" alt="" width="128" height="32"{% if auto_pick %} data-support-logo-light="{{ brand.logo_url }}" data-support-logo-dark="{{ brand.logo_dark_url }}"{% endif %}>
-    {% when 'device' %}
-      <picture>
-        <source srcset="{{ brand.logo_dark_url }}" media="(prefers-color-scheme: dark)">
-        <img class="pos-support-brand-logo" src="{{ brand.logo_url }}" alt="" width="128" height="32" data-support-logo-light="{{ brand.logo_url }}" data-support-logo-dark="{{ brand.logo_dark_url }}">
-      </picture>
-    {% else %}
-      <img class="pos-support-brand-logo" src="{{ brand.logo_url }}" alt="" width="128" height="32"{% if auto_pick %} data-support-logo-light="{{ brand.logo_url }}" data-support-logo-dark="{{ brand.logo_dark_url }}"{% endif %}>
-  {% endcase %}
-  <span class="pos-support-brand-name pos-support-sr-only">{{ brand.app_name }}</span>
-  {%- comment -%} the square mark replaces a wide logo in the collapsed sidebar (design review F) {%- endcomment -%}
-  <span class="pos-support-brand-mark" aria-hidden="true">{% if brand.icon_url != blank and brand.uses_monogram != true %}<img src="{{ brand.icon_url }}" alt="" width="28" height="28">{% else %}{% render 'modules/support/icons/emblem' %}{% endif %}</span>
-{% else %}
-  {%- comment -%} no host logo: the default emblem in the brand colours (design review H) {%- endcomment -%}
-  {% render 'modules/support/icons/emblem' %}
-  <span class="pos-support-brand-name">{{ brand.app_name }}</span>
-{% endif %}
+{%- case mark -%}
+  {%- when 'logo' -%}
+    {%- case logo_mode -%}
+      {%- when 'dark' -%}
+        <img class="pos-support-brand-logo pos-support-brand-logo-wide" src="{{ brand.logo_dark_url }}" alt="" width="128" height="32"{% if auto_pick %} data-support-logo-light="{{ brand.logo_url }}" data-support-logo-dark="{{ brand.logo_dark_url }}"{% endif %}>
+      {%- when 'device' -%}
+        <picture>
+          <source srcset="{{ brand.logo_dark_url }}" media="(prefers-color-scheme: dark)">
+          <img class="pos-support-brand-logo pos-support-brand-logo-wide" src="{{ brand.logo_url }}" alt="" width="128" height="32" data-support-logo-light="{{ brand.logo_url }}" data-support-logo-dark="{{ brand.logo_dark_url }}">
+        </picture>
+      {%- else -%}
+        <img class="pos-support-brand-logo pos-support-brand-logo-wide" src="{{ brand.logo_url }}" alt="" width="128" height="32"{% if auto_pick %} data-support-logo-light="{{ brand.logo_url }}" data-support-logo-dark="{{ brand.logo_dark_url }}"{% endif %}>
+    {%- endcase -%}
+    <span class="pos-support-brand-name pos-support-sr-only">{{ brand.app_name }}</span>
+    <span class="pos-support-brand-mark" aria-hidden="true">{% render 'modules/support/brand_frame', plain: false %}</span>
+  {%- when 'icon' -%}
+    <img class="pos-support-brand-logo pos-support-brand-logo-square" src="{{ host_icon }}" alt="" width="48" height="48">
+    <span class="pos-support-brand-text"><span class="pos-support-brand-name">{{ brand.app_name }}</span><span class="pos-support-brand-sub">{{ sub }}</span></span>
+  {%- else -%}
+    {%- liquid
+      assign plain = false
+      if mark == 'framed-plain'
+        assign plain = true
+      endif
+    -%}
+    {% render 'modules/support/brand_frame', plain: plain %}
+    <span class="pos-support-brand-text"><span class="pos-support-brand-name">{{ brand.app_name }}</span><span class="pos-support-brand-sub">{{ sub }}</span></span>
+{%- endcase -%}

@@ -1,8 +1,24 @@
 {% liquid
-  # Demo host branding for the support desk (08 §3).
-  assign logo_url = 'images/harbor-city-logo.svg' | asset_url
-  assign brand = { "app_name": "Harbor City Permits", "short_name": "Harbor City", "theme_color": "#1d4f91", "background_color": "#ffffff", "support_email_name": "Harbor City Support" }
-  assign brand.logo_url = logo_url
-  assign brand.logo_dark_url = 'images/harbor-city-logo-dark.svg' | asset_url
+  # Demo host branding for the support desk (08 §3), per test theme of the
+  # design handoff (4.1): Default = Harbor City with its logos; pOS = the
+  # module's support icon as the host icon (framed, not recoloured); the
+  # sample hosts have no logo or icon. Sample host 3's brand is too light
+  # on purpose: the desk shifts it (handoff 3.2).
+  function theme = 'support_test_helpers/host_theme'
+  case theme
+    when 'pos'
+      assign brand = { "app_name": "platformOS", "short_name": "pOS", "theme_color": "#23559f", "support_email_name": "platformOS Support" }
+      assign brand.icon_url = 'modules/support/images/pos-support-icon.png' | asset_url
+    when 'sample-host-1'
+      assign brand = { "app_name": "Sample Host 1", "short_name": "Host 1", "theme_color": "#84497f", "support_email_name": "Sample Host 1 Support" }
+    when 'sample-host-2'
+      assign brand = { "app_name": "Sample Host 2", "short_name": "Host 2", "theme_color": "#046b55", "support_email_name": "Sample Host 2 Support" }
+    when 'sample-host-3'
+      assign brand = { "app_name": "Sample Host 3", "short_name": "Host 3", "theme_color": "#8b7cf6", "support_email_name": "Sample Host 3 Support" }
+    else
+      assign brand = { "app_name": "Harbor City Permits", "short_name": "Harbor City", "theme_color": "#1d4f91", "background_color": "#ffffff", "support_email_name": "Harbor City Support" }
+      assign brand.logo_url = 'images/harbor-city-logo.svg' | asset_url
+      assign brand.logo_dark_url = 'images/harbor-city-logo-dark.svg' | asset_url
+  endcase
   return brand
 %}

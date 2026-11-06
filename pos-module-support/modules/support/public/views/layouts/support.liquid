@@ -69,7 +69,7 @@
   <body class="pos-support" data-support-sw="{{ worker_url }}">
     <a class="pos-support-skip" href="#pos-support-content">{{ 'modules/support/shell.skip' | t }}</a>
     {% render 'modules/support/shell', brand: brand, member: member, profile: current_profile, content: content_for_layout, pathname: context.location.pathname, nav: nav, view: context.params.view %}
-    {% if brand.uses_monogram and member.role == 'admin' and member.state == 'active' %}<span class="pos-support-emblem-probe" hidden data-support-monogram="emblem" data-support-monogram-signature="{{ brand.monogram_signature }}" data-support-monogram-token="{{ context.authenticity_token }}">{% render 'modules/support/icons/emblem' %}</span>{% endif %}
+    {% if brand.uses_monogram and member.role == 'admin' and member.state == 'active' %}<span class="pos-support-icon-probe" hidden data-support-monogram="support-icon" data-support-monogram-signature="{{ brand.monogram_signature }}" data-support-monogram-token="{{ context.authenticity_token }}">{% render 'modules/support/brand_frame', plain: false %}</span>{% endif %}
     {% liquid
       function flash = 'modules/core/commands/session/get', key: 'sflash', clear: null
       if context.location.pathname != flash.from or flash.force_clear

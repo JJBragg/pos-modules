@@ -1,4 +1,4 @@
-/* Demo host theme: overrides common-styling and support tokens.
+/* Demo host theme (the Default theme of handoff 4.1): overrides common-styling and support tokens.
    The brand colour drives primary buttons, focus and the monogram, and the
    desk derives light brand tints for the rail, board columns and selected
    controls from it (design review A). For a brand-coloured rail set --pos-support-rail-background to the brand
@@ -10,6 +10,9 @@
   --pos-color-button-primary-hover-background: #163d70;
   --pos-color-button-primary-hover-frame: #163d70;
   --pos-color-button-primary-hover-text: #ffffff;
+  --pos-color-interactive: #1d4f91;
+  --pos-color-interactive-hover: #163d70;
+  --pos-color-focused: #1d4f91;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -19,6 +22,9 @@
     --pos-color-button-primary-text: #ffffff;
     --pos-color-button-primary-hover-background: #2c62b3;
     --pos-color-button-primary-hover-frame: #2c62b3;
+    --pos-color-interactive: #8fb4ea;
+    --pos-color-interactive-hover: #b3cdf2;
+    --pos-color-focused: #8fb4ea;
   }
 }
 
@@ -28,6 +34,9 @@
   --pos-color-button-primary-text: #ffffff;
   --pos-color-button-primary-hover-background: #2c62b3;
   --pos-color-button-primary-hover-frame: #2c62b3;
+  --pos-color-interactive: #8fb4ea;
+  --pos-color-interactive-hover: #b3cdf2;
+  --pos-color-focused: #8fb4ea;
 }
 
 .host-page {

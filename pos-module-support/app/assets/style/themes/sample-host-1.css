@@ -1,0 +1,35 @@
+/* Example host theme for E2E and contrast tests. Sample host 1: deep plum, no logo (handoff 4.1).
+   Host tokens only; the desk derives everything else. */
+:root {
+  --pos-color-button-primary-background: #84497f;
+  --pos-color-button-primary-frame: #84497f;
+  --pos-color-button-primary-text: #ffffff;
+  --pos-color-button-primary-hover-background: #72386e;
+  --pos-color-button-primary-hover-frame: #72386e;
+  --pos-color-button-primary-hover-text: #ffffff;
+  --pos-color-interactive: #84497f;
+  --pos-color-interactive-hover: #72386e;
+  --pos-color-focused: #84497f;
+}
+
+:root.pos-theme-dark {
+  --pos-color-button-primary-background: #8b4f86;
+  --pos-color-button-primary-frame: #8b4f86;
+  --pos-color-button-primary-hover-background: #7c4177;
+  --pos-color-button-primary-hover-frame: #7c4177;
+  --pos-color-interactive: #e9b8e4;
+  --pos-color-interactive-hover: #f6d0f1;
+  --pos-color-focused: #e9b8e4;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root.pos-theme-darkEnabled {
+    --pos-color-button-primary-background: #8b4f86;
+    --pos-color-button-primary-frame: #8b4f86;
+    --pos-color-button-primary-hover-background: #7c4177;
+    --pos-color-button-primary-hover-frame: #7c4177;
+    --pos-color-interactive: #e9b8e4;
+    --pos-color-interactive-hover: #f6d0f1;
+    --pos-color-focused: #e9b8e4;
+  }
+}

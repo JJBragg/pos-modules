@@ -47,24 +47,24 @@
   <div class="pos-support-shell{% if rail_collapsed %} pos-support-rail-collapsed{% endif %}" data-support-shell>
     <input type="checkbox" id="pos-support-nav-toggle" class="pos-support-nav-toggle" aria-label="{{ 'modules/support/shell.menu' | t }}" data-support-nav-toggle>
     <nav class="pos-support-rail" id="pos-support-rail" aria-label="{{ 'modules/support/shell.navigation' | t }}">
-      <div class="pos-support-rail-top">
-        <a class="pos-support-brand" href="/support-desk">{% render 'modules/support/brand', brand: brand %}</a>
+      <a class="pos-support-brand" href="/support-desk">{% render 'modules/support/brand', brand: brand %}</a>
+      {%- comment -%} handoff 3.34: the collapse toggle sits on the divider under the brand {%- endcomment -%}
+      <div class="pos-support-rail-label pos-support-rail-label-views">
+        {{ 'modules/support/shell.views' | t }}
         <form action="/support-desk/rail" method="post" class="pos-support-rail-collapse" data-support-rail-toggle data-label-collapse="{{ 'modules/support/shell.collapse' | t }}" data-label-expand="{{ 'modules/support/shell.expand' | t }}">
           <input type="hidden" name="authenticity_token" value="{{ context.authenticity_token }}">
           <input type="hidden" name="rail" value="{% if rail_collapsed %}expanded{% else %}collapsed{% endif %}">
           <input type="hidden" name="redirect_to" value="{{ here }}">
-          <button type="submit" class="pos-button pos-button-ghost pos-button-icon pos-button-small" aria-controls="pos-support-rail" aria-expanded="{% if rail_collapsed %}false{% else %}true{% endif %}" title="{% if rail_collapsed %}{{ 'modules/support/shell.expand' | t }}{% else %}{{ 'modules/support/shell.collapse' | t }}{% endif %}">
-            {% render 'modules/support/icon', name: 'chevron-left', size: null %}
-            <span class="pos-support-sr-only">{% if rail_collapsed %}{{ 'modules/support/shell.expand' | t }}{% else %}{{ 'modules/support/shell.collapse' | t }}{% endif %}</span>
+          <button type="submit" class="pos-support-rail-toggle" aria-controls="pos-support-rail" aria-expanded="{% if rail_collapsed %}false{% else %}true{% endif %}" aria-label="{% if rail_collapsed %}{{ 'modules/support/shell.expand' | t }}{% else %}{{ 'modules/support/shell.collapse' | t }}{% endif %}" data-support-tip="{% if rail_collapsed %}{{ 'modules/support/shell.expand' | t }}{% else %}{{ 'modules/support/shell.collapse' | t }}{% endif %}">
+            {% render 'modules/support/icon', name: 'chevrons-left', size: null %}
           </button>
         </form>
       </div>
-      <p class="pos-support-rail-label">{{ 'modules/support/shell.views' | t }}</p>
       <ul class="pos-support-rail-items">
         {% for item in views %}
           <li>
             {%- assign item_label = 'modules/support/views.' | append: item | t -%}
-            <a href="/support-desk?view={{ item }}{{ view_suffix }}" title="{{ item_label }}{% if nav.counts[item] != null %} ({{ nav.counts[item] }}){% endif %}" {% if on_queue and current_view == item %}aria-current="page"{% endif %}>
+            <a href="/support-desk?view={{ item }}{{ view_suffix }}" data-support-tip="{{ item_label }}{% if nav.counts[item] != null %} · {{ nav.counts[item] }}{% endif %}" {% if on_queue and current_view == item %}aria-current="page"{% endif %}>
               {% render 'modules/support/icon', name: icons[item], size: null %}
               <span class="pos-support-rail-text">{{ item_label }}</span>
               {% if nav.counts[item] != null %}<span class="pos-support-count">{{ nav.counts[item] }}</span>{% endif %}
@@ -76,7 +76,7 @@
         <p class="pos-support-rail-label">{{ 'modules/support/shell.departments' | t }}</p>
         <ul class="pos-support-rail-items">
           <li>
-            <a href="/support-desk?{{ department_query }}" title="{{ 'modules/support/shell.all_departments' | t }} ({{ nav.departments.all }})" {% if on_queue and current_department == blank %}aria-current="page"{% endif %}>
+            <a href="/support-desk?{{ department_query }}" data-support-tip="{{ 'modules/support/shell.all_departments' | t }} · {{ nav.departments.all }}" {% if on_queue and current_department == blank %}aria-current="page"{% endif %}>
               {% render 'modules/support/icon', name: 'building-2', size: null %}
               <span class="pos-support-rail-text">{{ 'modules/support/shell.all_departments' | t }}</span>
               <span class="pos-support-count">{{ nav.departments.all }}</span>
@@ -84,7 +84,7 @@
           </li>
           {% for department in nav.departments.departments %}
             <li>
-              <a href="/support-desk?{{ department_query }}&department_id={{ department.id }}" title="{{ department.name }} ({{ department.count }})" {% if on_queue and current_department == department.id %}aria-current="page"{% endif %}>
+              <a href="/support-desk?{{ department_query }}&department_id={{ department.id }}" data-support-tip="{{ department.name }} · {{ department.count }}" {% if on_queue and current_department == department.id %}aria-current="page"{% endif %}>
                 {% render 'modules/support/badges/department', department: department, variant: 'initial' %}
                 <span class="pos-support-rail-text">{{ department.name }}</span>
                 <span class="pos-support-count">{{ department.count }}</span>
@@ -96,7 +96,7 @@
       {% if member.role == 'admin' %}
         <ul class="pos-support-rail-items pos-support-rail-bottom">
           <li>
-            <a href="/support-desk/settings/departments" title="{{ 'modules/support/shell.settings' | t }}" {% if pathname contains '/support-desk/settings' %}aria-current="page"{% endif %}>
+            <a href="/support-desk/settings/departments" data-support-tip="{{ 'modules/support/shell.settings' | t }}" {% if pathname contains '/support-desk/settings' %}aria-current="page"{% endif %}>
               {% render 'modules/support/icon', name: 'settings', size: null %}
               <span class="pos-support-rail-text">{{ 'modules/support/shell.settings' | t }}</span>
             </a>
@@ -104,7 +104,7 @@
         </ul>
       {% endif %}
       <div class="pos-support-rail-foot">
-        <a class="pos-support-rail-user" href="/support-desk/profile" title="{{ me_name }}" {% if pathname == '/support-desk/profile' %}aria-current="page"{% endif %}>
+        <a class="pos-support-rail-user" href="/support-desk/profile" data-support-tip="{{ me_name }}" {% if pathname == '/support-desk/profile' %}aria-current="page"{% endif %}>
           <span class="pos-support-avatar-wrap">
             {% render 'modules/support/avatar', name: me_name, email: me_email, size: null, labelled: false, role: member.role, profile_id: null, presence: false %}
           </span>

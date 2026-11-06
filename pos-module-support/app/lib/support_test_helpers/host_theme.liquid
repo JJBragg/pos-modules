@@ -1,0 +1,17 @@
+{% doc %}
+  The example host's theme for E2E and contrast tests (design handoff 4.1):
+  default | pos | sample-host-1 | sample-host-2 | sample-host-3. Picked with
+  ?host_theme=<id> on any page and kept in the session. Example app only.
+{% enddoc %}
+{% liquid
+  assign themes = ["default", "pos", "sample-host-1", "sample-host-2", "sample-host-3"]
+  if themes contains context.params.host_theme
+    function _ = 'modules/core/commands/session/set', key: 'host_theme', value: context.params.host_theme
+    return context.params.host_theme
+  endif
+  function saved = 'modules/core/commands/session/get', key: 'host_theme', clear: null
+  if themes contains saved
+    return saved
+  endif
+  return 'default'
+%}

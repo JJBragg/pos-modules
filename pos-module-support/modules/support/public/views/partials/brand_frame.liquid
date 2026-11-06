@@ -1,0 +1,7 @@
+{% doc %}
+  The module's support icon in a frame of a dark shade of the brand
+  (design handoff 3.20). Recoloured to the brand (greyscale + a brand layer
+  in "color" blend mode) unless plain is set. Decorative.
+  @param {boolean} [plain] - Keep the icon's own colours (our pOS installation)
+{% enddoc %}
+<span class="pos-support-brand-frame{% unless plain %} pos-support-brand-recolour{% endunless %}" aria-hidden="true"><img class="pos-support-brand-icon" src="{{ 'modules/support/images/pos-support-icon.png' | asset_url }}" alt="" width="198" height="207"></span>

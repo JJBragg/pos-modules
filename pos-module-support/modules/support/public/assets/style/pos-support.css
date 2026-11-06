@@ -70,6 +70,7 @@
     --pos-support-tooltip-bg: #1f2937;
     --pos-support-tooltip-fg: #ffffff;
     --pos-support-on-brand: #ffffff;
+    --pos-support-frame-shade: #000000;
     --pos-support-scrollbar: color-mix(in srgb, var(--pos-support-brand) 78%, var(--pos-support-bg-subtle));
     --pos-support-row-hover: color-mix(in srgb, var(--pos-support-brand) var(--pos-support-mix-row-hover), var(--pos-support-bg));
     --pos-support-row-checked: color-mix(in srgb, var(--pos-support-brand) var(--pos-support-mix-row-checked), var(--pos-support-bg));
@@ -1113,47 +1114,88 @@
     display: none;
   }
 
-  /* sidebar header: brand, then the collapse button (design review F) */
-  .pos-support-rail-top {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    margin-block-end: 0.5rem;
-  }
-
-  .pos-support-rail-top .pos-support-brand {
-    flex: 1 1 auto;
-    min-width: 0;
-    margin-block-end: 0;
+  /* 3.34 collapsible sidebar: a round toggle on the divider under the brand */
+  .pos-support-rail-label-views {
+    position: relative;
   }
 
   .pos-support-rail-collapse {
-    flex: none;
+    position: absolute;
+    inset-block-start: calc(-0.75rem - 0.5px);
+    inset-inline-end: 0;
+    margin: 0;
   }
 
-  .pos-support-rail-collapse .pos-button {
-    color: var(--pos-support-rail-muted);
+  .pos-support .pos-support-rail-toggle {
+    display: grid;
+    place-items: center;
+    inline-size: 1.5rem;
+    block-size: 1.5rem;
+    padding: 0;
+    border: 1px solid color-mix(in srgb, var(--pos-support-brand) 30%, var(--pos-support-rail-background));
+    border-radius: 50%;
+    background: var(--pos-support-rail-background);
+    color: var(--pos-color-interactive);
+    cursor: pointer;
   }
 
-  .pos-support-rail-collapse .pos-support-icon {
-    transition: transform 160ms var(--pos-support-ease);
+  .pos-support .pos-support-rail-toggle:hover {
+    background: var(--pos-support-rail-hover-background);
+    color: var(--pos-color-interactive-hover);
   }
 
-  /* collapsed: an icon strip; labels and counts stay for screen readers and
-     show as the links' tooltips (title) */
+  .pos-support .pos-support-rail-toggle:focus-visible {
+    outline: 2px solid var(--pos-color-focused);
+    outline-offset: 2px;
+  }
+
+  .pos-support-rail-toggle .pos-support-icon {
+    inline-size: 0.875rem;
+    block-size: 0.875rem;
+    stroke-width: 2;
+    transition: rotate 200ms var(--pos-support-ease);
+  }
+
+  .pos-support-shell {
+    transition: grid-template-columns 200ms var(--pos-support-ease);
+  }
+
+  /* floating tooltip of the collapsed sidebar (pos-support-ui.js) */
+  .pos-support-rail-tip {
+    position: fixed;
+    z-index: 100;
+    translate: 0 -50%;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--pos-support-radius-control);
+    background: var(--pos-support-tooltip-bg);
+    color: var(--pos-support-tooltip-fg);
+    font-size: var(--pos-support-text-small);
+    font-weight: 500;
+    line-height: 1.4;
+    white-space: nowrap;
+    box-shadow: var(--pos-support-shadow-sm);
+    pointer-events: none;
+  }
+
+  .pos-support-rail-tip[hidden] {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pos-support-shell,
+    .pos-support-rail-toggle .pos-support-icon {
+      transition: none;
+    }
+  }
+
+  /* collapsed: 4.25rem, icons only; texts and counts stay for screen readers */
   @media (min-width: 48.0625rem) {
     .pos-support-rail-collapsed {
-      --pos-support-rail-width: 3.75rem;
+      --pos-support-rail-width: 4.25rem;
     }
 
     .pos-support-rail-collapsed .pos-support-rail {
-      padding-inline: 0.5rem;
       overflow-x: hidden;
-    }
-
-    .pos-support-rail-collapsed .pos-support-rail-top {
-      flex-direction: column;
-      gap: 0.375rem;
     }
 
     .pos-support-rail-collapsed .pos-support-brand {
@@ -1161,7 +1203,8 @@
       padding-inline: 0;
     }
 
-    .pos-support-rail-collapsed .pos-support-brand :is(.pos-support-brand-logo, picture) {
+    .pos-support-rail-collapsed .pos-support-brand-text,
+    .pos-support-rail-collapsed .pos-support-brand :is(.pos-support-brand-logo-wide, picture) {
       display: none;
     }
 
@@ -1169,41 +1212,46 @@
       display: inline-flex;
     }
 
-    .pos-support-rail-collapsed .pos-support-brand-name,
-    .pos-support-rail-collapsed .pos-support-rail-text,
-    .pos-support-rail-collapsed .pos-support-rail-items .pos-support-count,
+    .pos-support-rail-collapsed .pos-support-rail-label {
+      padding-inline: 0;
+      padding-block: 0.75rem 0.25rem;
+      font-size: 0;
+      line-height: 0;
+    }
+
+    .pos-support-rail-collapsed .pos-support-rail-collapse {
+      inset-inline-end: calc(50% - 0.75rem);
+    }
+
+    .pos-support-rail-collapsed .pos-support-rail-toggle .pos-support-icon {
+      rotate: 180deg;
+    }
+
+    .pos-support .pos-support-rail-collapsed .pos-support-rail-items a {
+      justify-content: center;
+      gap: 0;
+      padding-inline: 0;
+    }
+
+    .pos-support-rail-collapsed .pos-support-rail-items a > span:not(.pos-support-dept-label),
     .pos-support-rail-collapsed .pos-support-rail-user-name {
       position: absolute;
       inline-size: 1px;
       block-size: 1px;
       overflow: hidden;
-      clip: rect(0, 0, 0, 0);
+      clip-path: inset(50%);
       white-space: nowrap;
-    }
-
-    .pos-support-rail-collapsed .pos-support-rail-collapse .pos-support-icon {
-      transform: rotate(180deg);
-    }
-
-    .pos-support-rail-collapsed .pos-support-rail-label {
-      block-size: 0;
-      margin-block: 0.5rem;
-      padding: 0;
-      overflow: hidden;
-      border-block-start: 1px solid var(--pos-support-rail-frame);
-      color: transparent;
-    }
-
-    .pos-support-rail-collapsed .pos-support-rail-items a,
-    .pos-support-rail-collapsed .pos-support-rail-user {
-      justify-content: center;
-      padding-inline: 0;
     }
 
     .pos-support-rail-collapsed .pos-support-rail-foot {
       flex-direction: column;
       align-items: center;
       gap: 0.25rem;
+    }
+
+    .pos-support .pos-support-rail-collapsed .pos-support-rail-user {
+      justify-content: center;
+      padding-inline: 0;
     }
   }
 
@@ -1244,51 +1292,121 @@
     color: inherit;
   }
 
-  .pos-support-brand-logo {
+  /* 3.20 brand block: a 3rem mark, then the app name with "Support desk" below */
+  .pos-support-rail .pos-support-brand {
+    position: relative;
+    gap: 0.625rem;
+    padding: 0.25rem 0.5rem;
+    margin-block-end: 0.625rem;
+    perspective: 400px;
+  }
+
+  .pos-support-brand-logo-wide {
     max-height: 1.75rem;
     max-width: 8rem;
   }
 
-  /* default emblem (design review H), in the brand colours */
-  .pos-support-emblem {
-    flex: none;
-    inline-size: 1.75rem;
-    block-size: 1.75rem;
+  .pos-support-rail .pos-support-brand-logo-wide {
+    max-height: 3rem;
   }
 
-  .pos-support-emblem-bg { fill: var(--pos-support-monogram-background); }
-  .pos-support-emblem-fg { fill: var(--pos-support-monogram-text); }
-  .pos-support-emblem-mark { stroke: var(--pos-support-monogram-background); }
+  .pos-support-brand-logo-square {
+    box-sizing: border-box;
+    flex: none;
+    inline-size: 2rem;
+    block-size: 2rem;
+    border-radius: var(--pos-support-radius-control);
+    object-fit: contain;
+  }
+
+  /* the support icon in a frame of a dark shade of the brand (a 28% black
+     overlay, so every brand keeps its hue); recoloured to the brand with
+     greyscale + a brand layer in "color" blend mode */
+  .pos-support-brand-frame {
+    position: relative;
+    isolation: isolate;
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    box-sizing: border-box;
+    inline-size: 2rem;
+    block-size: 2rem;
+    padding: 0.25rem;
+    border-radius: var(--pos-support-radius-control);
+    background: color-mix(in srgb, var(--pos-support-brand) 72%, var(--pos-support-frame-shade));
+  }
+
+  .pos-support-brand-icon {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: contain;
+  }
+
+  .pos-support-brand-recolour .pos-support-brand-icon {
+    filter: grayscale(1) contrast(1.1);
+  }
+
+  .pos-support-brand-recolour::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    background: var(--pos-support-brand);
+    mix-blend-mode: color;
+    pointer-events: none;
+  }
+
+  .pos-support-rail :is(.pos-support-brand-frame, .pos-support-brand-logo-square) {
+    inline-size: 3rem;
+    block-size: 3rem;
+  }
+
+  .pos-support-rail .pos-support-brand-frame {
+    padding: 0.4375rem;
+  }
+
+  .pos-support-brand-text {
+    display: flex;
+    flex-direction: column;
+    min-inline-size: 0;
+    line-height: 1.2;
+  }
+
+  .pos-support-brand-text .pos-support-brand-name {
+    overflow: hidden;
+    color: var(--pos-support-rail-text);
+    font-size: 1rem;
+    font-weight: 700;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .pos-support-brand-sub {
+    color: var(--pos-support-rail-muted);
+    font-size: var(--pos-support-text-small);
+    font-weight: 400;
+    white-space: nowrap;
+  }
 
   .pos-support-brand-mark {
     display: none;
   }
 
-  .pos-support-brand-mark img {
-    inline-size: 1.75rem;
-    block-size: 1.75rem;
-    border-radius: 0.4375rem;
+  /* 3.35 the mark turns once around its vertical axis on hover and focus */
+  @keyframes pos-support-logo-flip {
+    from { rotate: y 0deg; }
+    to { rotate: y 360deg; }
   }
 
-  .pos-support-brand-logo + .pos-support-brand-name {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
+  .pos-support .pos-support-brand:is(:hover, :focus-visible) :is(.pos-support-brand-frame, .pos-support-brand-logo) {
+    animation: pos-support-logo-flip 700ms cubic-bezier(0.45, 0, 0.25, 1);
   }
 
-  .pos-support-brand-monogram {
-    display: inline-grid;
-    place-items: center;
-    flex: none;
-    inline-size: 1.75rem;
-    block-size: 1.75rem;
-    border-radius: 0.4375rem;
-    background: var(--pos-support-monogram-background);
-    color: var(--pos-support-monogram-text);
-    font-size: 0.875rem;
-    font-weight: 700;
+  @media (prefers-reduced-motion: reduce) {
+    .pos-support .pos-support-brand:is(:hover, :focus-visible) :is(.pos-support-brand-frame, .pos-support-brand-logo) {
+      animation: none;
+    }
   }
 
   .pos-support-rail-label {
@@ -4033,7 +4151,7 @@
 
   /* 3.33 dividers under the brand block and above "Departments", like the
      line above the signed-in user; all three in the translucent brand */
-  .pos-support-rail-top + .pos-support-rail-label,
+  .pos-support-brand + .pos-support-rail-label,
   .pos-support-rail-items + .pos-support-rail-label {
     border-block-start: 1px solid var(--pos-support-rail-divider);
   }

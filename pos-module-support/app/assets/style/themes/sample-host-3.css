@@ -1,0 +1,16 @@
+/* Example host theme for E2E and contrast tests. Sample host 3: the host's
+   brand is a too-light lavender #8b7cf6 (white text 3.33:1), no logo
+   (handoff 4.1). The desk shifts it to an accessible shade of the same hue
+   (handoff 3.2): expected #604fb9 (hover #503da5), dark #6352bc (hover
+   #5543ac), dark links #b6b3f3. Host tokens only. */
+:root {
+  --pos-color-button-primary-background: #8b7cf6;
+  --pos-color-button-primary-frame: #8b7cf6;
+  --pos-color-button-primary-text: #ffffff;
+  --pos-color-button-primary-hover-background: #8b7cf6;
+  --pos-color-button-primary-hover-frame: #8b7cf6;
+  --pos-color-button-primary-hover-text: #ffffff;
+  --pos-color-interactive: #8b7cf6;
+  --pos-color-interactive-hover: #8b7cf6;
+  --pos-color-focused: #8b7cf6;
+}
