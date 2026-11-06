@@ -633,7 +633,9 @@ en:
   settings:
     title: Settings
     appearance: Appearance
-    appearance_help: Light, dark, or follow each person's device setting. Applies to the whole desk.
+    appearance_help: Follow the host app's setting, follow each person's device, or always use light or dark. Applies to the whole desk.
+    appearance_from_host: "Appearance: following the host app (%{mode})."
+    appearance_overridden: "Appearance: set here (%{mode})."
     groups:
       routing: Routing
       content: Content
@@ -734,9 +736,18 @@ en:
     short_name: Short name (app icon label)
     email_name: Sender name in emails
     theme_color: Theme colour (#rrggbb)
-    logo_url: Logo URL (https)
+    logo_url: Logo for light backgrounds, URL (https)
+    logo_dark_url: Logo for dark backgrounds, URL (https)
+    background_color: Background colour (#rrggbb, app splash screen)
+    favicon_url: Favicon URL (https)
+    rail_theme: Logo on the sidebar
+    rail_theme_auto: Match the appearance
+    rail_theme_light: Light sidebar (logo for light backgrounds)
+    rail_theme_dark: Dark sidebar (logo for dark backgrounds)
+    mixed_logos: You have overridden only one of the two logos, so the other one still comes from the host app. Set both to use one brand everywhere.
     icon_url: App icon URL (https, square PNG, 512 px)
     theme_mode: Light or dark
+    mode_host: Follow the host app
     mode_auto: Follow the device
     mode_light: Always light
     mode_dark: Always dark
@@ -756,7 +767,8 @@ en:
       minutes: Enter a whole number of minutes from 1 to 10080.
       spam_threshold: Enter a spam threshold from 0 to 100.
       use_host_with_overrides: "Untick \"Use the host app's branding\" to save your own name, colours or images."
-      theme_mode: Choose Follow the device, Light or Dark.
+      theme_mode: Choose Follow the host app, Follow the device, Always light or Always dark.
+      rail_theme: Choose how the sidebar logo is picked.
       section: Unknown settings section.
       department: Enter a name and an inbound address name (lower-case letters, digits, dashes).
       from_address: Enter a valid sender address.

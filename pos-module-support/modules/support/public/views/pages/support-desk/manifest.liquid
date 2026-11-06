@@ -5,25 +5,41 @@ format: json
 ---
 {% liquid
   # PWA manifest scoped to the desk (07 §4.1); brand from helpers/branding.
+  # The host's icon replaces the module's icons rather than competing with them.
   function brand = 'modules/support/helpers/branding'
-  assign icon_192 = 'modules/support/icons/icon-192.png' | asset_url
-  assign icon_512 = 'modules/support/icons/icon-512.png' | asset_url
   assign manifest = { "id": "/support-desk", "scope": "/support-desk", "start_url": "/support-desk", "display": "standalone", "icons": [] }
   assign suffix = 'modules/support/pwa.suffix' | t
   assign manifest.name = brand.app_name | append: ' ' | append: suffix | strip
   assign manifest.short_name = brand.short_name | default: brand.app_name
-  assign manifest.theme_color = brand.theme_color | default: '#175890'
-  assign manifest.background_color = brand.background_color | default: '#ffffff'
-  assign small = { "sizes": "192x192", "type": "image/png", "purpose": "any" }
-  assign small.src = icon_192
-  assign large = { "sizes": "512x512", "type": "image/png", "purpose": "any" }
-  assign large.src = icon_512
-  if brand.icon_url != blank
-    assign host_icon = { "sizes": "512x512", "purpose": "any" }
-    assign host_icon.src = brand.icon_url
-    assign manifest.icons << host_icon
+  if brand.theme_color != blank
+    assign manifest.theme_color = brand.theme_color
   endif
-  assign manifest.icons << small
-  assign manifest.icons << large
+  if brand.background_color != blank
+    assign manifest.background_color = brand.background_color
+  endif
+  if brand.icon_url != blank
+    assign path = brand.icon_url | split: '?' | first | split: '#' | first | downcase
+    assign host_icon = { "sizes": "512x512", "type": "image/png", "purpose": "any" }
+    assign host_icon.src = brand.icon_url
+    assign is_svg = path | matches: '\.svg\z'
+    assign is_webp = path | matches: '\.webp\z'
+    assign is_jpeg = path | matches: '\.jpe?g\z'
+    if is_svg
+      assign host_icon.type = 'image/svg+xml'
+      assign host_icon.sizes = 'any'
+    elsif is_webp
+      assign host_icon.type = 'image/webp'
+    elsif is_jpeg
+      assign host_icon.type = 'image/jpeg'
+    endif
+    assign manifest.icons << host_icon
+  else
+    assign small = { "sizes": "192x192", "type": "image/png", "purpose": "any" }
+    assign small.src = 'modules/support/icons/icon-192.png' | asset_url
+    assign large = { "sizes": "512x512", "type": "image/png", "purpose": "any" }
+    assign large.src = 'modules/support/icons/icon-512.png' | asset_url
+    assign manifest.icons << small
+    assign manifest.icons << large
+  endif
   echo manifest | json
 %}

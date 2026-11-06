@@ -2,6 +2,74 @@
   @param {object} contract - The test contract object
 {% enddoc %}
 {% liquid
+  function before = 'modules/support/helpers/settings'
+  assign original_override = before.branding_override | default: {}
+
+  # default name from the instance domain (#130, PRD WL-5)
+  function n = 'modules/support/helpers/default_app_name', host: 'support-development.staging.oregon.platform-os.com'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: n, expected: 'Support Development', field_name: 'platformOS host gives its first label'
+  function n = 'modules/support/helpers/default_app_name', host: 'www.Nordvik-Rail.no:443'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: n, expected: 'nordvik-rail.no', field_name: 'custom domain without www and port'
+  function n = 'modules/support/helpers/default_app_name', host: ''
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: n, expected: 'Support', field_name: 'no host falls back to the translation'
+
+  # the sidebar logo follows rail_theme, then theme_mode, then the device (#125)
+  assign b = { "app_name": "Nordvik", "logo_url": "https://x.test/light.svg", "logo_dark_url": "https://x.test/dark.svg", "theme_mode": "light", "rail_theme": "dark" }
+  capture out
+    render 'modules/support/brand', brand: b
+  endcapture
+  assign shows_dark = out | matches: 'src="https://x.test/dark.svg"'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: shows_dark, expected: true, field_name: 'dark rail shows the dark logo in light mode'
+  assign b.rail_theme = 'light'
+  assign b.theme_mode = 'dark'
+  capture out
+    render 'modules/support/brand', brand: b
+  endcapture
+  assign shows_dark = out | matches: 'dark\.svg'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: shows_dark, expected: false, field_name: 'light rail shows the light logo in dark mode'
+  assign b.rail_theme = 'auto'
+  assign b.theme_mode = 'auto'
+  capture out
+    render 'modules/support/brand', brand: b
+  endcapture
+  assign follows_device = out | matches: 'prefers-color-scheme: dark'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: follows_device, expected: true, field_name: 'auto rail follows the device'
+
+  # Appearance: host removes the override, the others set it (#129)
+  assign p = { "only": "theme_mode", "theme_mode": "light" }
+  function r = 'modules/support/commands/settings_sections/branding', params: p
+  function s = 'modules/support/helpers/settings'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: s.branding_override.theme_mode, expected: 'light', field_name: 'appearance light saved'
+  assign p.theme_mode = 'host'
+  function r = 'modules/support/commands/settings_sections/branding', params: p
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: r.valid, expected: true, field_name: 'follow the host app accepted'
+  function s = 'modules/support/helpers/settings'
+  assign keys = s.branding_override | default: {} | hash_keys
+  assign has_mode = false
+  if keys contains 'theme_mode'
+    assign has_mode = true
+  endif
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: has_mode, expected: false, field_name: 'follow the host app removes the appearance override'
+  assign p.theme_mode = 'sepia'
+  function r = 'modules/support/commands/settings_sections/branding', params: p
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: r.valid, expected: false, field_name: 'unknown appearance refused'
+
+  # dark logo, background colour, favicon and sidebar logo can be overridden (#128)
+  assign p = { "use_host": "false", "logo_url": "https://x.test/l.svg", "logo_dark_url": "https://x.test/d.svg", "background_color": "#0E5C4A", "favicon_url": "https://x.test/f.ico", "rail_theme": "dark" }
+  function r = 'modules/support/commands/settings_sections/branding', params: p
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: r.valid, expected: true, field_name: 'logo, colour and favicon overrides saved'
+  function brand = 'modules/support/helpers/branding'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: brand.logo_dark_url, expected: 'https://x.test/d.svg', field_name: 'dark logo override'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: brand.background_color, expected: '#0e5c4a', field_name: 'background colour override'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: brand.favicon_url, expected: 'https://x.test/f.ico', field_name: 'favicon override'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: brand.rail_theme, expected: 'dark', field_name: 'sidebar logo override'
+  assign bad = { "use_host": "false", "rail_theme": "purple" }
+  function r = 'modules/support/commands/settings_sections/branding', params: bad
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: r.valid, expected: false, field_name: 'unknown sidebar logo choice refused'
+  assign bad = { "use_host": "false", "favicon_url": "http://x.test/f.ico" }
+  function r = 'modules/support/commands/settings_sections/branding', params: bad
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: r.valid, expected: false, field_name: 'non-https favicon refused'
+
   # an override reaches the brand used by the rail, manifest, push and emails
   assign params = { "use_host": "false", "app_name": "Override Desk", "short_name": "Override", "support_email_name": "Override Support", "theme_color": "#123abc" }
   function saved = 'modules/support/commands/settings_sections/branding', params: params
@@ -33,4 +101,6 @@
   function contract = 'modules/tests/assertions/equal', contract: contract, given: r.valid, expected: true, field_name: 'ticking use host clears saved overrides'
   function brand = 'modules/support/helpers/branding'
   function contract = 'modules/tests/assertions/equal', contract: contract, given: brand.app_name, expected: 'Harbor City Permits', field_name: 'host branding restored'
+
+  function _ = 'modules/support/commands/settings/set', key: 'branding_override', value: original_override
 %}

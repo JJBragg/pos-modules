@@ -1,19 +1,43 @@
 {% doc %}
-  Logo (or monogram) and app name. The dark logo is used in dark mode when
-  the brand has one.
+  Logo (or monogram) and app name. The logo follows the rail, not the
+  device: brand.rail_theme dark or light pins the dark-background or
+  light-background logo (a brand-coloured rail is dark in both colour
+  schemes); auto follows brand.theme_mode, and the device setting when
+  that is auto too.
   @param {object} brand - From helpers/branding
 {% enddoc %}
+{% liquid
+  assign logo_mode = 'light'
+  if brand.logo_dark_url != blank
+    case brand.rail_theme
+      when 'dark'
+        assign logo_mode = 'dark'
+      when 'light'
+        assign logo_mode = 'light'
+      else
+        case brand.theme_mode
+          when 'dark'
+            assign logo_mode = 'dark'
+          when 'light'
+            assign logo_mode = 'light'
+          else
+            assign logo_mode = 'device'
+        endcase
+    endcase
+  endif
+%}
 {% if brand.logo_url %}
-  {% if brand.logo_dark_url and brand.theme_mode == 'dark' %}
-    <img class="pos-support-brand-logo" src="{{ brand.logo_dark_url }}" alt="" width="128" height="32">
-  {% elsif brand.logo_dark_url and brand.theme_mode != 'light' %}
-    <picture>
-      <source srcset="{{ brand.logo_dark_url }}" media="(prefers-color-scheme: dark)">
+  {% case logo_mode %}
+    {% when 'dark' %}
+      <img class="pos-support-brand-logo" src="{{ brand.logo_dark_url }}" alt="" width="128" height="32">
+    {% when 'device' %}
+      <picture>
+        <source srcset="{{ brand.logo_dark_url }}" media="(prefers-color-scheme: dark)">
+        <img class="pos-support-brand-logo" src="{{ brand.logo_url }}" alt="" width="128" height="32">
+      </picture>
+    {% else %}
       <img class="pos-support-brand-logo" src="{{ brand.logo_url }}" alt="" width="128" height="32">
-    </picture>
-  {% else %}
-    <img class="pos-support-brand-logo" src="{{ brand.logo_url }}" alt="" width="128" height="32">
-  {% endif %}
+  {% endcase %}
   <span class="pos-support-brand-name pos-support-sr-only">{{ brand.app_name }}</span>
 {% else %}
   <span class="pos-support-brand-monogram" aria-hidden="true">{{ brand.initial }}</span>

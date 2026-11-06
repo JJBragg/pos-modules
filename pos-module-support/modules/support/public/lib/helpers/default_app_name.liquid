@@ -1,0 +1,34 @@
+{% doc %}
+  Default desk name when neither the host hook nor an override names it
+  (PRD WL-5: "the instance domain as the name"). A platformOS host
+  (*.platform-os.com) gives its first label, words capitalised
+  ("support-development" → "Support Development"); any other host gives
+  the domain without "www." and the port. Falls back to the translation
+  (modules/support/app_name) when there is no host at all.
+  @param {string} [host] - Host name, e.g. context.location.host or the host of settings.base_url
+{% enddoc %}
+{% liquid
+  assign name = host | default: '' | downcase | split: ':' | first | strip
+  if name == blank
+    assign fallback = 'modules/support/app_name' | t
+    return fallback
+  endif
+  assign platform_host = name | matches: '\.platform-os\.com\z'
+  if platform_host
+    assign label = name | split: '.' | first
+    assign words = label | replace: '-', ' ' | replace: '_', ' ' | split: ' '
+    assign parts = []
+    for word in words
+      if word != blank
+        assign parts << word | capitalize
+      endif
+    endfor
+    assign result = parts | join: ' '
+    return result
+  endif
+  assign starts_www = name | slice: 0, 4
+  if starts_www == 'www.'
+    assign name = name | remove_first: 'www.'
+  endif
+  return name
+%}

@@ -1,12 +1,16 @@
 {% doc %}
   Saves the branding override (08 §5). "Use the host app's branding" clears
   it; otherwise non-blank fields override the host hook per key. Colours
-  must be #rrggbb; images must be https URLs. Returns { valid, error, notice }.
-  @param {object} params - use_host, app_name, short_name, support_email_name, theme_color, background_color, logo_url, logo_dark_url, icon_url; or only=theme_mode with theme_mode (auto | light | dark), saved on its own
+  must be #rrggbb; images must be https URLs. Appearance is saved on its
+  own: host removes the override so the host hook's theme_mode applies
+  again; auto, light and dark override it. Returns { valid, error, notice }.
+  @param {object} params - use_host, app_name, short_name, support_email_name, theme_color, background_color, logo_url, logo_dark_url, icon_url, favicon_url, rail_theme (auto | light | dark); or only=theme_mode with theme_mode (host | auto | light | dark), saved on its own
 {% enddoc %}
 {% liquid
   assign result = { "valid": false, "error": null, "notice": "modules/support/settings.saved" }
-  assign modes = ["auto", "light", "dark"]
+  assign modes = ["host", "auto", "light", "dark"]
+  assign rail_themes = ["auto", "light", "dark"]
+  assign appearance_keys = ["theme_mode"]
   function settings = 'modules/support/helpers/settings'
   assign current_mode = settings.branding_override.theme_mode
 
@@ -17,8 +21,10 @@
       return result
     endunless
     assign override = settings.branding_override | default: {}
-    assign override = override | hash_merge: {}
-    assign override.theme_mode = params.theme_mode
+    assign override = override | hash_except: appearance_keys
+    if params.theme_mode != 'host'
+      assign override.theme_mode = params.theme_mode
+    endif
     function _ = 'modules/support/commands/settings/set', key: 'branding_override', value: override
     assign result.valid = true
     return result
@@ -27,7 +33,7 @@
   if params.use_host == 'true'
     # an override typed in with the box still ticked would be thrown away
     # without a word; values already saved (ticking the box to clear them) pass
-    assign fields = "app_name,short_name,support_email_name,theme_color,background_color,logo_url,logo_dark_url,icon_url" | split: ','
+    assign fields = "app_name,short_name,support_email_name,theme_color,background_color,logo_url,logo_dark_url,icon_url,favicon_url" | split: ','
     for key in fields
       assign typed = params[key] | strip
       assign saved = settings.branding_override[key] | default: ''
@@ -36,8 +42,14 @@
         return result
       endif
     endfor
+    assign typed = params.rail_theme | default: 'auto'
+    assign saved = settings.branding_override.rail_theme | default: 'auto'
+    if typed != 'auto' and typed != saved
+      assign result.error = 'modules/support/settings.errors.use_host_with_overrides'
+      return result
+    endif
     assign kept = {}
-    if current_mode != blank and current_mode != 'auto'
+    if current_mode != blank
       assign kept.theme_mode = current_mode
     endif
     function _ = 'modules/support/commands/settings/set', key: 'branding_override', value: kept
@@ -65,7 +77,7 @@
       assign override[key] = value
     endif
   endfor
-  assign images = "logo_url,logo_dark_url,icon_url" | split: ','
+  assign images = "logo_url,logo_dark_url,icon_url,favicon_url" | split: ','
   for key in images
     assign value = params[key] | strip
     if value != blank
@@ -77,6 +89,15 @@
       assign override[key] = value
     endif
   endfor
+  # rail_theme auto means "not set here", so the host hook's value applies
+  assign rail_theme = params.rail_theme | strip | default: 'auto'
+  unless rail_themes contains rail_theme
+    assign result.error = 'modules/support/settings.errors.rail_theme'
+    return result
+  endunless
+  if rail_theme != 'auto'
+    assign override.rail_theme = rail_theme
+  endif
   if current_mode != blank
     assign override.theme_mode = current_mode
   endif

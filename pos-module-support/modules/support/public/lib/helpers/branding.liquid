@@ -9,8 +9,14 @@
   if cached != blank
     return cached
   endif
-  assign app_name = 'modules/support/app_name' | t
-  assign brand = { "app_name": app_name, "short_name": app_name, "logo_url": null, "logo_dark_url": null, "icon_url": null, "favicon_url": null, "theme_color": null, "background_color": null, "theme_mode": "auto", "support_email_name": app_name }
+  function settings = 'modules/support/helpers/settings'
+  # background jobs have no request host; the learned desk address stands in
+  assign host = context.location.host
+  if host == blank and settings.base_url != blank
+    assign host = settings.base_url | remove_first: 'https://' | remove_first: 'http://' | split: '/' | first
+  endif
+  function app_name = 'modules/support/helpers/default_app_name', host: host
+  assign brand = { "app_name": app_name, "short_name": app_name, "logo_url": null, "logo_dark_url": null, "icon_url": null, "favicon_url": null, "theme_color": null, "background_color": null, "theme_mode": "auto", "rail_theme": "auto", "support_email_name": app_name }
 
   function host_brand = 'modules/core/commands/hook/fire', hook: 'support_branding', params: null, merge_to_object: true
   for pair in host_brand
@@ -19,7 +25,6 @@
     endif
   endfor
 
-  function settings = 'modules/support/helpers/settings'
   for pair in settings.branding_override
     if pair[1] != blank
       assign brand[pair[0]] = pair[1]

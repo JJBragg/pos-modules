@@ -6,8 +6,9 @@
 {% liquid
   assign brand = data.brand
   assign o = data.override
-  assign theme_mode = o.theme_mode | default: 'auto'
-  # appearance has its own control, so it does not count as a branding override
+  assign theme_mode = o.theme_mode | default: 'host'
+  assign host_mode = data.host_brand.theme_mode | default: 'auto'
+  # appearance has its own control and its own source line
   assign appearance_keys = ["theme_mode"]
   assign brand_override = o | hash_except: appearance_keys
   assign using_host = true
@@ -16,7 +17,22 @@
   endif
   assign host_keys = data.host_brand | hash_keys | join: ', '
   assign override_keys = brand_override | hash_keys | join: ', '
-  assign modes = "auto,light,dark" | split: ','
+  assign modes = "host,auto,light,dark" | split: ','
+  assign rail_themes = "light,dark" | split: ','
+  assign host_mode_label = 'modules/support/settings.mode_' | append: host_mode | t
+  if o.theme_mode != blank
+    assign mode_label = 'modules/support/settings.mode_' | append: o.theme_mode | t
+  endif
+
+  # overriding one logo leaves the host's other logo in place
+  assign mixed_logos = false
+  if o.logo_url != blank and o.logo_dark_url == blank and data.host_brand.logo_dark_url != blank
+    assign mixed_logos = true
+  endif
+  if o.logo_dark_url != blank and o.logo_url == blank and data.host_brand.logo_url != blank
+    assign mixed_logos = true
+  endif
+
   assign status = { "label": null, "color": "open" }
   assign status.label = 'modules/support/settings.preview_status' | t
 %}
@@ -30,6 +46,7 @@
       <li>{% if data.host_theme %}✓ {{ 'modules/support/settings.host_theme_found' | t }}{% else %}– {{ 'modules/support/settings.host_theme_missing' | t }}{% endif %}</li>
       <li>{% if data.host_brand.size > 0 %}✓ {{ 'modules/support/settings.host_hook_found' | t: keys: host_keys }}{% else %}– {{ 'modules/support/settings.host_hook_missing' | t }}{% endif %}</li>
       <li>{% if using_host %}– {{ 'modules/support/settings.no_overrides' | t }}{% else %}✓ {{ 'modules/support/settings.overrides_found' | t: keys: override_keys }}{% endif %}</li>
+      <li data-support-appearance-source>{% if o.theme_mode == blank %}– {{ 'modules/support/settings.appearance_from_host' | t: mode: host_mode_label }}{% else %}✓ {{ 'modules/support/settings.appearance_overridden' | t: mode: mode_label }}{% endif %}</li>
     </ul>
   </section>
 
@@ -37,10 +54,7 @@
     <h2 id="br-preview" class="pos-heading-3">{{ 'modules/support/settings.preview' | t }}</h2>
     <div class="pos-support-brand-preview">
       <div class="pos-support-rail pos-support-brand-preview-rail">
-        <span class="pos-support-brand">
-          {% if brand.logo_url %}<img class="pos-support-brand-logo" src="{{ brand.logo_url }}" alt="" width="128" height="32">{% else %}<span class="pos-support-brand-monogram" aria-hidden="true">{{ brand.initial }}</span>{% endif %}
-          <span class="pos-support-brand-name">{{ brand.app_name }}</span>
-        </span>
+        <span class="pos-support-brand">{% render 'modules/support/brand', brand: brand %}</span>
       </div>
       <div class="pos-support-brand-preview-body">
         <p><button type="button" class="pos-button pos-button-primary">{{ 'modules/support/settings.preview_button' | t }}</button> <a href="#br-preview">{{ 'modules/support/settings.preview_link' | t }}</a> {% render 'modules/support/badges/status', status: status %}</p>
@@ -51,6 +65,7 @@
 
   <section class="pos-card pos-support-step" aria-labelledby="br-overrides">
     <h2 id="br-overrides" class="pos-heading-3">{{ 'modules/support/settings.overrides' | t }}</h2>
+    {% if mixed_logos %}<p class="pos-supplementary" data-support-mixed-logos>{{ 'modules/support/settings.mixed_logos' | t }}</p>{% endif %}
     <form action="/support-desk/settings/save" method="post" class="pos-form pos-support-settings-form">
       <input type="hidden" name="authenticity_token" value="{{ context.authenticity_token }}">
       <input type="hidden" name="section" value="branding">
@@ -59,8 +74,18 @@
       <fieldset><label for="br-short">{{ 'modules/support/settings.short_name' | t }}</label><input id="br-short" name="short_name" value="{{ o.short_name }}" placeholder="{{ brand.short_name }}" data-support-untick="br-use-host"></fieldset>
       <fieldset><label for="br-email-name">{{ 'modules/support/settings.email_name' | t }}</label><input id="br-email-name" name="support_email_name" value="{{ o.support_email_name }}" placeholder="{{ brand.support_email_name }}" data-support-untick="br-use-host"></fieldset>
       <fieldset><label for="br-theme">{{ 'modules/support/settings.theme_color' | t }}</label><input id="br-theme" name="theme_color" value="{{ o.theme_color }}" placeholder="#1d4f91" pattern="#[0-9a-fA-F]{6}" data-support-untick="br-use-host"></fieldset>
+      <fieldset><label for="br-background">{{ 'modules/support/settings.background_color' | t }}</label><input id="br-background" name="background_color" value="{{ o.background_color }}" placeholder="#ffffff" pattern="#[0-9a-fA-F]{6}" data-support-untick="br-use-host"></fieldset>
       <fieldset><label for="br-logo">{{ 'modules/support/settings.logo_url' | t }}</label><input id="br-logo" type="url" name="logo_url" value="{{ o.logo_url }}" placeholder="https://" data-support-untick="br-use-host"></fieldset>
+      <fieldset><label for="br-logo-dark">{{ 'modules/support/settings.logo_dark_url' | t }}</label><input id="br-logo-dark" type="url" name="logo_dark_url" value="{{ o.logo_dark_url }}" placeholder="https://" data-support-untick="br-use-host"></fieldset>
+      <fieldset>
+        <label for="br-rail-theme">{{ 'modules/support/settings.rail_theme' | t }}</label>
+        <select id="br-rail-theme" name="rail_theme" data-support-untick="br-use-host">
+          <option value="">{{ 'modules/support/settings.rail_theme_auto' | t }}</option>
+          {% for r in rail_themes %}<option value="{{ r }}" {% if o.rail_theme == r %}selected{% endif %}>{{ 'modules/support/settings.rail_theme_' | append: r | t }}</option>{% endfor %}
+        </select>
+      </fieldset>
       <fieldset><label for="br-icon">{{ 'modules/support/settings.icon_url' | t }}</label><input id="br-icon" type="url" name="icon_url" value="{{ o.icon_url }}" placeholder="https://" data-support-untick="br-use-host"></fieldset>
+      <fieldset><label for="br-favicon">{{ 'modules/support/settings.favicon_url' | t }}</label><input id="br-favicon" type="url" name="favicon_url" value="{{ o.favicon_url }}" placeholder="https://" data-support-untick="br-use-host"></fieldset>
       <button type="submit" class="pos-button pos-button-primary">{{ 'modules/support/settings.save' | t }}</button>
     </form>
   </section>

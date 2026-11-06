@@ -56,7 +56,7 @@
     {% if brand.theme_color %}<meta name="theme-color" content="{{ brand.theme_color }}">{% endif %}
     {% if brand.favicon_url %}<link rel="icon" href="{{ brand.favicon_url }}">{% endif %}
     <link rel="manifest" href="/support-desk/manifest.json">
-    <link rel="apple-touch-icon" href="{{ 'modules/support/icons/icon-192.png' | asset_url }}">
+    <link rel="apple-touch-icon" href="{% if brand.icon_url != blank %}{{ brand.icon_url }}{% else %}{{ 'modules/support/icons/icon-192.png' | asset_url }}{% endif %}">
     <script>document.documentElement.classList.add('pos-support-js');</script>
     {% render 'modules/support/head' %}
     <link rel="stylesheet" href="{{ 'modules/support/style/pos-support.css' | asset_url }}">
