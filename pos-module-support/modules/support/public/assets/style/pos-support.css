@@ -70,6 +70,7 @@
     --pos-support-tooltip-bg: #1f2937;
     --pos-support-tooltip-fg: #ffffff;
     --pos-support-on-brand: #ffffff;
+    --pos-support-preview-dark-text: #e5e7eb;
     --pos-support-frame-shade: #000000;
     --pos-support-scrollbar: color-mix(in srgb, var(--pos-support-brand) 78%, var(--pos-support-bg-subtle));
     --pos-support-row-hover: color-mix(in srgb, var(--pos-support-brand) var(--pos-support-mix-row-hover), var(--pos-support-bg));
@@ -3623,6 +3624,68 @@
   .pos-support-brand-preview .pos-support-rail {
     position: static;
     block-size: auto;
+  }
+
+  /* 3.3 the brand shift message and the dark-mode preview */
+  .pos-support-brand-shifted {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin: 0 0 0.75rem;
+    padding: 0.625rem 0.75rem;
+    border-radius: var(--pos-support-radius-card);
+    background: color-mix(in srgb, var(--pos-support-status-open-bg) 70%, var(--pos-support-bg));
+    color: var(--pos-support-text);
+  }
+
+  .pos-support-brand-preview-rail .pos-support-rail-items {
+    margin-block-start: 0.5rem;
+  }
+
+  .pos-support-brand-preview-dark {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    margin-block-start: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: var(--pos-support-radius-panel);
+    background: var(--pos-support-dark-content);
+    color: var(--pos-support-preview-dark-text);
+  }
+
+  .pos-support-brand-preview-label {
+    color: var(--pos-support-dark-muted);
+    font-size: var(--pos-support-text-small);
+  }
+
+  .pos-support-brand-preview-selected {
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--pos-support-radius-control);
+    background: color-mix(in srgb, var(--preview-fill) 20%, var(--pos-support-dark-page));
+  }
+
+  .pos-support-brand-preview-selected b {
+    display: inline-grid;
+    place-items: center;
+    min-inline-size: 1.375rem;
+    margin-inline-start: 0.375rem;
+    padding: 0 0.375rem;
+    border-radius: 999px;
+    background: var(--preview-fill);
+    color: var(--pos-support-on-brand);
+  }
+
+  .pos-support-brand-preview-button {
+    padding: 0.375rem 0.75rem;
+    border-radius: var(--pos-support-radius-control);
+    background: var(--preview-fill);
+    color: var(--pos-support-on-brand);
+    font-weight: 600;
+  }
+
+  .pos-support .pos-support-brand-preview-dark a {
+    color: var(--preview-link);
   }
 
   .pos-support-brand-preview-body {

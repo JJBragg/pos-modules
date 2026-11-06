@@ -3,7 +3,7 @@
 // the helpers and commands behind them.
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { contextFor, desk, users } from './helpers';
+import { contextFor, desk, liquid, users } from './helpers';
 
 test('F. the desktop sidebar collapses to icons, keeps accessible names and is remembered', async ({ browser }) => {
   const { context, page } = await contextFor(browser, users.superadmin);
@@ -27,7 +27,12 @@ test('F. the desktop sidebar collapses to icons, keeps accessible names and is r
     expect(narrow).toBeLessThan(wide);
     // every link still has its name for screen readers, and a tooltip
     await expect(page.locator('.pos-support-rail').getByRole('link', { name: /Needs reply/ })).toBeVisible();
-    await expect(page.locator('.pos-support-rail-items a[href*="view=needs_reply"]')).toHaveAttribute('title', /Needs reply/);
+    // handoff 3.34: a floating tooltip with name and count, dismissable with Escape
+    await page.locator('.pos-support-rail-items a[href*="view=needs_reply"]').hover();
+    await expect(page.locator('.pos-support-rail-tip')).toBeVisible();
+    await expect(page.locator('.pos-support-rail-tip')).toContainText(/Needs reply · \d+/);
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.pos-support-rail-tip')).toBeHidden();
 
     // remembered: the next page renders collapsed from the server, without a flash
     await page.waitForTimeout(500);
@@ -57,52 +62,48 @@ const rgbOf = (page: import('@playwright/test').Page, css: string) => page.evalu
   return Array.from(x.getImageData(0, 0, 1, 1).data.slice(0, 3)).join(',');
 }, css);
 
-test('G. cards outline on hover and focus; overdue cards show "! Overdue" in the fixed SLA red', async ({ browser }) => {
+test('G. card hover grows the background with a brand ring; overdue: the red "!" opens to "! Overdue" with a red ring', async ({ browser }) => {
   const { context, page } = await contextFor(browser, users.superadmin);
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(desk('/support-desk/board'));
   const overdue = page.locator('.pos-support-card-overdue').first();
   await expect(overdue).toBeVisible();
-  const text = overdue.locator('.pos-support-overdue-text');
-  // at rest: only the "!" shows, but the word is in the accessible text
-  expect((await text.boundingBox())!.width).toBeLessThanOrEqual(1);
-  await expect(text).toHaveText('Overdue');
+  const badge = overdue.locator('.pos-support-sla-overdue');
+  // at rest: a 1rem red dot, the word still in the DOM for screen readers
+  expect(Math.round((await badge.boundingBox())!.width)).toBeLessThanOrEqual(17);
+  await expect(badge).toContainText('Overdue');
+  const card = (await overdue.boundingBox())!;
+  const dot = (await badge.boundingBox())!;
+  expect(dot.x + dot.width).toBeGreaterThan(card.x + card.width);  // pinned to the edge, sticking out
 
   await overdue.locator('.pos-support-card-title').hover();
-  await expect.poll(async () => (await text.boundingBox())!.width).toBeGreaterThan(20);
-  const outline = await overdue.evaluate((el) => getComputedStyle(el).outlineColor);
-  const red = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--pos-support-sla-overdue').trim());
-  expect(await rgbOf(page, outline)).toBe(await rgbOf(page, red));
-  await expect.poll(() => overdue.evaluate((el) => getComputedStyle(el).transform)).not.toBe('none');
+  await expect.poll(async () => (await badge.boundingBox())!.width).toBeGreaterThan(50);
+  const ring = await overdue.evaluate((el) => getComputedStyle(el, '::before').boxShadow);
+  expect(ring).toMatch(/3px/);
+  // the content does not move or scale; only the background layer grows
+  expect(await overdue.evaluate((el) => getComputedStyle(el).transform)).toBe('none');
+  await expect.poll(() => overdue.evaluate((el) => getComputedStyle(el, '::before').inset)).not.toBe('-1px');
 
-  // keyboard focus shows the pill as well
+  // keyboard focus opens the badge as well
   await page.mouse.move(5, 5);
   await overdue.locator('.pos-support-card-title a').focus();
-  await expect.poll(async () => (await text.boundingBox())!.width).toBeGreaterThan(20);
+  await expect.poll(async () => (await badge.boundingBox())!.width).toBeGreaterThan(50);
 
-  // an ordinary card outlines in the brand colour
+  // the drag handle appears on hover
   const plain = page.locator('.pos-support-card:not(.pos-support-card-overdue)').first();
   await plain.locator('.pos-support-card-title').hover();
-  const plainOutline = await plain.evaluate((el) => getComputedStyle(el).outlineColor);
-  expect(await rgbOf(page, plainOutline)).not.toBe(await rgbOf(page, red));
+  await expect.poll(() => plain.locator('.pos-support-card-grip').evaluate((el) => getComputedStyle(el).opacity)).toBe('1');
   await context.close();
 });
 
-test('G. reduced motion: no scale; touch screens always show the Overdue pill', async ({ browser }) => {
+test('G. reduced motion: no ping animation and no transitions on cards', async ({ browser }) => {
   const { context, page } = await contextFor(browser, users.superadmin, { reducedMotion: 'reduce' });
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(desk('/support-desk/board'));
-  const card = page.locator('.pos-support-card').first();
-  await card.locator('.pos-support-card-title').hover();
-  expect(await card.evaluate((el) => getComputedStyle(el).transform)).toBe('none');
+  const badge = page.locator('.pos-support-card-overdue .pos-support-sla-overdue').first();
+  expect(await badge.evaluate((el) => getComputedStyle(el).animationName)).toBe('none');
+  expect(await page.locator('.pos-support-card').first().evaluate((el) => getComputedStyle(el, '::before').transitionDuration)).toMatch(/^0s/);
   await context.close();
-
-  const phone = await contextFor(browser, users.superadmin, { hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
-  await phone.page.goto(desk('/support-desk/board'));
-  const text = phone.page.locator('.pos-support-card-overdue .pos-support-overdue-text').first();
-  await text.scrollIntoViewIfNeeded();
-  expect((await text.boundingBox())!.width).toBeGreaterThan(20);
-  await phone.context.close();
 });
 
 test('E. filter dropdowns show markers, work by keyboard, and Reset all clears every filter', async ({ browser }) => {
@@ -157,5 +158,86 @@ test('E. without JavaScript the plain selects still filter', async ({ browser })
   await expect(page.locator('#pos-support-priority')).toBeVisible();
   await page.selectOption('#pos-support-priority', 'p1');
   await Promise.all([page.waitForURL(/priority=p1/), page.click('[data-support-filter-button]')]);
+  await context.close();
+});
+
+// design handoff (Gyöngy's v3): brand colour, test themes, brand block, side panel dropdowns
+test('I. a too-light host brand is shifted to an accessible shade; semantic colours never follow the brand', async ({ browser }) => {
+  const { context, page } = await contextFor(browser, users.superadmin);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(desk('/support-desk/board?host_theme=sample-host-3'));
+  const token = () => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--pos-color-button-primary-background').trim());
+  expect(await rgbOf(page, await token())).toBe(await rgbOf(page, '#604fb9'));
+  // 3.4: the E2E department marker (Violet, close to this brand) and the status chips keep their own colours
+  const violet = await page.locator('.pos-support-rail-items [data-dept-color="2"]').first().evaluate((el) => getComputedStyle(el).backgroundColor);
+  expect(await rgbOf(page, violet)).toBe(await rgbOf(page, '#805db8'));
+  const chip = await page.locator('.pos-support-status-open').first().evaluate((el) => getComputedStyle(el).color);
+  expect(await rgbOf(page, chip)).toBe(await rgbOf(page, '#175890'));
+
+  await page.goto(desk('/support-desk/settings/branding'));
+  await expect(page.locator('[data-support-brand-shifted]')).toContainText('#8b7cf6');
+  await expect(page.locator('[data-support-brand-shifted]')).toContainText('#604fb9');
+  // a host without a logo: the support icon, framed and recoloured, with the app name and "Support desk"
+  await expect(page.locator('#pos-support-rail .pos-support-brand-frame.pos-support-brand-recolour')).toBeVisible();
+  await expect(page.locator('#pos-support-rail .pos-support-brand-sub')).toHaveText('Support desk');
+
+  // a brand that passes is not shifted, and the host stylesheet keeps its own values
+  await page.goto(desk('/support-desk/board?host_theme=pos'));
+  expect(await rgbOf(page, await token())).toBe(await rgbOf(page, '#23559f'));
+  await expect(page.locator('style[data-support-brand-tokens]')).toHaveCount(0);
+  // pOS shows the support icon framed in its own colours
+  await expect(page.locator('#pos-support-rail .pos-support-brand-frame')).toBeVisible();
+  await expect(page.locator('#pos-support-rail .pos-support-brand-recolour')).toHaveCount(0);
+  await page.goto(desk('/support-desk/board?host_theme=default'));
+  await context.close();
+});
+
+test('I. the Branding page colour override recolours the desk', async ({ browser }) => {
+  const { context, page } = await contextFor(browser, users.superadmin);
+  const form = page.locator('form:has(#br-use-host)');
+  try {
+    await page.goto(desk('/support-desk/settings/branding'));
+    await page.fill('#br-theme', '#046b55');
+    await form.locator('button[type=submit]').click();
+    await expect(page.locator('#br-theme')).toHaveValue('#046b55');
+    await page.goto(desk('/support-desk'));
+    const value = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--pos-color-button-primary-background').trim());
+    expect(await rgbOf(page, value)).toBe(await rgbOf(page, '#046b55'));
+  } finally {
+    await page.goto(desk('/support-desk/settings/branding'));
+    await page.fill('#br-theme', '');
+    await page.locator('#br-use-host').check();
+    await form.locator('button[type=submit]').click();
+    await expect(page.locator('#br-use-host')).toBeChecked();
+    await context.close();
+  }
+});
+
+test('I. the ticket side panel uses the marker dropdowns; Reset all filters has a tooltip and puts focus on search', async ({ browser }) => {
+  const ticket = liquid(`{% liquid
+  graphql r = 'modules/support/tickets/search', limit: 1
+  assign out = { "id": null }
+  assign out.id = r.records.results.first.id
+  echo out | json | html_safe
+%}`);
+  const { context, page } = await contextFor(browser, users.superadmin);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(desk(`/support-desk/tickets/${ticket.id}`));
+  const department = page.getByRole('combobox', { name: 'Department' });
+  await expect(department.locator('.pos-support-dept-label')).toBeVisible();
+  // the field's label opens the dropdown
+  await page.locator('label', { hasText: 'Department' }).first().click();
+  await expect(department).toHaveAttribute('aria-expanded', 'true');
+  await page.keyboard.press('Escape');
+
+  await page.goto(desk('/support-desk?view=all_open&priority=p1'));
+  const reset = page.getByRole('link', { name: 'Reset all filters' });
+  await reset.hover();
+  await expect.poll(() => reset.evaluate((el) => getComputedStyle(el, '::after').opacity)).toBe('1');
+  await page.keyboard.press('Escape');
+  await expect.poll(() => reset.evaluate((el) => getComputedStyle(el, '::after').opacity)).toBe('0');
+  await reset.click();
+  await expect(page).not.toHaveURL(/priority=/);
+  await expect(page.locator('[data-support-search]')).toBeFocused();
   await context.close();
 });

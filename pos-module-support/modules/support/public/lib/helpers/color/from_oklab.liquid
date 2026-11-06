@@ -1,0 +1,60 @@
+{% doc %}
+  OKLab to #rrggbb, clipped to sRGB and rounded to the nearest 8-bit channel
+  (binary search in the midpoint table; no pow in Liquid).
+  @param {number} lt - Lightness
+  @param {number} a - Green-red axis
+  @param {number} b - Blue-yellow axis
+{% enddoc %}
+{% liquid
+  function tables = 'modules/support/helpers/color/tables'
+  assign la = a | times: 0.3963377774
+  assign lb = b | times: 0.2158037573
+  assign l = lt | plus: la | plus: lb
+  assign ma = a | times: 0.1055613458
+  assign mb = b | times: 0.0638541728
+  assign m = lt | minus: ma | minus: mb
+  assign sa = a | times: 0.0894841775
+  assign sb = b | times: 1.2914855480
+  assign s = lt | minus: sa | minus: sb
+  assign l = l | times: l | times: l
+  assign m = m | times: m | times: m
+  assign s = s | times: s | times: s
+  assign r1 = l | times: 4.0767416621
+  assign r2 = m | times: 3.3077115913
+  assign r3 = s | times: 0.2309699292
+  assign r = r1 | minus: r2 | plus: r3
+  assign g1 = l | times: 1.2684380046
+  assign g2 = m | times: 2.6097574011
+  assign g3 = s | times: 0.3413193965
+  assign g = g2 | minus: g1 | minus: g3
+  assign b1 = l | times: 0.0041960863
+  assign b2 = m | times: 0.7034186147
+  assign b3 = s | times: 1.7076147010
+  assign bl = b3 | minus: b1 | minus: b2
+  assign channels = []
+  assign channels << r
+  assign channels << g
+  assign channels << bl
+  assign out = '#'
+  for x in channels
+    # the 8-bit channel whose range contains x: count of midpoints below it
+    assign lo = 0
+    assign hi = 255
+    for i in (1..9)
+      if lo >= hi
+        break
+      endif
+      assign mid = lo | plus: hi | divided_by: 2
+      if tables.mid[mid] < x
+        assign lo = mid | plus: 1
+      else
+        assign hi = mid
+      endif
+    endfor
+    assign v = lo
+    assign d1 = v | divided_by: 16
+    assign d2 = v | modulo: 16
+    assign out = out | append: tables.digits[d1] | append: tables.digits[d2]
+  endfor
+  return out
+%}

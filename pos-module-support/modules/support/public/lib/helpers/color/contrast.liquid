@@ -1,0 +1,22 @@
+{% doc %}
+  WCAG 2 contrast ratio of two #rrggbb colours (1 to 21).
+  @param {string} a - A colour
+  @param {string} b - Another colour
+{% enddoc %}
+{% liquid
+  function tables = 'modules/support/helpers/color/tables'
+  function ca = 'modules/support/helpers/color/rgb', hex: a
+  function cb = 'modules/support/helpers/color/rgb', hex: b
+  assign la = tables.lin[ca[0]] | times: 0.2126 | plus: 0.0
+  assign g = tables.lin[ca[1]] | times: 0.7152
+  assign bl = tables.lin[ca[2]] | times: 0.0722
+  assign la = la | plus: g | plus: bl
+  assign lb = tables.lin[cb[0]] | times: 0.2126 | plus: 0.0
+  assign g = tables.lin[cb[1]] | times: 0.7152
+  assign bl = tables.lin[cb[2]] | times: 0.0722
+  assign lb = lb | plus: g | plus: bl
+  assign hi = la | at_least: lb | plus: 0.05
+  assign lo = la | at_most: lb | plus: 0.05
+  assign ratio = hi | divided_by: lo
+  return ratio
+%}

@@ -1,0 +1,23 @@
+{% doc %}
+  #rrggbb to [r, g, b] 8-bit integers; null when the value is not #rrggbb.
+  @param {string} hex - A colour, e.g. #1d4f91
+{% enddoc %}
+{% liquid
+  assign h = hex | strip | downcase
+  assign ok = h | matches: '\A#[0-9a-f]{6}\z'
+  unless ok
+    return null
+  endunless
+  function tables = 'modules/support/helpers/color/tables'
+  assign chars = h | remove_first: '#' | split: ''
+  assign rgb = []
+  for i in (0..2)
+    assign hi_index = i | times: 2
+    assign lo_index = hi_index | plus: 1
+    assign hi = tables.digits | array_index_of: chars[hi_index]
+    assign lo = tables.digits | array_index_of: chars[lo_index]
+    assign value = hi | times: 16 | plus: lo
+    assign rgb << value
+  endfor
+  return rgb
+%}

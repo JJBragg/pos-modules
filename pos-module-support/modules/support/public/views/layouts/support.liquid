@@ -62,6 +62,7 @@
     <link rel="stylesheet" href="{{ 'modules/support/style/pos-support.css' | asset_url }}">
     {% if member %}{% render 'modules/push_notifications/init', service_worker_path: '/support-desk/sw.js', subscribe_url: null, destroy_url: null, rotate_url: null, vapid_public_key: null %}{% endif %}
     {{ host_head }}
+    {% render 'modules/support/brand_tokens', brand: brand %}
     <script defer src="{{ 'modules/support/js/pos-support-pwa.js' | asset_url }}"></script>
     <script defer src="{{ 'modules/support/js/pos-support-ui.js' | asset_url }}"></script>
     <script defer src="{{ 'modules/support/js/pos-support-select.js' | asset_url }}"></script>

@@ -1,0 +1,27 @@
+{% doc %}
+  One source for the brand colour (design handoff 3.1, 3.2). Rendered after
+  the host's stylesheet, so it wins. Writes the brand tokens when the colour
+  comes from the Branding page override (the override must recolour the
+  desk), or when the host's colour had to be shifted to an accessible shade
+  (helpers/brand_shift). A host colour that passes as it is stays with the
+  host's own stylesheet, including its dark-mode values.
+  @param {object} brand - From helpers/branding
+{% enddoc %}
+{% liquid
+  assign emit = false
+  if brand.theme_color != blank
+    function settings = 'modules/support/helpers/settings'
+    function shift = 'modules/support/helpers/brand_shift', hex: brand.theme_color
+    if shift
+      if settings.branding_override.theme_color != blank or shift.shifted
+        assign emit = true
+      endif
+    endif
+  endif
+  if emit
+    assign light = '--pos-color-button-primary-background: ' | append: shift.brand | append: '; --pos-color-button-primary-frame: ' | append: shift.brand | append: '; --pos-color-button-primary-text: #ffffff; --pos-color-button-primary-hover-background: ' | append: shift.hover | append: '; --pos-color-button-primary-hover-frame: ' | append: shift.hover | append: '; --pos-color-button-primary-hover-text: #ffffff; --pos-color-interactive: ' | append: shift.brand | append: '; --pos-color-interactive-hover: ' | append: shift.hover | append: '; --pos-color-focused: ' | append: shift.brand | append: ';'
+    assign dark = '--pos-color-button-primary-background: ' | append: shift.dark | append: '; --pos-color-button-primary-frame: ' | append: shift.dark | append: '; --pos-color-button-primary-text: #ffffff; --pos-color-button-primary-hover-background: ' | append: shift.dark_hover | append: '; --pos-color-button-primary-hover-frame: ' | append: shift.dark_hover | append: '; --pos-color-button-primary-hover-text: #ffffff; --pos-color-interactive: ' | append: shift.link_dark | append: '; --pos-color-interactive-hover: ' | append: shift.link_dark_hover | append: '; --pos-color-focused: ' | append: shift.link_dark | append: ';'
+    assign css = ':root { ' | append: light | append: ' } :root.pos-theme-dark { ' | append: dark | append: ' } @media (prefers-color-scheme: dark) { :root.pos-theme-darkEnabled { ' | append: dark | append: ' } }'
+  endif
+%}
+{% if emit %}<style data-support-brand-tokens>{{ css }}</style>{% endif %}

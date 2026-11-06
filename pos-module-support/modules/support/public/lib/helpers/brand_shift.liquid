@@ -1,0 +1,119 @@
+{% doc %}
+  The accessible brand for a host or override colour (design handoff 3.2,
+  D7c). Light mode needs all four: white text on the brand >= 4.5:1, the
+  brand as text on the page, on its own 22% tint and on the top of the 17%
+  column wash >= 4.5:1. A brand that fails is shifted: same OKLCH hue,
+  lightness lowered in 0.005 steps (chroma follows the cube root of the
+  lightness ratio, at least 0.09) until all four pass. Then:
+  - hover: 0.06 lower lightness;
+  - dark fill: from the brand, lightness raised in 0.01 steps until it is
+    >= 3:1 against the dark sidebar (#111419); dark hover 0.05 lower;
+  - dark links: lightness 0.792 (hover 0.875), chroma at most 0.09 (0.054).
+  These reproduce the designer's Sample host 3 (#8b7cf6 -> #604fb9). Computed
+  once per colour and kept in the setting brand_shift_cache.
+  Returns { shifted, original, brand, hover, dark, dark_hover, link_dark,
+  link_dark_hover, white_contrast } or null for a value that is not #rrggbb.
+  @param {string} hex - The host's or the override's brand colour
+{% enddoc %}
+{% liquid
+  assign original = hex | strip | downcase
+  assign valid = original | matches: '\A#[0-9a-f]{6}\z'
+  unless valid
+    return null
+  endunless
+  # a version in the key: a change to the rules recomputes every colour
+  assign cache_key = 'v2' | append: original
+  function settings = 'modules/support/helpers/settings'
+  assign cached = settings.brand_shift_cache[cache_key]
+  if cached != blank
+    return cached
+  endif
+
+  function lab = 'modules/support/helpers/color/to_oklab', hex: original
+  assign lt0 = lab.L
+  assign c0 = lab.c
+  assign brand = original
+  assign lt = lt0
+  assign k = 1.0
+  assign steps = 0
+  for i in (1..160)
+    function white = 'modules/support/helpers/color/contrast', a: '#ffffff', b: brand
+    function tint = 'modules/support/helpers/color/mix', a: brand, p: 0.22, b: '#ffffff'
+    function on_tint = 'modules/support/helpers/color/contrast', a: brand, b: tint
+    function wash = 'modules/support/helpers/color/mix', a: brand, p: 0.17, b: '#f3f5f8'
+    function on_wash = 'modules/support/helpers/color/contrast', a: brand, b: wash
+    if white >= 4.5 and on_tint >= 4.5 and on_wash >= 4.5
+      break
+    endif
+    assign lt = lt | minus: 0.005
+    assign steps = steps | plus: 1
+    if c0 > 0.0001
+      # chroma follows the cube root of the lightness ratio, never below 0.09
+      assign ratio = lt | divided_by: lt0
+      assign root = 1.0
+      for n in (1..30)
+        assign rr = root | times: root
+        assign q = ratio | divided_by: rr
+        assign root = root | times: 2 | plus: q | divided_by: 3.0
+      endfor
+      assign cc = c0 | times: root | at_least: 0.09
+      assign k = cc | divided_by: c0
+    endif
+    assign a = lab.a | times: k
+    assign b = lab.b | times: k
+    function brand = 'modules/support/helpers/color/from_oklab', lt: lt, a: a, b: b
+  endfor
+  assign shifted = false
+  if steps > 0
+    assign shifted = true
+  endif
+
+  assign a = lab.a | times: k
+  assign b = lab.b | times: k
+  assign lt_hover = lt | minus: 0.06
+  function hover = 'modules/support/helpers/color/from_oklab', lt: lt_hover, a: a, b: b
+  assign lt_dark = lt
+  assign dark = brand
+  for i in (1..60)
+    function against_rail = 'modules/support/helpers/color/contrast', a: dark, b: '#111419'
+    if against_rail >= 3
+      break
+    endif
+    assign lt_dark = lt_dark | plus: 0.01
+    function dark = 'modules/support/helpers/color/from_oklab', lt: lt_dark, a: a, b: b
+  endfor
+  assign lt_dark_hover = lt_dark | minus: 0.05
+  function dark_hover = 'modules/support/helpers/color/from_oklab', lt: lt_dark_hover, a: a, b: b
+
+  assign c_brand = c0 | times: k
+  assign kl = 0.0
+  assign klh = 0.0
+  if c0 > 0.0001
+    assign kl = c_brand | at_most: 0.09 | divided_by: c0
+    assign klh = c_brand | at_most: 0.054 | divided_by: c0
+  endif
+  assign al = lab.a | times: kl
+  assign bl = lab.b | times: kl
+  function link_dark = 'modules/support/helpers/color/from_oklab', lt: 0.792, a: al, b: bl
+  assign al = lab.a | times: klh
+  assign bl = lab.b | times: klh
+  function link_dark_hover = 'modules/support/helpers/color/from_oklab', lt: 0.875, a: al, b: bl
+
+  function white_original = 'modules/support/helpers/color/contrast', a: '#ffffff', b: original
+  assign result = { "shifted": false, "original": null, "brand": null, "hover": null, "dark": null, "dark_hover": null, "link_dark": null, "link_dark_hover": null, "white_contrast": null }
+  assign result.shifted = shifted
+  assign result.original = original
+  assign result.brand = brand
+  assign result.hover = hover
+  assign result.dark = dark
+  assign result.dark_hover = dark_hover
+  assign result.link_dark = link_dark
+  assign result.link_dark_hover = link_dark_hover
+  assign result.white_contrast = white_original | round: 1
+
+  assign cache = settings.brand_shift_cache | default: {}
+  assign cache = cache | hash_merge: {}
+  assign cache[cache_key] = result
+  function _ = 'modules/support/commands/settings/set', key: 'brand_shift_cache', value: cache
+  return result
+%}

@@ -734,6 +734,8 @@ en:
     preview_button: Primary button
     preview_link: A link
     preview_status: In progress
+    preview_dark: Dark mode
+    brand_shifted: "Your brand colour %{original} is too light for white text (%{ratio}:1). The desk uses %{used}, a darker shade of the same colour."
     preview_from: "Customer emails come from \"%{name}\"."
     overrides: Overrides
     use_host: Use the host app's branding (clears the overrides below)

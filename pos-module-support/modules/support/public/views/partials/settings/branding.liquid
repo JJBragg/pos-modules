@@ -52,15 +52,29 @@
 
   <section class="pos-card pos-support-step" aria-labelledby="br-preview">
     <h2 id="br-preview" class="pos-heading-3">{{ 'modules/support/settings.preview' | t }}</h2>
+    {%- comment -%} handoff 3.3: say so when the brand was shifted to an accessible shade {%- endcomment -%}
+    {% if data.brand_shift.shifted %}
+      <p class="pos-support-brand-shifted" role="status" data-support-brand-shifted>{% render 'modules/support/icon', name: 'info', size: 'sm' %} {{ 'modules/support/settings.brand_shifted' | t: original: data.brand_shift.original, ratio: data.brand_shift.white_contrast, used: data.brand_shift.brand }}</p>
+    {% endif %}
     <div class="pos-support-brand-preview">
       <div class="pos-support-rail pos-support-brand-preview-rail">
         <span class="pos-support-brand">{% render 'modules/support/brand', brand: brand %}</span>
+        <ul class="pos-support-rail-items"><li><a href="#br-preview" aria-current="page"><span class="pos-support-rail-text">{{ 'modules/support/views.needs_reply' | t }}</span><span class="pos-support-count">12</span></a></li></ul>
       </div>
       <div class="pos-support-brand-preview-body">
         <p><button type="button" class="pos-button pos-button-primary">{{ 'modules/support/settings.preview_button' | t }}</button> <a href="#br-preview">{{ 'modules/support/settings.preview_link' | t }}</a> {% render 'modules/support/badges/status', status: status %}</p>
         <p class="pos-supplementary">{{ 'modules/support/settings.preview_from' | t: name: brand.support_email_name }}</p>
       </div>
     </div>
+    {% if data.brand_shift %}
+      {%- comment -%} the same in dark mode, from the computed dark-mode brand {%- endcomment -%}
+      <div class="pos-support-brand-preview-dark" style="--preview-fill: {{ data.brand_shift.dark }}; --preview-link: {{ data.brand_shift.link_dark }};">
+        <span class="pos-support-brand-preview-label">{{ 'modules/support/settings.preview_dark' | t }}</span>
+        <span class="pos-support-brand-preview-selected">{{ 'modules/support/views.needs_reply' | t }} <b>12</b></span>
+        <span class="pos-support-brand-preview-button">{{ 'modules/support/settings.preview_button' | t }}</span>
+        <a href="#br-preview">{{ 'modules/support/settings.preview_link' | t }}</a>
+      </div>
+    {% endif %}
   </section>
 
   <section class="pos-card pos-support-step" aria-labelledby="br-overrides">

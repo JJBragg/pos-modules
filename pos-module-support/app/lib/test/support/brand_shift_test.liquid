@@ -1,0 +1,53 @@
+{% doc %}
+  @param {object} contract - The test contract object
+{% enddoc %}
+{% liquid
+  # design handoff 3.2: a too-light brand is shifted; the designer's fixture is
+  # Sample host 3, #8b7cf6 -> #604fb9 (hover #503da5, dark #6352bc, dark
+  # hover #5543ac, links #b6b3f3 / #d3d1f8). The rules reproduce it exactly or
+  # within one step (1/255) per channel.
+  function s = 'modules/support/helpers/brand_shift', hex: '#8B7CF6'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: s.shifted, expected: true, field_name: 'a too-light brand is shifted'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: s.brand, expected: '#604fb9', field_name: 'shifted brand'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: s.hover, expected: '#503da6', field_name: 'hover (fixture #503da5)'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: s.dark, expected: '#6252bd', field_name: 'dark fill (fixture #6352bc)'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: s.dark_hover, expected: '#5543ac', field_name: 'dark hover'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: s.link_dark, expected: '#b6b3f3', field_name: 'dark link'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: s.white_contrast, expected: 3.3, field_name: 'the original white-text contrast for the Branding page message'
+  function on_page = 'modules/support/helpers/color/contrast', a: '#ffffff', b: s.brand
+  assign passes = false
+  if on_page >= 4.5
+    assign passes = true
+  endif
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: passes, expected: true, field_name: 'white text on the shifted brand is at least 4.5:1'
+
+  # brands that pass stay as they are (Default, pOS, plum, evergreen)
+  assign kept = "#1d4f91,#23559f,#84497f,#046b55" | split: ','
+  for hex in kept
+    function k = 'modules/support/helpers/brand_shift', hex: hex
+    assign field = hex | append: ' is not shifted'
+    function contract = 'modules/tests/assertions/equal', contract: contract, given: k.brand, expected: hex, field_name: field
+  endfor
+  function k = 'modules/support/helpers/brand_shift', hex: '#23559f'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: k.hover, expected: '#10438c', field_name: 'pOS hover as designed'
+
+  function bad = 'modules/support/helpers/brand_shift', hex: 'blue'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: bad, expected: null, field_name: 'not a colour'
+
+  # the layout writes the tokens only for a shifted brand (or an override)
+  assign host = { "theme_color": "#23559f" }
+  capture out
+    render 'modules/support/brand_tokens', brand: host
+  endcapture
+  assign wrote = false
+  if out contains 'data-support-brand-tokens'
+    assign wrote = true
+  endif
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: wrote, expected: false, field_name: 'a passing host colour stays with the host stylesheet'
+  assign host.theme_color = '#8b7cf6'
+  capture out
+    render 'modules/support/brand_tokens', brand: host
+  endcapture
+  assign wrote = out | matches: '--pos-color-button-primary-background: #604fb9;[\s\S]*pos-theme-dark[\s\S]*--pos-color-interactive: #b6b3f3;'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: wrote, expected: true, field_name: 'a shifted brand is written for light and dark'
+%}

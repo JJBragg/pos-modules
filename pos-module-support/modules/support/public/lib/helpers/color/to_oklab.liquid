@@ -1,0 +1,73 @@
+{% doc %}
+  #rrggbb to OKLab { L, a, b, c } (c = chroma), for the brand shift
+  (design handoff 3.2). Cube roots by Newton's method (no pow in Liquid).
+  @param {string} hex - A colour
+{% enddoc %}
+{% liquid
+  function tables = 'modules/support/helpers/color/tables'
+  function c = 'modules/support/helpers/color/rgb', hex: hex
+  assign r = tables.lin[c[0]] | plus: 0.0
+  assign g = tables.lin[c[1]] | plus: 0.0
+  assign b = tables.lin[c[2]] | plus: 0.0
+  assign l1 = r | times: 0.4122214708
+  assign l2 = g | times: 0.5363325363
+  assign l3 = b | times: 0.0514459929
+  assign l = l1 | plus: l2 | plus: l3
+  assign m1 = r | times: 0.2119034982
+  assign m2 = g | times: 0.6806995451
+  assign m3 = b | times: 0.1073969566
+  assign m = m1 | plus: m2 | plus: m3
+  assign s1 = r | times: 0.0883024619
+  assign s2 = g | times: 0.2817188376
+  assign s3 = b | times: 0.6299787005
+  assign s = s1 | plus: s2 | plus: s3
+  assign roots = []
+  assign lms = []
+  assign lms << l
+  assign lms << m
+  assign lms << s
+  for x in lms
+    # cube root by Newton's method; LMS of an sRGB colour is in [0, 1]
+    assign y = 1.0
+    if x <= 0
+      assign y = 0.0
+    else
+      for i in (1..40)
+        assign yy = y | times: y
+        assign q = x | divided_by: yy
+        assign y = y | times: 2 | plus: q | divided_by: 3.0
+      endfor
+    endif
+    assign roots << y
+  endfor
+  assign ll1 = roots[0] | times: 0.2104542553
+  assign ll2 = roots[1] | times: 0.7936177850
+  assign ll3 = roots[2] | times: 0.0040720468
+  assign lt = ll1 | plus: ll2 | minus: ll3
+  assign aa1 = roots[0] | times: 1.9779984951
+  assign aa2 = roots[1] | times: 2.4285922050
+  assign aa3 = roots[2] | times: 0.4505937099
+  assign oa = aa1 | minus: aa2 | plus: aa3
+  assign bb1 = roots[0] | times: 0.0259040371
+  assign bb2 = roots[1] | times: 0.7827717662
+  assign bb3 = roots[2] | times: 0.8086757660
+  assign ob = bb1 | plus: bb2 | minus: bb3
+  # chroma: square root by Newton's method
+  assign aa = oa | times: oa
+  assign bb = ob | times: ob
+  assign sq = aa | plus: bb
+  assign chroma = 0.0
+  if sq > 0
+    assign chroma = 1.0
+    for i in (1..40)
+      assign q = sq | divided_by: chroma
+      assign chroma = chroma | plus: q | divided_by: 2.0
+    endfor
+  endif
+  assign lab = { "L": null, "a": null, "b": null, "c": null }
+  assign lab.L = lt
+  assign lab.a = oa
+  assign lab.b = ob
+  assign lab.c = chroma
+  return lab
+%}

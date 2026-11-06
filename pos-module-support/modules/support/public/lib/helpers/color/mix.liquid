@@ -1,0 +1,23 @@
+{% doc %}
+  color-mix(in srgb, a p, b) as #rrggbb, rounded to 8-bit channels: what a
+  browser paints for a tint, for contrast checks.
+  @param {string} a - A colour
+  @param {number} p - Share of a, 0 to 1
+  @param {string} b - The other colour
+{% enddoc %}
+{% liquid
+  function tables = 'modules/support/helpers/color/tables'
+  function ca = 'modules/support/helpers/color/rgb', hex: a
+  function cb = 'modules/support/helpers/color/rgb', hex: b
+  assign q = 1.0 | minus: p
+  assign out = '#'
+  for i in (0..2)
+    assign x = ca[i] | times: p
+    assign y = cb[i] | times: q
+    assign v = x | plus: y | round | at_least: 0 | at_most: 255
+    assign hi = v | divided_by: 16
+    assign lo = v | modulo: 16
+    assign out = out | append: tables.digits[hi] | append: tables.digits[lo]
+  endfor
+  return out
+%}

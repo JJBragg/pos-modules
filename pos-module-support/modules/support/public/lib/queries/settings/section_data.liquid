@@ -47,6 +47,10 @@
     when 'branding'
       function brand = 'modules/support/helpers/branding'
       assign data.brand = brand
+      if brand.theme_color != blank
+        function brand_shift = 'modules/support/helpers/brand_shift', hex: brand.theme_color
+        assign data.brand_shift = brand_shift
+      endif
       function host_brand = 'modules/core/commands/hook/fire', hook: 'support_branding', params: null, merge_to_object: true
       assign data.host_brand = host_brand
       function host_head = 'modules/core/queries/headscripts/search'
