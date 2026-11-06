@@ -47,30 +47,46 @@
     --pos-support-hover: color-mix(in srgb, var(--pos-color-content-text) 5%, transparent);
     --pos-support-selected: color-mix(in srgb, var(--pos-color-button-primary-background) 10%, transparent);
 
-    /* brand tints (design review A): the host's primary colour mixed into the
-       page background in oklch. Opaque, so contrast is known, and capped at 18%
-       brand, which keeps body text above 4.5:1 for any brand colour, very light
-       or very dark, in both themes. Dark mode follows because the page
-       background token switches. */
+    /* brand (design handoff v3, implementation-todo §3): every brand element is
+       derived from the host's one primary colour, translucent (color-mix with
+       transparent) or mixed into the surface below where it must be opaque.
+       The percentages switch for dark mode in the dark blocks below. */
     --pos-support-brand: var(--pos-color-button-primary-background);
-    --pos-support-tint-1: color-mix(in oklch, var(--pos-support-brand) 6%, var(--pos-color-page-background));
-    --pos-support-tint-2: color-mix(in oklch, var(--pos-support-brand) 11%, var(--pos-color-page-background));
-    --pos-support-tint-3: color-mix(in oklch, var(--pos-support-brand) 18%, var(--pos-color-page-background));
-    --pos-support-tint-border: color-mix(in oklch, var(--pos-support-brand) 45%, var(--pos-color-page-background));
-    --pos-support-scrollbar: color-mix(in oklch, var(--pos-support-brand) 30%, var(--pos-color-page-background));
-    /* the brand colour as text, borders or icons: a very light brand (yellow)
-       is darkened, a very dark one lightened in dark mode, so it keeps 3:1+
-       against the page; plain brand where relative colours are unsupported */
-    --pos-support-accent-ink: var(--pos-support-brand);
+    --pos-support-rail-base: #f3f5f8;
+    --pos-support-mix-rail: 5%;
+    --pos-support-mix-rail-hover: 10%;
+    --pos-support-mix-rail-active: 16%;
+    --pos-support-mix-rail-shadow: 10%;
+    --pos-support-mix-divider: 18%;
+    --seg-active-mix: 22%;
+    --pos-support-mix-row-hover: 6%;
+    --pos-support-mix-row-checked: 12%;
+    --pos-support-mix-thead: 14%;
+    --pos-support-mix-lane: 3%;
+    --pos-support-wash-from: 17%;
+    --pos-support-wash-to: 5%;
+    --pos-support-muted-on-wash: #4b5563;
+    --pos-support-thead-text: #4b5563;
+    --pos-support-tooltip-bg: #1f2937;
+    --pos-support-tooltip-fg: #ffffff;
+    --pos-support-on-brand: #ffffff;
+    --pos-support-scrollbar: color-mix(in srgb, var(--pos-support-brand) 78%, var(--pos-support-bg-subtle));
+    --pos-support-row-hover: color-mix(in srgb, var(--pos-support-brand) var(--pos-support-mix-row-hover), var(--pos-support-bg));
+    --pos-support-row-checked: color-mix(in srgb, var(--pos-support-brand) var(--pos-support-mix-row-checked), var(--pos-support-bg));
+    --pos-support-rail-divider: color-mix(in srgb, var(--pos-support-brand) var(--pos-support-mix-divider), transparent);
+    --pos-support-wash: linear-gradient(to bottom, color-mix(in srgb, var(--pos-support-brand) var(--pos-support-wash-from), transparent) 0%, color-mix(in srgb, var(--pos-support-brand) var(--pos-support-wash-to), transparent) 42%);
+    --brand-shadow-sm: 0 1px 2px color-mix(in srgb, var(--pos-support-brand) 18%, transparent), 0 2px 8px color-mix(in srgb, var(--pos-support-brand) 16%, transparent);
+    --brand-shadow-md: 0 2px 4px color-mix(in srgb, var(--pos-support-brand) 14%, transparent), 0 8px 20px color-mix(in srgb, var(--pos-support-brand) 20%, transparent);
+    --card-lift-shadow: 0 4px 30px 2px color-mix(in srgb, var(--pos-support-brand) 34%, transparent);
 
     /* rail */
     --pos-support-rail-width: 14.5rem;
-    --pos-support-rail-background: var(--pos-support-tint-1);
+    --pos-support-rail-background: color-mix(in srgb, var(--pos-support-brand) var(--pos-support-mix-rail), var(--pos-support-rail-base));
     --pos-support-rail-text: var(--pos-color-content-text);
     /* mixed with the rail background, not transparency, so its contrast is known: 4.5:1+ for small text */
     --pos-support-rail-muted: color-mix(in srgb, var(--pos-support-rail-text) 82%, var(--pos-support-rail-background));
-    --pos-support-rail-hover-background: color-mix(in oklch, var(--pos-support-brand) 11%, var(--pos-support-rail-background));
-    --pos-support-rail-active-background: color-mix(in oklch, var(--pos-support-brand) 18%, var(--pos-support-rail-background));
+    --pos-support-rail-hover-background: color-mix(in srgb, var(--pos-support-brand) var(--pos-support-mix-rail-hover), var(--pos-support-rail-background));
+    --pos-support-rail-active-background: color-mix(in srgb, var(--pos-support-brand) var(--pos-support-mix-rail-active), transparent);
     --pos-support-rail-active-text: var(--pos-support-rail-text);
     --pos-support-rail-frame: var(--pos-color-frame);
     --pos-support-monogram-background: var(--pos-color-button-primary-background);
@@ -200,6 +216,27 @@
     --pos-support-dept-copper: #f79e75;
     --pos-support-dept-plum: #cd85d8;
     --pos-support-dept-rose: #f68ca6;
+    --pos-support-rail-base: #111419;
+    --pos-support-mix-rail: 6%;
+    --pos-support-mix-rail-hover: 14%;
+    --pos-support-mix-rail-active: 20%;
+    --pos-support-mix-rail-shadow: 14%;
+    --pos-support-mix-divider: 35%;
+    --seg-active-mix: 26%;
+    --pos-support-mix-row-hover: 8%;
+    --pos-support-mix-secondary-hover: 34%;
+    --pos-support-mix-row-checked: 15%;
+    --pos-support-mix-thead: 18%;
+    --pos-support-mix-lane: 4%;
+    --pos-support-wash-from: 16%;
+    --pos-support-muted-on-wash: var(--pos-color-content-text-supplementary);
+    --pos-support-thead-text: var(--pos-color-content-text-supplementary);
+    --pos-support-tooltip-bg: #e5e7eb;
+    --pos-support-tooltip-fg: #111419;
+    --pos-support-scrollbar: color-mix(in srgb, var(--pos-support-brand) 70%, #ffffff);
+    --brand-shadow-sm: 0 0 0 1px color-mix(in srgb, var(--pos-support-brand) 40%, transparent), 0 2px 10px color-mix(in srgb, var(--pos-support-brand) 35%, transparent);
+    --brand-shadow-md: 0 0 0 1px color-mix(in srgb, var(--pos-support-brand) 45%, transparent), 0 6px 22px color-mix(in srgb, var(--pos-support-brand) 38%, transparent);
+    --card-lift-shadow: 0 4px 30px 2px color-mix(in srgb, var(--pos-support-brand) 32%, transparent);
   }
 
   @media (prefers-color-scheme: dark) {
@@ -256,22 +293,27 @@
       --pos-support-dept-copper: #f79e75;
       --pos-support-dept-plum: #cd85d8;
       --pos-support-dept-rose: #f68ca6;
-    }
-  }
-
-  @supports (color: oklch(from red l c h)) {
-    :root {
-      --pos-support-accent-ink: oklch(from var(--pos-support-brand) min(l, 0.5) c h);
-    }
-
-    :root.pos-theme-dark {
-      --pos-support-accent-ink: oklch(from var(--pos-support-brand) max(l, 0.78) c h);
-    }
-
-    @media (prefers-color-scheme: dark) {
-      :root.pos-theme-darkEnabled {
-        --pos-support-accent-ink: oklch(from var(--pos-support-brand) max(l, 0.78) c h);
-      }
+      --pos-support-rail-base: #111419;
+      --pos-support-mix-rail: 6%;
+      --pos-support-mix-rail-hover: 14%;
+      --pos-support-mix-rail-active: 20%;
+      --pos-support-mix-rail-shadow: 14%;
+      --pos-support-mix-divider: 35%;
+      --seg-active-mix: 26%;
+      --pos-support-mix-row-hover: 8%;
+    --pos-support-mix-secondary-hover: 34%;
+      --pos-support-mix-row-checked: 15%;
+      --pos-support-mix-thead: 18%;
+      --pos-support-mix-lane: 4%;
+      --pos-support-wash-from: 16%;
+      --pos-support-muted-on-wash: var(--pos-color-content-text-supplementary);
+      --pos-support-thead-text: var(--pos-color-content-text-supplementary);
+      --pos-support-tooltip-bg: #e5e7eb;
+      --pos-support-tooltip-fg: #111419;
+      --pos-support-scrollbar: color-mix(in srgb, var(--pos-support-brand) 70%, #ffffff);
+      --brand-shadow-sm: 0 0 0 1px color-mix(in srgb, var(--pos-support-brand) 40%, transparent), 0 2px 10px color-mix(in srgb, var(--pos-support-brand) 35%, transparent);
+      --brand-shadow-md: 0 0 0 1px color-mix(in srgb, var(--pos-support-brand) 45%, transparent), 0 6px 22px color-mix(in srgb, var(--pos-support-brand) 38%, transparent);
+      --card-lift-shadow: 0 4px 30px 2px color-mix(in srgb, var(--pos-support-brand) 32%, transparent);
     }
   }
 
@@ -590,7 +632,7 @@
   .pos-support :where(input:not([type="checkbox"], [type="radio"], [type="file"]), select, textarea):not(.pos-support-bare):focus-visible,
   .pos-support :where(input:not([type="checkbox"], [type="radio"], [type="file"]), select, textarea):not(.pos-support-bare):focus {
     outline: none;
-    border-color: var(--pos-support-accent-ink);
+    border-color: var(--pos-color-focused);
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--pos-support-accent) 22%, transparent);
   }
 
@@ -778,9 +820,9 @@
   }
 
   .pos-support .pos-button[aria-pressed="true"] {
-    background: var(--pos-support-tint-3);
-    border-color: var(--pos-support-tint-border);
-    color: var(--pos-support-text);
+    background: color-mix(in srgb, var(--pos-support-brand) var(--seg-active-mix), var(--pos-support-bg));
+    border-color: color-mix(in srgb, var(--pos-support-brand) 55%, transparent);
+    color: var(--pos-color-interactive);
   }
 
   .pos-support-form-actions {
@@ -851,10 +893,16 @@
     font-size: var(--pos-support-text-small);
   }
 
+  /* selected segment (handoff 3.11): pale brand, brand text, one 1px inset ring */
   .pos-support-segmented :is(a[aria-current], button[aria-pressed="true"], label:has(input:checked)) {
-    background: var(--pos-support-tint-3);
-    color: var(--pos-support-text);
-    box-shadow: var(--pos-support-shadow-sm), 0 0 0 1px var(--pos-support-tint-border);
+    background: color-mix(in srgb, var(--pos-support-brand) var(--seg-active-mix), var(--pos-support-bg));
+    color: var(--pos-color-interactive);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pos-support-brand) 55%, transparent);
+  }
+
+  /* the priority segments keep their semantic colour and the neutral ring */
+  .pos-support-segmented label[class*="pos-support-seg-p"]:has(input:checked) {
+    box-shadow: var(--pos-support-shadow-sm), 0 0 0 1px var(--pos-support-border);
   }
 
   .pos-support .pos-support-segmented label > input {
@@ -2412,7 +2460,7 @@
   }
 
   .pos-support-composer:focus-within {
-    border-color: var(--pos-support-accent-ink);
+    border-color: var(--pos-color-focused);
     box-shadow: var(--pos-support-shadow-md), 0 0 0 3px color-mix(in srgb, var(--pos-support-accent) 20%, transparent);
   }
 
@@ -2841,7 +2889,7 @@
     flex-direction: column;
     min-block-size: 0;
     border-radius: var(--pos-support-radius-panel);
-    background: var(--pos-support-tint-1);
+    background: var(--pos-support-wash);
     scroll-snap-align: start;
   }
 
@@ -2850,10 +2898,8 @@
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
-    margin: 0 0 0.375rem;
-    padding: 0.5rem 0.75rem;
-    border-radius: var(--pos-support-radius-panel) var(--pos-support-radius-panel) 0 0;
-    background: var(--pos-support-tint-2);
+    margin: 0;
+    padding: 0.625rem 0.75rem 0.5rem;
     font-size: var(--pos-support-text-body);
   }
 
@@ -3269,7 +3315,7 @@
   }
 
   .pos-support-subnav a[aria-current="page"] .pos-support-icon {
-    color: var(--pos-support-accent-ink);
+    color: var(--pos-color-interactive);
   }
 
   .pos-support-subnav-select {
@@ -3789,6 +3835,197 @@
       display: none;
     }
   }
+
+  /* ================================================================
+     Design handoff v3 (Gyöngy, 6 Nov 2026; implementation-todo.md).
+     Item numbers refer to that document; the why is design-decisions.md.
+     ================================================================ */
+
+  /* 3.12 rail surface: a very pale brand over the original grey, a subtle
+     wide inner brand shadow on the right edge */
+  .pos-support-rail {
+    box-shadow: inset -56px 0 64px -52px color-mix(in srgb, var(--pos-support-brand) var(--pos-support-mix-rail-shadow), transparent);
+  }
+
+  /* 3.8 / 1.2 rail items: equal padding; view icons and department markers
+     share one 1.375rem slot so the names start on one line */
+  .pos-support .pos-support-rail-items a {
+    gap: 0.3125rem;
+    padding: 0.3125rem;
+  }
+
+  .pos-support-rail-items a > .pos-support-icon {
+    box-sizing: border-box;
+    inline-size: 1.375rem;
+    block-size: 1.375rem;
+    padding: 0.1875rem;
+    margin-inline: 0;
+    color: var(--pos-support-rail-text);
+    stroke-width: 1.75;
+  }
+
+  /* 3.6 selected rail item: one flat pale brand, full rail text; its count
+     in a solid brand circle */
+  .pos-support-rail-items a[aria-current="page"],
+  .pos-support .pos-support-rail-items a[aria-current="page"]:hover {
+    background: var(--pos-support-rail-active-background);
+    color: var(--pos-support-rail-text);
+  }
+
+  .pos-support-rail-items a[aria-current="page"] .pos-support-count {
+    display: inline-grid;
+    place-items: center;
+    box-sizing: border-box;
+    min-inline-size: 1.375rem;
+    block-size: 1.375rem;
+    padding: 0 0.375rem;
+    border-radius: 999px;
+    background: var(--pos-color-button-primary-background);
+    color: var(--pos-color-button-primary-text);
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  /* 3.33 dividers under the brand block and above "Departments", like the
+     line above the signed-in user; all three in the translucent brand */
+  .pos-support-rail-top + .pos-support-rail-label,
+  .pos-support-rail-items + .pos-support-rail-label {
+    border-block-start: 1px solid var(--pos-support-rail-divider);
+  }
+
+  .pos-support-rail-items + .pos-support-rail-label {
+    margin-block-start: 0.5rem;
+  }
+
+  .pos-support-rail-foot {
+    border-block-start-color: var(--pos-support-rail-divider);
+  }
+
+  /* 3.36 no grey interactive element without a frame: rail sign-out and
+     Settings icon, breadcrumbs, "Show" of an automatic email, side "more" */
+  .pos-support .pos-support-signout .pos-button {
+    color: var(--pos-color-interactive);
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+  }
+
+  .pos-support .pos-support-signout .pos-button:hover {
+    color: var(--pos-color-interactive-hover);
+    background: var(--pos-support-rail-hover-background);
+  }
+
+  .pos-support .pos-support-crumbs a,
+  .pos-support-system summary > .pos-support-muted:last-child,
+  .pos-support-side-more > summary {
+    color: var(--pos-color-interactive);
+  }
+
+  .pos-support .pos-support-crumbs a:hover,
+  .pos-support-system summary:hover > .pos-support-muted:last-child,
+  .pos-support-side-more > summary:hover {
+    color: var(--pos-color-interactive-hover);
+  }
+
+  .pos-support-system summary {
+    cursor: pointer;
+  }
+
+  .pos-support-system summary:hover > .pos-support-muted:last-child {
+    text-decoration: underline;
+  }
+
+  .pos-support-content .pos-button-ghost {
+    color: var(--pos-color-interactive);
+  }
+
+  .pos-support .pos-support-content .pos-button-ghost:hover {
+    color: var(--pos-color-interactive-hover);
+    background: var(--pos-support-row-hover);
+    border-color: transparent;
+    box-shadow: none;
+  }
+
+  /* 3.15 brand-tinted hover shadows; danger buttons keep their own */
+  .pos-support .pos-button:not(.pos-button-danger):hover {
+    box-shadow: var(--brand-shadow-sm);
+  }
+
+  .pos-support .pos-button-primary:hover {
+    box-shadow: var(--brand-shadow-md);
+  }
+
+  /* 3.16 secondary buttons in the main content look like the selected segment */
+  .pos-support-content .pos-button:not(.pos-button-primary, .pos-button-danger, .pos-button-ghost) {
+    background-color: color-mix(in srgb, var(--pos-support-brand) var(--seg-active-mix), var(--pos-support-bg));
+    border-color: color-mix(in srgb, var(--pos-support-brand) 55%, transparent);
+    box-shadow: none;
+    color: var(--pos-color-interactive);
+  }
+
+  .pos-support .pos-support-content .pos-button:not(.pos-button-primary, .pos-button-danger, .pos-button-ghost):hover {
+    background-color: color-mix(in srgb, var(--pos-support-brand) var(--pos-support-mix-secondary-hover, var(--seg-active-mix)), var(--pos-support-bg));
+    border-color: var(--pos-support-brand);
+    box-shadow: var(--brand-shadow-sm);
+    color: var(--pos-color-interactive);
+  }
+
+  /* 3.17 attention chips on an opaque base */
+  .pos-support .pos-support-attention-item {
+    background: color-mix(in srgb, var(--hue, var(--pos-support-text-muted)) 10%, var(--pos-support-bg));
+  }
+
+  .pos-support .pos-support-attention-item:hover {
+    background: color-mix(in srgb, var(--hue, var(--pos-support-text-muted)) 18%, var(--pos-support-bg));
+  }
+
+  /* 3.14 / 3.30 list view: tinted header row, pale lane heads, brand row hover and checked */
+  .pos-support-table thead th {
+    background: color-mix(in srgb, var(--pos-support-brand) var(--pos-support-mix-thead), var(--pos-support-bg-subtle));
+    color: var(--pos-support-thead-text);
+  }
+
+  .pos-support-lane-head th,
+  .pos-support-lane + .pos-support-lane .pos-support-lane-head th {
+    background: color-mix(in srgb, var(--pos-support-brand) var(--pos-support-mix-lane), var(--pos-support-bg));
+  }
+
+  .pos-support-lane-toggle:hover {
+    background: var(--pos-support-row-hover);
+  }
+
+  .pos-support-table tbody tr:hover > * {
+    background: var(--pos-support-row-hover);
+  }
+
+  .pos-support-row:has(.pos-support-select:checked) > *,
+  .pos-support-row:has(.pos-support-select:checked):hover > * {
+    background: var(--pos-support-row-checked);
+  }
+
+  /* 3.27 board column scrollbar */
+  .pos-support-column-cards {
+    scrollbar-width: thin;
+    scrollbar-color: var(--pos-support-scrollbar) transparent;
+  }
+
+  /* 3.29 / 3.31 ticket page: the same brand wash behind the conversation; muted
+     text on it a shade darker in light mode */
+  .pos-support-ticket-main {
+    --pos-support-text-muted: var(--pos-support-muted-on-wash);
+    background: var(--pos-support-wash), var(--pos-support-bg-subtle);
+  }
+
+  /* 2b.1 no 3px halo around thread avatars on the wash, only the inner ring */
+  .pos-support-message > .pos-support-avatar {
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 14%, transparent);
+  }
+
+  .pos-support-message > .pos-support-avatar:is([data-role="manager"], [data-role="admin"], [data-role="ai"]),
+  .pos-support-message-system > .pos-support-avatar {
+    box-shadow: none;
+  }
+
 }
 
 /* common-styling's base tokens are not in a layer, so these overrides are not
@@ -3802,4 +4039,7 @@
   --pos-color-dark-content-text-supplementary: var(--pos-support-dark-muted);
   --pos-color-light-input-placeholder: var(--pos-support-placeholder-light);
   --pos-color-dark-input-placeholder: var(--pos-support-placeholder-dark);
+  /* handoff 3.7: text on the brand fill is white in dark mode too */
+  --pos-color-dark-button-primary-text: var(--pos-support-on-brand);
+  --pos-color-dark-button-primary-hover-text: var(--pos-support-on-brand);
 }
