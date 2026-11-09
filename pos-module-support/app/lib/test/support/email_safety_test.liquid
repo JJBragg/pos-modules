@@ -1,0 +1,84 @@
+{% doc %}
+  Non-production recipient guard (#135). The desk talks to the provider API
+  directly, so the platformOS instance test address never rewrites its mail;
+  the guard is what keeps a staging instance from mailing real customers.
+  These run on a staging instance, so the production branch is covered by
+  reading context.environment rather than by a case here.
+  @param {object} contract - The test contract object
+{% enddoc %}
+{% liquid
+  function before = 'modules/support/helpers/settings'
+  assign original_redirect = before.email_redirect_to | default: ''
+  assign original_allow = before.email_allow_external
+  assign original_inbound = before.inbound_domain | default: ''
+
+  assign message = { "subject": "Re: ticket [#42]", "headers": { "Message-ID": "<a@b>" } }
+  assign message.from = { "email": "support@desk.test", "name": "Desk" }
+  assign to_one = { "email": "customer@example.test", "name": "A Customer" }
+  assign message.to = []
+  assign message.to << to_one
+  assign cc_one = { "email": "watcher@example.test" }
+  assign message.cc = []
+  assign message.cc << cc_one
+
+  # 1. a redirect address replaces every recipient
+  function _ = 'modules/support/commands/settings/set', key: 'email_redirect_to', value: 'inbox@tester.test'
+  function g = 'modules/support/helpers/email/recipient_guard', message: message
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: g.action, expected: 'redirect', field_name: 'a redirect address redirects'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: g.message.to.first.email, expected: 'inbox@tester.test', field_name: 'the recipient is replaced'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: g.message.cc.size, expected: 0, field_name: 'cc is dropped'
+  assign kept = g.message.headers['X-Support-Original-To']
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: kept, expected: 'customer@example.test, watcher@example.test', field_name: 'the real recipients are kept in a header'
+  assign subject_marked = g.message.subject | matches: 'customer@example\.test'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: subject_marked, expected: true, field_name: 'the subject names the real recipient'
+  assign message_id_kept = g.message.headers['Message-ID']
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: message_id_kept, expected: '<a@b>', field_name: 'existing headers survive the merge'
+
+  # 2. no redirect, but real recipients explicitly allowed
+  function _ = 'modules/support/commands/settings/set', key: 'email_redirect_to', value: ''
+  function _ = 'modules/support/commands/settings/set', key: 'email_allow_external', value: true
+  function g = 'modules/support/helpers/email/recipient_guard', message: message
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: g.action, expected: 'send', field_name: 'an explicit opt-in sends to the real recipient'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: g.message.to.first.email, expected: 'customer@example.test', field_name: 'the opt-in leaves the recipient alone'
+
+  # 3. neither: the send is refused rather than reaching a real address
+  function _ = 'modules/support/commands/settings/set', key: 'email_allow_external', value: false
+  function g = 'modules/support/helpers/email/recipient_guard', message: message
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: g.action, expected: 'block', field_name: 'no redirect and no opt-in blocks the send'
+
+  # 4. commands/email/send surfaces the block as a permanent error
+  function sent = 'modules/support/commands/email/send', message: message
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: sent.ok, expected: false, field_name: 'a blocked message is not sent'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: sent.error, expected: 'non_production_recipient_blocked', field_name: 'the reason reaches the caller'
+
+  # 5. the setup's own test message is exempt: it goes to the admin who
+  #    pressed the button, and Enable needs it to pass (#136 review)
+  function g = 'modules/support/helpers/email/recipient_guard', message: message, setup_test: true
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: g.action, expected: 'send', field_name: 'the setup test email is exempt'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: g.message.to.first.email, expected: 'customer@example.test', field_name: 'the setup test keeps its recipient'
+
+  # 6. the inbound check mails the desk's own inbound domain, which comes
+  #    straight back in: exempt, and not redirected even with an address set
+  function _ = 'modules/support/commands/settings/set', key: 'inbound_domain', value: 'in.desk.test'
+  function _ = 'modules/support/commands/settings/set', key: 'email_redirect_to', value: 'inbox@tester.test'
+  assign check = { "subject": "Inbound check" }
+  assign check.from = { "email": "support@desk.test", "name": "Desk" }
+  assign check_to = { "email": "check-abc123@in.desk.test" }
+  assign check.to = []
+  assign check.to << check_to
+  function g = 'modules/support/helpers/email/recipient_guard', message: check
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: g.action, expected: 'send', field_name: 'the inbound check is exempt'
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: g.message.to.first.email, expected: 'check-abc123@in.desk.test', field_name: 'the inbound check address survives a redirect'
+
+  # a message to the inbound domain AND a customer is not exempt
+  assign outsider = { "email": "customer@example.test" }
+  assign check.to << outsider
+  function g = 'modules/support/helpers/email/recipient_guard', message: check
+  function contract = 'modules/tests/assertions/equal', contract: contract, given: g.action, expected: 'redirect', field_name: 'one outside recipient ends the exemption'
+
+  function _ = 'modules/support/commands/settings/set', key: 'inbound_domain', value: original_inbound
+
+  function _ = 'modules/support/commands/settings/set', key: 'email_redirect_to', value: original_redirect
+  function _ = 'modules/support/commands/settings/set', key: 'email_allow_external', value: original_allow
+  return contract
+%}

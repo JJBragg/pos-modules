@@ -1,0 +1,20 @@
+{% doc %}
+  The sentence an agent reads on a reply that was not delivered (#135). A
+  code with no sentence of its own is returned unchanged, so a new one from
+  the provider is still shown rather than hidden.
+  @param {string} [error] - A message's delivery_error
+  @return {string}
+{% enddoc %}
+{% liquid
+  assign code = error | default: '' | strip
+  if code == blank
+    return code
+  endif
+  assign own_codes = 'non_production_recipient_blocked,email_provider_not_configured,missing_api_key,invalid_message' | split: ','
+  unless own_codes contains code
+    return code
+  endunless
+  assign key = 'modules/support/ticket.delivery_errors.' | append: code
+  assign sentence = key | t
+  return sentence
+%}

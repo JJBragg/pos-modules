@@ -269,6 +269,19 @@ en:
     reply_delimiter: "##- Please type your reply above this line -##"
     ticket_reference: "%{brand} · ticket #%{number}"
     status_line: "Status: %{status}"
+  email_safety:
+    subject_prefix: "[test to %{recipients}]"
+    title: Non-production sending
+    env_note: "This instance reports environment %{environment}, so the desk will not mail real recipients unless you say so below. A production instance is never affected."
+    state_redirect: "Redirecting every email to %{address}. The real recipients are kept in the subject and in an X-Support-Original-To header."
+    state_allow: "Sending to real recipients. Anyone with an address on a ticket here can receive email from this instance."
+    state_blocked: Blocked. The desk will not send email from this instance until you give a redirect address or allow real recipients. The test email and the inbound check below still go out, so the setup can be finished either way.
+    redirect_label: Send every email to this address instead
+    redirect_help: Leave empty to use the choice below. platformOS redirects its own notifications to the instance test address, but the desk talks to the provider directly, so it needs its own.
+    allow_label: Allow sending to real recipients from this non-production instance
+    save: Save
+    saved: Non-production sending updated.
+    invalid_address: Enter a valid email address, or leave it empty.
   settings_email:
     title: Email
     problems:
@@ -470,6 +483,11 @@ en:
     attachment_not_stored: not saved — ask the customer to resend
     own_attachment_not_stored: not saved — attach it again in a new reply
     not_delivered: "Not delivered:"
+    delivery_errors:
+      non_production_recipient_blocked: This is not a production instance, and it is set not to send email to real recipients. An admin can allow it, or give an address to redirect every email to, under Settings, Email.
+      email_provider_not_configured: No email provider has been set up yet, so the desk cannot send email. An admin can set one up under Settings, Email.
+      missing_api_key: The email provider is set up but its API key is missing, so the desk cannot send email. An admin can add it under Settings, Email.
+      invalid_message: The reply had no sender, no recipient or no subject, so it was never sent. Send it again from the reply box.
     retry: Send again
     newer_message_refused: The customer wrote again after this page was loaded, so the reply was not sent. Read the new message, then send your reply again.
     retry_sent: The reply is being sent again.

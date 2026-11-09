@@ -93,7 +93,29 @@ The generator sets all of them; `pos-cli constants set <env> --name modules/supp
 
 ## Settings
 
-Stored in the module's `setting` table and edited under `/support-desk/settings/*` (support admins only): departments (name, short code, inbound local part, From address, signature, SLA policy), statuses (labels over the fixed categories `new`, `open`, `pending`, `on_hold`, `solved`, `closed`; confirmation mode `auto_close`/`keep_open` and 1–28 days), SLA policies and business hours (time zone, days, holidays), saved replies (variables `{{ requester.first_name }}`, `{{ requester.name }}`, `{{ ticket.number }}`, `{{ ticket.subject }}`, `{{ agent.first_name }}`, `{{ brand.name }}`), assignment (unassigned alert minutes, P0 alert, escalate after, spam threshold), team, blocklist, email, branding and integrations (maintenance sweep status and restart). Keys used in code: `email_provider`, `email_region`, `inbound_domain`, `email_status`, `role_map`, `staff_roles`, `free_mail_domains`, `confirmation_mode`, `confirmation_wait_days`, `unassigned_alert_minutes`, `unassigned_alert_minutes_p0`, `escalate_after_minutes`, `spam_threshold`, `branding_override`, `business_hours`, `sweep_heartbeat`, `sweep_started_at`, `ticket_stats_counted_at` (time of the last full count of the stored ticket counts).
+Stored in the module's `setting` table and edited under `/support-desk/settings/*` (support admins only): departments (name, short code, inbound local part, From address, signature, SLA policy), statuses (labels over the fixed categories `new`, `open`, `pending`, `on_hold`, `solved`, `closed`; confirmation mode `auto_close`/`keep_open` and 1–28 days), SLA policies and business hours (time zone, days, holidays), saved replies (variables `{{ requester.first_name }}`, `{{ requester.name }}`, `{{ ticket.number }}`, `{{ ticket.subject }}`, `{{ agent.first_name }}`, `{{ brand.name }}`), assignment (unassigned alert minutes, P0 alert, escalate after, spam threshold), team, blocklist, email, branding and integrations (maintenance sweep status and restart). Keys used in code: `email_provider`, `email_region`, `inbound_domain`, `email_status`, `role_map`, `staff_roles`, `free_mail_domains`, `confirmation_mode`, `confirmation_wait_days`, `unassigned_alert_minutes`, `unassigned_alert_minutes_p0`, `escalate_after_minutes`, `spam_threshold`, `branding_override`, `business_hours`, `sweep_heartbeat`, `email_redirect_to`, `email_allow_external`, `sweep_started_at`, `ticket_stats_counted_at` (time of the last full count of the stored ticket counts).
+
+### Non-production sending
+
+The desk calls the email provider's API itself, so the platformOS instance
+`test_email` address never rewrites its recipients. Off production
+(`context.environment != 'production'`) the recipient guard decides what may
+leave, and Settings -> Email shows the choice:
+
+| | |
+|---|---|
+| `email_redirect_to` set | every recipient is replaced by that address; the real ones go in the subject and an `X-Support-Original-To` header |
+| `email_allow_external: true` | send to the real recipients |
+| neither | the send is refused with `non_production_recipient_blocked` (the default) |
+
+Two kinds of message always go out, because neither can reach a customer and
+Enable needs both setup steps to pass: the setup's own test email, which is
+addressed to the admin who pressed the button, and a message whose every
+recipient is on the desk's own `inbound_domain`, which is the inbound check.
+
+A test or suite that asserts on the address the desk chose must set
+`email_allow_external: true` and clear `email_redirect_to` (see
+`tests/e2e/liquid/setup.liquid`).
 
 ## Hooks
 

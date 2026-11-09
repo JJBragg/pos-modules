@@ -1,0 +1,99 @@
+{% doc %}
+  Decides what may happen to an outgoing message's recipients on a
+  non-production instance (#135). platformOS redirects its own email
+  notifications to the instance test address, but the desk calls the
+  provider API directly, so nothing rewrites the recipient for it: without
+  this guard a staging instance mails real customers.
+
+    production                         -> send unchanged
+    an exempt message (below)          -> send unchanged
+    non-production + redirect address  -> every recipient replaced by it
+    non-production + allow_external    -> send unchanged (explicit opt-in)
+    otherwise                          -> blocked
+
+  Two kinds of message are exempt, because neither can reach a customer and
+  Settings -> Email cannot be finished without them (Enable needs both the
+  test and the inbound check to pass):
+
+    - the setup's own test message, addressed to the admin running it
+      (setup_test)
+    - a message whose every recipient is on the desk's own inbound domain,
+      which is the inbound check mailing check-<token>@<inbound_domain> and
+      waiting for it to come back in through the webhook
+
+  @param {object} message - Provider-neutral message from commands/email/send
+  @param {boolean} [setup_test] - true only for the Settings -> Email setup's
+    test message, which goes to the admin who pressed the button
+  @return {object} { action: send | redirect | block, message, reason }
+{% enddoc %}
+{% liquid
+  assign result = { "action": "send", "reason": null }
+  assign result.message = message
+
+  if context.environment == 'production'
+    return result
+  endif
+  if setup_test == true
+    return result
+  endif
+
+  assign recipients = []
+  for item in message.to
+    assign recipients << item.email
+  endfor
+  for item in message.cc
+    assign recipients << item.email
+  endfor
+  assign recipients = recipients | uniq
+
+  function settings = 'modules/support/helpers/settings'
+
+  assign inbound_domain = settings.inbound_domain | default: '' | strip | downcase
+  if inbound_domain != blank and recipients.size > 0
+    assign leaves_the_desk = false
+    for address in recipients
+      assign domain = address | default: '' | downcase | split: '@' | last
+      unless domain == inbound_domain
+        assign leaves_the_desk = true
+      endunless
+    endfor
+    unless leaves_the_desk
+      return result
+    endunless
+  endif
+
+  assign redirect_to = settings.email_redirect_to | default: '' | strip
+
+  if redirect_to != blank
+    assign label = recipients | join: ', '
+
+    assign recipient = { "email": null, "name": null }
+    assign recipient.email = redirect_to
+    assign recipient.name = message.to.first.name
+    assign to = []
+    assign to << recipient
+
+    assign redirected = message | hash_merge: {}
+    assign redirected.to = to
+    assign redirected.cc = []
+    assign prefix = 'modules/support/email_safety.subject_prefix' | t: recipients: label
+    assign redirected.subject = prefix | append: ' ' | append: message.subject
+    assign extra = { "X-Support-Original-To": null }
+    assign extra['X-Support-Original-To'] = label
+    assign existing = message.headers | default: {}
+    assign redirected.headers = existing | hash_merge: extra
+
+    assign result.action = 'redirect'
+    assign result.message = redirected
+    assign result.reason = label
+    return result
+  endif
+
+  if settings.email_allow_external == true
+    return result
+  endif
+
+  assign result.action = 'block'
+  assign result.reason = 'non_production_recipient_blocked'
+  return result
+%}
