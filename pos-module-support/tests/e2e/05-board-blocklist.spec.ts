@@ -46,13 +46,20 @@ test('15. dragging a card changes the status and other boards and the list follo
   // the list shows All open (new and open); a ticket waiting on the customer leaves it live
   await expect(list.page.locator('.pos-support-row', { hasText: subject })).toHaveCount(0, { timeout: 45000 });
 
+  // the card has no Move form any more; without JavaScript its assignee button opens the ticket's assignee field
+  liquid(`{% liquid
+  function t = 'modules/support/queries/tickets/find', id: '${ticket.id}', number: null, member: null
+  assign actor = { "type": "system", "id": null, "member": null }
+  function r = 'modules/support/commands/tickets/change_status', ticket: t, status_key: 'review', actor: actor
+  echo '{}'
+%}`);
   const noJs = await contextFor(browser, users.superadmin, { javaScriptEnabled: false });
-  await noJs.page.goto(desk('/support-desk/board'));
-  await noJs.page.selectOption(`#move-${ticket.id}`, 'review');
-  await noJs.page.focus(`.pos-support-card[data-ticket-id="${ticket.id}"] form button`);
-  await noJs.page.keyboard.press('Enter');
-  await expect.poll(() => columnOf(noJs.page, ticket.id).catch(() => null), { timeout: 20000 }).toBe('review');
-  await expect(noJs.page).toHaveURL(/\/support-desk\/board$/);
+  await noJs.page.goto(desk(`/support-desk/board?q=${encodeURIComponent(subject)}`));
+  const card = noJs.page.locator(`.pos-support-card[data-ticket-id="${ticket.id}"]`);
+  await expect(card.locator('form')).toHaveCount(0);
+  await card.locator('[data-support-assign]').click();
+  await expect(noJs.page).toHaveURL(new RegExp(`/support-desk/tickets/${ticket.id}#pos-support-side-assignee$`));
+  await expect(noJs.page.locator('#pos-support-side-assignee')).toBeVisible();
   for (const c of [a, b, list, noJs]) await c.context.close();
 });
 

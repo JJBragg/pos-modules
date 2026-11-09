@@ -6,13 +6,15 @@ metadata:
   permission: support.tickets.reply
 ---
 {% liquid
-  # Move a card to another status (D-26): the same command and rules as the
-  # ticket page. JSON for the drag-and-drop script, a redirect otherwise.
+  # Change a card from the board (D-26): its status or priority (drag and
+  # drop) or, with change=assign, its assignee (the card's assignee picker;
+  # a blank assignee_id unassigns). The same commands and rules as the ticket
+  # page. JSON for the board script, a redirect otherwise.
   # platformos-check-disable ConvertIncludeToRender, UnreachableCode
   include 'modules/support/helpers/require_member', permission: context.page.metadata.permission, ticket: null
   # platformos-check-enable ConvertIncludeToRender, UnreachableCode
 
-  function form = 'modules/support/helpers/text_params', params: context.params, names: 'respond,ticket_id,priority,status_key'
+  function form = 'modules/support/helpers/text_params', params: context.params, names: 'respond,ticket_id,priority,status_key,change,assignee_id'
   assign wants_json = false
   if form.respond == 'json'
     assign wants_json = true
@@ -26,7 +28,9 @@ metadata:
       assign actor.id = member.profile_id
       assign actor.member = member
       # a priority column changes the priority, a status column the status
-      if form.priority != blank
+      if form.change == 'assign'
+        function result = 'modules/support/commands/tickets/assign', ticket: ticket, assignee_id: form.assignee_id, reason: null, actor: actor
+      elsif form.priority != blank
         function result = 'modules/support/commands/tickets/set_priority', ticket: ticket, priority: form.priority, actor: actor
       else
         function result = 'modules/support/commands/tickets/change_status', ticket: ticket, status_key: form.status_key, actor: actor
@@ -34,8 +38,12 @@ metadata:
     endif
   endif
 
-  assign error_key = result.errors.status | default: result.errors.priority
-  assign message = error_key | default: 'modules/support/board.move_error' | t
+  assign error_key = result.errors.status | default: result.errors.priority | default: result.errors.assignee_id
+  assign fallback_key = 'modules/support/board.move_error'
+  if form.change == 'assign'
+    assign fallback_key = 'modules/support/board.assign_error'
+  endif
+  assign message = error_key | default: fallback_key | t
   if wants_json
     response_headers '{"Content-Type": "application/json"}'
     assign body = { "ok": true, "error": null }

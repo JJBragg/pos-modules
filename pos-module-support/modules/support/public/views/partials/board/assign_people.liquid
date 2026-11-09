@@ -1,0 +1,46 @@
+{% doc %}
+  The assignee picker's options, rendered once per board (not in every card):
+  pos-support-board.js copies them into the picker of the card that is
+  opened and keeps the people who may take that card's ticket. "Assign to me"
+  first, then people by availability (available, away, off) and name, then
+  Unassign. Agents may only take a ticket or give up their own
+  (queries/tickets/assignee_error), so they get no list of people; the
+  server checks every change again.
+  @param {object} page_data - From helpers/queue_page (members, can_manage)
+  @param {object} member - The signed-in team_member
+{% enddoc %}
+{% liquid
+  function roles = 'modules/support/helpers/member_roles'
+  function records = 'modules/support/queries/team_members/all_active'
+  assign titles = {}
+  for r in records
+    assign titles[r.profile_id] = r.job_title
+  endfor
+  assign people = page_data.members | sort_natural: 'name'
+  assign me = people | where: 'profile_id', member.profile_id | first
+  assign buckets = 'available,away,off' | split: ','
+%}
+<template data-support-assign-people data-me="{{ member.profile_id }}" data-can-manage="{{ page_data.can_manage }}">
+  <li role="option" data-value="{{ member.profile_id }}" data-me data-name="{{ me.name }}">
+    {% render 'modules/support/avatar', name: me.name, email: me.email, size: 'xs', labelled: false, profile_id: member.profile_id, presence: false, role: null %}
+    <span class="pos-support-assign-name">{{ 'modules/support/board.assign_me' | t }}</span>
+  </li>
+  {%- if page_data.can_manage -%}
+    {%- for bucket in buckets -%}
+      {%- for person in people -%}
+        {%- assign availability = roles[person.profile_id].availability | default: 'available' -%}
+        {%- if availability != bucket -%}{%- continue -%}{%- endif -%}
+        {%- assign search = person.name | append: ' ' | append: person.email | downcase %}
+  <li role="option" data-value="{{ person.profile_id }}" data-person data-role="{{ person.role }}" data-departments="{{ person.department_ids | join: ',' }}" data-name="{{ person.name }}" data-search="{{ search }}">
+    {% render 'modules/support/avatar', name: person.name, email: person.email, size: 'xs', labelled: false, profile_id: person.profile_id, presence: true, role: null %}
+    <span class="pos-support-assign-name">{{ person.name }}{% if titles[person.profile_id] != blank %} <span class="pos-supplementary">{{ titles[person.profile_id] }}</span>{% endif %}</span>
+    {% render 'modules/support/icon', name: 'check', size: 'sm' %}
+  </li>
+      {%- endfor -%}
+    {%- endfor -%}
+  {%- endif %}
+  <li role="option" data-value="" data-unassign data-label-own="{{ 'modules/support/board.unassign_me' | t }}">
+    {% render 'modules/support/board/unassigned_icon' %}
+    <span class="pos-support-assign-name">{{ 'modules/support/board.unassign' | t }}</span>
+  </li>
+</template>

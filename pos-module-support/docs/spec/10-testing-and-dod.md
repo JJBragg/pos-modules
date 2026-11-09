@@ -49,7 +49,7 @@ Assert on specific values or check codes, never only on "valid". A test must fai
 12. **Marketing-site host** (example app with no members and no admin area): install → first admin signs in at `/support-desk/sign-in` → invites an external agent → agent sets a password from the email link and works tickets; the agent's profile has no roles.
 13. **Community-style host** (admin role `superadmin`, admin layout that bounces non-admins): Support appears in the host admin menu and redirects into the desk; Pick existing staff lists the superadmins; an invited external agent reaches `/support-desk` and is refused by the host's `/admin`.
 14. Host admin without membership → Request access → support admin approves with role and departments → the requester gets access and a notification.
-15. Board: drag a card from Under review to Waiting on customer → status changes, list and other browsers update live; the Move to menu does the same with JavaScript off.
+15. Board: drag a card from Under review to Waiting on customer → status changes, list and other browsers update live; with JavaScript off the card's assignee button opens the ticket's assignee field. Board assignee picker: 13-board-assignee (B1–B3).
 16. Blocklist: block a domain in Settings → a fixture email from that domain creates nothing; Mark as spam on a ticket → the next email from that address creates nothing.
 
 ## 4. Definition of Done (copy into `backlog/config.yml`)

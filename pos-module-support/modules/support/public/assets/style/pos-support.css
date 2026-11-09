@@ -3303,21 +3303,152 @@
     white-space: nowrap;
   }
 
-  .pos-support-move {
+  /* the card's assignee button: a 32px target around the 24px avatar */
+  .pos-support .pos-support-card-assign {
+    position: relative;
+    z-index: 2;
+    display: inline-grid;
+    place-items: center;
+    inline-size: 2rem;
+    block-size: 2rem;
+    margin-block: -0.25rem;
+    margin-inline-end: -0.25rem;
+    border-radius: 50%;
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .pos-support .pos-support-card-assign:hover {
+    background: var(--pos-support-row-hover);
+  }
+
+  .pos-support .pos-support-card-assign:focus-visible {
+    outline: 2px solid var(--pos-color-focused, var(--pos-support-accent-ink));
+    outline-offset: 0;
+  }
+
+  .pos-support .pos-support-card-assign[aria-busy="true"] {
+    opacity: 0.6;
+  }
+
+  /* unassigned: a dashed circle with a person-plus glyph, brand-coloured on hover */
+  .pos-support-unassigned {
+    display: inline-grid;
+    place-items: center;
+    border: 1.5px dashed var(--pos-support-text-muted);
+    background: transparent;
+    color: var(--pos-support-text-muted);
+  }
+
+  .pos-support-unassigned .pos-support-icon {
+    inline-size: 0.8125rem;
+    block-size: 0.8125rem;
+  }
+
+  .pos-support-card-assign:is(:hover, :focus-visible) .pos-support-unassigned {
+    border-color: var(--pos-support-accent-ink);
+    color: var(--pos-support-accent-ink);
+  }
+
+  /* the assignee picker, laid over the page next to the button */
+  .pos-support-assign-pop {
+    position: fixed;
+    z-index: 50;
+    inline-size: min(18rem, calc(100vw - 1rem));
+    padding: 0.25rem;
+    border: 1px solid var(--pos-support-border);
+    border-radius: var(--pos-support-radius-card);
+    background: var(--pos-support-bg);
+    box-shadow: var(--pos-support-shadow-lg);
+    color: var(--pos-support-text);
+  }
+
+  .pos-support .pos-support-assign-search {
+    inline-size: 100%;
+    margin-block-end: 0.25rem;
+  }
+
+  .pos-support-assign-pop [role="listbox"] {
+    max-block-size: min(18rem, 50vh);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .pos-support-assign-pop [role="listbox"]:focus-visible {
+    outline: 2px solid var(--pos-color-focused, var(--pos-support-accent-ink));
+    outline-offset: 1px;
+  }
+
+  .pos-support-assign-pop [role="option"] {
     display: flex;
-    gap: 0.375rem;
-    padding-block-start: 0.25rem;
+    align-items: center;
+    gap: 0.5rem;
+    min-block-size: 2rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--pos-support-radius-control);
+    font-size: var(--pos-support-text-body);
+    cursor: pointer;
   }
 
-  .pos-support .pos-support-move select {
+  .pos-support-assign-pop [role="option"][hidden] {
+    display: none;
+  }
+
+  .pos-support-assign-pop [role="option"]:is(:hover, .pos-support-richselect-active) {
+    background: var(--pos-support-row-hover);
+  }
+
+  .pos-support-assign-pop [role="option"][aria-selected="true"] {
+    background: var(--pos-support-row-checked);
+    font-weight: 600;
+  }
+
+  /* "Unassign" sits under a divider */
+  .pos-support-assign-pop [role="option"][data-unassign] {
+    margin-block-start: 0.25rem;
+    box-shadow: 0 -0.125rem 0 -0.0625rem var(--pos-support-bg), 0 -0.1875rem 0 -0.0625rem var(--pos-support-border);
+  }
+
+  .pos-support-assign-name {
     flex: 1 1 auto;
-    min-width: 0;
-    --pos-support-control-height: 1.875rem;
-    font-size: var(--pos-support-text-meta);
+    min-inline-size: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  .pos-support-move .pos-button {
-    --pos-support-control-height-small: 1.875rem;
+  .pos-support-assign-name .pos-supplementary {
+    font-weight: 400;
+  }
+
+  .pos-support-assign-pop [role="option"] > .pos-support-icon {
+    flex: none;
+    visibility: hidden;
+  }
+
+  .pos-support-assign-pop [role="option"][aria-selected="true"] > .pos-support-icon {
+    visibility: visible;
+  }
+
+  .pos-support-assign-empty {
+    margin: 0;
+    padding: 0.5rem;
+  }
+
+  .pos-support .pos-toast .pos-support-toast-undo {
+    margin-inline-start: 0.5rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
   }
 
   /* 3.24 dropdowns with markers (pos-support-select.js) */
@@ -3477,41 +3608,6 @@
     .pos-support [data-tooltip]::after {
       transition: none;
     }
-  }
-
-  /* With JS cards move by dragging, but a drag can only reach a status that is
-     a column, and Closed and Spam never are — so the form is the only way to
-     them. It is revealed on hover as well as on focus, and laid over the card's
-     last meta row instead of being inserted into the flow, so revealing it
-     never moves the cards below. */
-  .pos-support-js .pos-support-card .pos-support-move {
-    position: absolute;
-    z-index: 2;
-    inset-inline: 0.75rem;
-    inset-block-end: 0.5625rem;
-    align-items: center;
-    padding-block-start: 0;
-    border-radius: 0;
-    background: var(--pos-support-bg);
-    box-shadow: 0 0 0 2px var(--pos-support-bg);
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 120ms var(--pos-support-ease);
-  }
-
-  /* 3.23 the "Move to" form fits the 24px last row, never over the title */
-  .pos-support .pos-support-card .pos-support-move :is(select, .pos-button) {
-    --pos-support-control-height: 1.5rem;
-    --pos-support-control-height-small: 1.5rem;
-    block-size: 1.5rem;
-    min-block-size: 1.5rem;
-    padding-block: 0;
-    font-size: var(--pos-support-text-small);
-  }
-
-  .pos-support-js .pos-support-card:is(:hover, :focus-within) .pos-support-move {
-    opacity: 1;
-    visibility: visible;
   }
 
   /* ================================================================
@@ -3840,20 +3936,22 @@
       min-block-size: 2.75rem;
     }
 
-    /* no hover on a touch screen, and tapping the card navigates, so the move
-       form stays in the flow and visible rather than waiting to be revealed */
-    .pos-support-js .pos-support-card .pos-support-move {
-      position: static;
-      padding-block-start: 0.25rem;
-      opacity: 1;
-      visibility: visible;
+    /* touch: the assignee button and picker rows get the full touch height */
+    .pos-support .pos-support-card-assign {
+      inline-size: 2.75rem;
+      block-size: 2.75rem;
+      margin-block: -0.625rem;
+      margin-inline-end: -0.625rem;
+    }
+
+    .pos-support-assign-pop [role="option"] {
+      min-block-size: 2.75rem;
     }
 
     /* components that use a compact height on desktop get the full touch height */
     .pos-support .pos-support-ticket-side :is(input:not([type="checkbox"], [type="radio"]), select, .pos-button),
     .pos-support .pos-support-composer-foot :is(select, .pos-button),
-    .pos-support .pos-support-bulk-bar :is(select, .pos-button),
-    .pos-support .pos-support-move :is(select, .pos-button) {
+    .pos-support .pos-support-bulk-bar :is(select, .pos-button) {
       --pos-support-control-height: 2.75rem;
       --pos-support-control-height-small: 2.75rem;
     }

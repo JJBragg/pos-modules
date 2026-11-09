@@ -8,7 +8,7 @@
 {% liquid
   assign groups = page_data.groups
 %}
-<div class="pos-support-queue" data-support-board data-support-group="{{ page_data.group }}" data-support-query="{{ page_data.query }}" data-support-departments="{{ page_data.live_departments }}" data-support-move-error="{{ 'modules/support/board.move_error' | t }}" data-support-moved="{{ 'modules/support/board.moved' | t }}">
+<div class="pos-support-queue" data-support-board data-support-group="{{ page_data.group }}" data-support-query="{{ page_data.query }}" data-support-departments="{{ page_data.live_departments }}" data-support-move-error="{{ 'modules/support/board.move_error' | t }}" data-support-moved="{{ 'modules/support/board.moved' | t }}" data-support-assigned="{{ 'modules/support/board.assigned' | t: name: '__NAME__' }}" data-support-unassigned="{{ 'modules/support/board.unassigned_done' | t }}" data-support-assign-error="{{ 'modules/support/board.assign_error' | t }}" data-support-assign-none="{{ 'modules/support/board.assign_none' | t }}" data-support-assign-change="{{ 'modules/support/board.assign_change' | t: name: '__NAME__' }}" data-support-assign-search="{{ 'modules/support/board.assign_search' | t }}" data-support-assign-empty="{{ 'modules/support/board.assign_empty' | t }}" data-support-undo="{{ 'modules/support/board.undo' | t }}" data-support-token="{{ context.authenticity_token }}">
   {% render 'modules/support/queue/head', page_data: page_data, member: member %}
 
   <div class="pos-support-board">
@@ -22,7 +22,7 @@
           {% endif %}
           <span class="pos-support-count" data-count>{{ column.total }}</span>
         </h2>
-        <div class="pos-support-column-cards" data-cards data-empty="{{ 'modules/support/board.empty_column' | t }}">{% for ticket in column.tickets %}{% render 'modules/support/board/card', ticket: ticket, lookup: groups.lookup, statuses: page_data.statuses, group: page_data.group %}{% endfor %}</div>
+        <div class="pos-support-column-cards" data-cards data-empty="{{ 'modules/support/board.empty_column' | t }}">{% for ticket in column.tickets %}{% render 'modules/support/board/card', ticket: ticket, lookup: groups.lookup %}{% endfor %}</div>
         {% if column.expanded and column.pages > 1 %}
           {% assign column_url = '/support-desk?' | append: page_data.query | append: '&layout=board&expand=' | append: column.key | append: '&lane_page=' %}
           <nav class="pos-support-lane-pager" aria-label="{{ 'modules/support/queue.pages' | t }}">
@@ -36,6 +36,7 @@
       </section>
     {% endfor %}
   </div>
+  {% render 'modules/support/board/assign_people', page_data: page_data, member: member %}
 </div>
 <script defer src="{{ 'modules/support/js/pos-support-queue.js' | asset_url }}"></script>
 <script type="module" src="{{ 'modules/support/js/pos-support-board.js' | asset_url }}"></script>

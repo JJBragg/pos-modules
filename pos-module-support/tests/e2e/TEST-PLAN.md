@@ -30,7 +30,8 @@ Run: `MPKIT_URL=… E2E_ENV=support-dev npx playwright test` from `pos-module-su
 | A12 | Marketing-site host: admin invites an outsider → password from the email link → works tickets; profile has no host roles | 04-access (12) |
 | A13 | Community host: Support in the host admin menu → desk; Pick existing staff lists superadmins; outsider refused by host `/admin` | 04-access (13) |
 | A14 | Host admin without membership → Request access → approved → access + notification | 04-access (14) |
-| A15 | Board drag → status changes, other boards and the list follow live; Move to works with JS off | 05-board-blocklist (15) |
+| A15 | Board drag → status changes, other boards and the list follow live; with JS off the assignee button opens the ticket | 05-board-blocklist (15) |
+| A15b | Board assignee picker: assign without confirm + Undo, keyboard and Escape, agent limited to Assign/Unassign me | 13-board-assignee (B1–B3) |
 | A16 | Blocked domain creates nothing; after Mark as spam the next email from that address creates nothing | 05-board-blocklist (16) |
 | AX | axe: no serious/critical WCAG 2.1 AA violations on the main pages, light and dark | 03-pwa-theme-a11y |
 

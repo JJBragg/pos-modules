@@ -128,10 +128,19 @@ en:
     list: List
     show_closed: Show closed
     show_more: "Show more (%{count})"
-    move_to: Move to
-    move: Move
     moved: Ticket moved.
     move_error: The ticket could not be moved.
+    assign_none: Unassigned. Choose an assignee
+    assign_change: "Assigned to %{name}. Change assignee"
+    assign_me: Assign to me
+    unassign: Unassign
+    unassign_me: Unassign me
+    assign_search: Search people
+    assign_empty: No one matches.
+    assigned: "Assigned to %{name}."
+    unassigned_done: Ticket unassigned.
+    assign_error: The assignee could not be changed.
+    undo: Undo
     empty_column: Drop a ticket here
   sign_in:
     locked: Too many failed attempts for this email. Wait 15 minutes, or reset your password.

@@ -24,16 +24,5 @@ metadata:
   assign tickets = []
   assign tickets << ticket
   function lookup = 'modules/support/queries/tickets/lookup', tickets: tickets
-  function statuses = 'modules/support/queries/statuses/all'
-  assign active = []
-  for s in statuses.list
-    if s.active
-      assign active << s
-    endif
-  endfor
-  assign group = 'status'
-  if context.params.group == 'priority'
-    assign group = 'priority'
-  endif
-  render 'modules/support/board/card', ticket: ticket, lookup: lookup, statuses: active, group: group
+  render 'modules/support/board/card', ticket: ticket, lookup: lookup
 %}

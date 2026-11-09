@@ -1,11 +1,11 @@
 {% doc %}
-  A board card with a "Move to" form that works without JavaScript; with
-  JavaScript the form is revealed on hover or focus, since dragging only
-  reaches statuses that are columns and the form reaches all of them.
+  A board card. Status and priority change by dragging the card to another
+  column (or on the ticket page); the assignee button bottom-right shows who
+  owns the ticket and, with JavaScript, opens the assignee picker
+  (pos-support-board.js, people from board/assign_people). Without
+  JavaScript it links to the ticket's assignee field.
   @param {object} ticket - Ticket record
   @param {object} lookup - From queries/tickets/lookup
-  @param {object[]} statuses - Statuses offered in "Move to"
-  @param {string} [group] - status (default) | priority: what "Move to" changes
 {% enddoc %}
 {% liquid
   assign requester = lookup.contacts[ticket.requester_id]
@@ -33,22 +33,17 @@
   <p class="pos-support-card-meta">
     {% render 'modules/support/badges/department', department: department, variant: null %}
     <span class="pos-support-card-requester">{{ requester.name | default: requester.emails.first }}</span>
-    {% if assignee %}<span class="pos-support-card-assignee">{% render 'modules/support/avatar', name: assignee_name, email: assignee.email, size: 'xs', labelled: true, profile_id: ticket.assignee_id, presence: true, role: null %}</span>{% endif %}
+    {%- if assignee -%}
+      {%- assign assign_label = 'modules/support/board.assign_change' | t_escape: name: assignee_name -%}
+    {%- else -%}
+      {%- assign assign_label = 'modules/support/board.assign_none' | t -%}
+    {%- endif %}
+    <a class="pos-support-card-assignee pos-support-card-assign" href="/support-desk/tickets/{{ ticket.id }}#pos-support-side-assignee" draggable="false" data-support-assign data-assignee-id="{{ ticket.assignee_id }}" data-department-id="{{ ticket.department_id }}" aria-label="{{ assign_label }}" title="{{ assign_label }}">
+      {%- if assignee -%}
+        {% render 'modules/support/avatar', name: assignee_name, email: assignee.email, size: 'xs', labelled: false, profile_id: ticket.assignee_id, presence: true, role: null %}
+      {%- else -%}
+        {% render 'modules/support/board/unassigned_icon' %}
+      {%- endif -%}
+    </a>
   </p>
-  <form action="/support-desk/board/move" method="post" class="pos-support-move">
-    <input type="hidden" name="authenticity_token" value="{{ context.authenticity_token }}">
-    <input type="hidden" name="ticket_id" value="{{ ticket.id }}">
-    <label for="move-{{ ticket.id }}" class="pos-support-sr-only">{{ 'modules/support/board.move_to' | t }} #{{ ticket.number }}</label>
-    {% if group == 'priority' %}
-      {% assign priorities = "p0,p1,p2,p3" | split: ',' %}
-      <select id="move-{{ ticket.id }}" name="priority">
-        {% for p in priorities %}<option value="{{ p }}" {% if ticket.priority == p %}selected{% endif %}>{{ 'modules/support/priorities.' | append: p | t }}</option>{% endfor %}
-      </select>
-    {% else %}
-      <select id="move-{{ ticket.id }}" name="status_key">
-        {% for s in statuses %}<option value="{{ s.key }}" {% if s.id == ticket.status_id %}selected{% endif %}>{{ s.label }}</option>{% endfor %}
-      </select>
-    {% endif %}
-    <button type="submit" class="pos-button pos-button-small">{{ 'modules/support/board.move' | t }}</button>
-  </form>
 </article>
