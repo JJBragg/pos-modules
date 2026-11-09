@@ -2,7 +2,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
-import { BASE, contentOf, contextFor, desk, inbound, liquid, newTicket, recipients, reply, stubBodies, ticketBySubject, ticketField, unique, users, waitForStub, waitForTicket } from './helpers';
+import { BASE, choose, contentOf, contextFor, desk, inbound, liquid, newTicket, recipients, reply, stubBodies, ticketBySubject, ticketField, unique, users, waitForStub, waitForTicket } from './helpers';
 
 const state = () => JSON.parse(fs.readFileSync(path.join(__dirname, '.state.json'), 'utf8'));
 const settle = (ms = 20000) => new Promise((r) => setTimeout(r, ms));
@@ -115,8 +115,8 @@ test.describe('queue and ticket', () => {
 
     await page.goto(desk('/support-desk?view=all_open&q=E2E+bulk'));
     for (const t of [one.ticket, two.ticket]) await page.locator(`.pos-support-row input[value="${t.id}"]`).check();
-    await page.selectOption('#pos-support-bulk-priority', 'p1');
-    await page.click('.pos-support-bulk-bar button:not([name])');
+    await choose(page, '#pos-support-bulk-priority', 'p1');
+    await page.click('.pos-support-bulk-bar button[type=submit]:not([name])');
     // the change runs in the background: the page answers at once, a toast follows
     await expect(page.locator('body')).toContainText('Updating the selected tickets');
     await expect(page.locator('body')).toContainText('2 tickets updated.', { timeout: 60000 });
@@ -163,7 +163,7 @@ test.describe('queue and ticket', () => {
     await page.goto(desk(`/support-desk/tickets/${a.ticket.id}`));
     const snooze = page.locator('select[name=snooze_until]');
     await expect(snooze, 'the ticket page offers Snooze').toHaveCount(1);
-    await snooze.selectOption({ index: 0 });
+    await choose(page, snooze, { index: 0 });
     await page.click('.pos-support-snooze-form button[type=submit]');
     await expect(page.locator('.pos-support-snooze-form')).toContainText('Snoozed until');
     await expect(page.locator('.pos-support-activity')).toContainText('snoozed the ticket');
@@ -189,7 +189,7 @@ test.describe('queue and ticket', () => {
     await page.click('form:has(#dep-signature) button[type=submit]');
 
     await page.goto(desk(`/support-desk/tickets/${ticket.id}`));
-    await page.selectOption('[data-support-saved]', { label: replyName });
+    await choose(page, '[data-support-saved]', { label: replyName });
     await expect(page.locator('#pos-support-body')).toHaveValue(new RegExp(`ticket #${ticket.number}`));
     const marker = unique('composer');
     await page.locator('#pos-support-body').press('End');

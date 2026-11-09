@@ -18,9 +18,12 @@
       <input type="hidden" name="change" value="properties">
       <fieldset>
         <label for="pos-support-side-status">{{ 'modules/support/queue.status' | t }}</label>
-        <select id="pos-support-side-status" name="status_key">
+        <select id="pos-support-side-status" name="status_key" data-support-rich-select="block">
           {% for s in data.statuses.list %}{% if s.active %}<option value="{{ s.key }}" {% if s.id == ticket.status_id %}selected{% endif %}>{{ s.label }}</option>{% endif %}{% endfor %}
         </select>
+        <div hidden data-support-options-for="pos-support-side-status">
+          {% for s in data.statuses.list %}{% if s.active %}<span data-value="{{ s.key }}">{% render 'modules/support/badges/status', status: s %}</span>{% endif %}{% endfor %}
+        </div>
       </fieldset>
       <fieldset>
         <legend>{{ 'modules/support/queue.priority' | t }}</legend>

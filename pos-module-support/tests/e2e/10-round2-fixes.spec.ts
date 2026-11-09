@@ -3,7 +3,7 @@
 // browser. The unit tests cover the commands and queries behind them.
 import { test, expect, Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { contentOf, contextFor, createHostUser, desk, inbound, liquid, newTicket, ticketField, unique, users, waitForStub, waitForTicket } from './helpers';
+import { choose, contentOf, contextFor, createHostUser, desk, inbound, liquid, newTicket, ticketField, unique, users, waitForStub, waitForTicket } from './helpers';
 
 const subscribed = (page: Page) => {
   let confirmed = false;
@@ -32,7 +32,7 @@ test('FIX-07 customer text shows exactly as sent, and saved replies insert plain
   const { context, page } = await contextFor(browser, users.superadmin);
   await page.goto(desk(`/support-desk/tickets/${ticket.id}`));
   await expect(page.locator('.pos-support-message-body').first()).toHaveText(text);
-  await page.selectOption('[data-support-saved]', { label: title });
+  await choose(page, '[data-support-saved]', { label: title });
   await expect(page.locator('#pos-support-body')).toHaveValue("Tom & Jerry <b>say</b> We're here.\n\nSecond paragraph.");
   await context.close();
 });
@@ -218,7 +218,7 @@ test('FIX-24 snoozed rows are marked, tags are searchable, activity names people
   await page.fill('input[name=tags]', tag);
   await page.locator('form[data-support-autosave] button[type=submit]').click();
   await expect.poll(() => (ticketField(t.ticket.id, 'tags') || []).join(','), { timeout: 20000 }).toBe(tag);
-  await page.selectOption('select[name=status_key]', 'progress');
+  await choose(page, 'select[name=status_key]', 'progress');
   await expect.poll(() => ticketField(t.ticket.id, 'category'), { timeout: 20000 }).toBe('open');
   await page.reload();
   await expect(page.locator('.pos-support-activity')).toContainText('In progress');

@@ -13,14 +13,18 @@
   assign empty = []
   function _ = 'modules/support/commands/settings/set', key: 'test_stub_bodies', value: empty
 
+  # the E2E department is Violet (palette 2): the design-review tests read its marker colour
   graphql d = 'modules/support/departments/search', inbound_local_part: 'e2e', limit: 1
   assign department_id = d.records.results.first.id
   if department_id == blank
     assign rows = []
-    assign row = { "table": "modules/support/department", "properties": { "name": "E2E", "short_code": "E2E", "inbound_local_part": "e2e", "is_default": false, "active": true } }
+    assign row = { "table": "modules/support/department", "properties": { "name": "E2E", "short_code": "E2E", "inbound_local_part": "e2e", "is_default": false, "active": true, "color": "2" } }
     assign rows << row
     graphql created = 'modules/support/records/create_many', records: rows
     assign department_id = created.records.first.id
+  elsif d.records.results.first.color != '2'
+    assign props = [{ "name": "color", "value": "2" }]
+    graphql _ = 'modules/support/records/update', id: department_id, properties: props
   endif
 
   function agent_user = 'modules/user/queries/user/find', email: 'AGENT_EMAIL', id: null, with_token: false, expires_in: null

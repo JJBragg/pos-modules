@@ -4,7 +4,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
-import { contentOf, contextFor, createHostUser, desk, inbound, liquid, recipients, signIn, unique, users, waitForStub, waitForTicket } from './helpers';
+import { choose, contentOf, contextFor, createHostUser, desk, inbound, liquid, recipients, signIn, unique, users, waitForStub, waitForTicket } from './helpers';
 
 const state = () => JSON.parse(fs.readFileSync(path.join(__dirname, '.state.json'), 'utf8'));
 const linkIn = (body: any, pattern: RegExp) => {
@@ -27,7 +27,7 @@ test.describe.serial('access', () => {
     const admin = await contextFor(browser, users.superadmin);
     await admin.page.goto(desk('/support-desk/settings/team'));
     await admin.page.fill('#tm-email', outsider.email);
-    await admin.page.selectOption('#tm-new-role', 'agent');
+    await choose(admin.page, '#tm-new-role', 'agent');
     await admin.page.locator('form:has(#tm-email) input[name="department_ids[]"]').filter({ has: admin.page.locator(`xpath=self::*[@value="${state().department_id}"]`) }).check();
     await admin.page.click('form:has(#tm-email) button[type=submit]');
     const email = await waitForStub((b) => recipients(b).includes(outsider.email));
@@ -83,7 +83,7 @@ test.describe.serial('access', () => {
     const admin = await contextFor(browser, users.superadmin);
     await admin.page.goto(desk('/support-desk/settings/team'));
     const form = admin.page.locator('form:has(input[name=request_id])', { hasText: host.email });
-    await form.locator('select[name=role]').selectOption('agent');
+    await choose(admin.page, form.locator('select[name=role]'), 'agent');
     await form.locator(`input[name="department_ids[]"][value="${state().department_id}"]`).check();
     await form.locator('button[value=approve]').click();
     await admin.context.close();

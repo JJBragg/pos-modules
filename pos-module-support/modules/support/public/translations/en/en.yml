@@ -1,5 +1,8 @@
 en:
   app_name: Support
+  select:
+    search: Search
+    no_matches: No matches
   shell:
     navigation: Support desk
     queue: Queue

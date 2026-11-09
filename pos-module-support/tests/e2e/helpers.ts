@@ -9,7 +9,27 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import crypto from 'crypto';
-import { expect, Page, Browser, BrowserContext } from '@playwright/test';
+import { expect, Page, Browser, BrowserContext, Locator } from '@playwright/test';
+
+// Picks an option the way a person does: every desk select is the desk's own
+// dropdown (pos-support-select.js), and the <select> behind it is hidden, so
+// Playwright's selectOption would wait for it to become visible.
+export async function choose(page: Page, select: string | Locator, option: string | { label: string } | { index: number }) {
+  const field = (typeof select === 'string' ? page.locator(select) : select).first();
+  const id = await field.getAttribute('id');
+  const index = await field.evaluate((s: HTMLSelectElement, o) => Array.from(s.options).findIndex((opt, i) => (
+    typeof o === 'string' ? opt.value === o : 'label' in o ? opt.text.trim() === o.label : i === o.index
+  )), option);
+  expect(index, `option ${JSON.stringify(option)} in #${id}`).toBeGreaterThanOrEqual(0);
+  const current = await field.evaluate((s: HTMLSelectElement) => s.selectedIndex);
+  if (current === index) return;
+  await page.locator(`#${id}-combobox`).click();
+  await page.locator(`.pos-support-richselect-pop [role="option"][data-index="${index}"]`).click();
+  // an action dropdown (a "Choose…" prompt, like Saved reply) runs and goes back to its prompt
+  if (!(await field.evaluate((s) => s.hasAttribute('data-support-placeholder')))) {
+    await expect(field).toHaveJSProperty('selectedIndex', index);
+  }
+}
 
 export const BASE = process.env.MPKIT_URL || 'https://support-development.staging.oregon.platform-os.com';
 export const ENV = process.env.E2E_ENV || 'support-dev';
@@ -168,7 +188,7 @@ export async function newTicket(label: string, to = 'e2e@support-dev.platformos.
 export async function reply(page: Page, ticketId: string, text: string, thenStatus?: string) {
   await page.goto(desk(`/support-desk/tickets/${ticketId}`));
   await page.fill('#pos-support-body', text);
-  if (thenStatus) await page.selectOption('#pos-support-then', thenStatus);
+  if (thenStatus) await choose(page, '#pos-support-then', thenStatus);
   await page.click('[data-support-composer] button[type=submit]');
   return waitForStub((b) => contentOf(b).includes(text));
 }

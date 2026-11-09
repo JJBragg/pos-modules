@@ -4,7 +4,7 @@
 // The unit tests cover the command; these cover the three places an agent
 // actually meets the change — the board, the ticket sidebar, and the thread.
 import { test, expect, Page } from '@playwright/test';
-import { contextFor, desk, liquid, newTicket, ticketField, unique, users } from './helpers';
+import { choose, contextFor, desk, liquid, newTicket, ticketField, unique, users } from './helpers';
 
 const columnOf = (page: Page, id: string) => page.evaluate((id) => document.querySelector(`.pos-support-card[data-ticket-id="${id}"]`)?.closest('.pos-support-column')?.getAttribute('data-status-key') || null, id);
 
@@ -44,7 +44,7 @@ test('choosing New in the sidebar saves, and takes the rest of the form with it'
   await expect(page.locator('#pos-support-side-status')).toHaveCount(1);
 
   await page.fill('#pos-support-side-tags', 'back-to-new');
-  await page.selectOption('#pos-support-side-status', 'new');
+  await choose(page, '#pos-support-side-status', 'new');
   await expect(page.locator('.pos-toast').last()).toContainText('Ticket updated.', { timeout: 30000 });
 
   await expect.poll(() => ticketField(t.ticket.id, 'category'), { timeout: 30000 }).toBe('new');

@@ -3,7 +3,7 @@
 // icons, the logo/colour/favicon overrides and Appearance following the
 // host. branding_test covers the commands and the default name (#130).
 import { test, expect } from '@playwright/test';
-import { contextFor, desk, liquid, users } from './helpers';
+import { choose, contextFor, desk, liquid, users } from './helpers';
 
 const LIGHT = 'https://example.com/e2e-logo-light.svg';
 const DARK = 'https://example.com/e2e-logo-dark.svg';
@@ -26,7 +26,7 @@ test('BR-1 a dark sidebar shows the dark logo in light mode; host icon replaces 
     await expect(page.locator('[data-support-mixed-logos]')).toBeVisible();
 
     await page.fill('#br-logo-dark', DARK);
-    await page.selectOption('#br-rail-theme', 'dark');
+    await choose(page, '#br-rail-theme', 'dark');
     await form.locator('button[type=submit]').click();
     await expect(page.locator('[data-support-mixed-logos]')).toHaveCount(0);
     await expect(page.locator('#br-rail-theme')).toHaveValue('dark');
@@ -48,7 +48,7 @@ test('BR-1 a dark sidebar shows the dark logo in light mode; host icon replaces 
   } finally {
     await page.goto(desk('/support-desk/settings/branding'));
     for (const id of ['#br-logo', '#br-logo-dark', '#br-icon']) await page.fill(id, '');
-    await page.selectOption('#br-rail-theme', '');
+    await choose(page, '#br-rail-theme', '');
     await page.locator('#br-use-host').check();
     await form.locator('button[type=submit]').click();
     await expect(page.locator('#br-use-host')).toBeChecked();
@@ -67,7 +67,7 @@ test('BR-3 with both logos and no rail_theme, the logo follows the sidebar colou
     await page.goto(desk('/support-desk/settings/branding'));
     await page.fill('#br-logo', LIGHT);
     await page.fill('#br-logo-dark', DARK);
-    await page.selectOption('#br-rail-theme', '');
+    await choose(page, '#br-rail-theme', '');
     await form.locator('button[type=submit]').click();
     await expect(page.locator('#br-rail-theme')).toHaveValue('');
 

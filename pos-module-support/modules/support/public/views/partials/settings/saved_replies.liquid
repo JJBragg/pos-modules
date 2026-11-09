@@ -25,6 +25,7 @@
       <fieldset>
         <label for="sr-dept">{{ 'modules/support/queue.department' | t }}</label>
         <select id="sr-dept" name="department_id"><option value="">{{ 'modules/support/settings.all_departments' | t }}</option>{% for d in data.departments %}<option value="{{ d.id }}" {% if d.id == edit.department_id %}selected{% endif %}>{{ d.name }}</option>{% endfor %}</select>
+        <div hidden data-support-options-for="sr-dept">{% for d in data.departments %}<span data-value="{{ d.id }}">{% render 'modules/support/badges/department', department: d, variant: null %} {{ d.name }}</span>{% endfor %}</div>
       </fieldset>
       <button type="submit" class="pos-button pos-button-primary">{{ 'modules/support/settings.save' | t }}</button>
     </form>

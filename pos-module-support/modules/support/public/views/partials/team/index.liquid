@@ -92,10 +92,13 @@
       {% if data.candidates.size > 0 %}
         <fieldset>
           <label for="tm-pick">{{ 'modules/support/team.pick_staff' | t }}</label>
-          <select id="tm-pick" data-support-pick>
+          <select id="tm-pick" data-support-pick data-support-placeholder data-support-search>
             <option value="">{{ 'modules/support/team.pick_placeholder' | t }}</option>
             {% for c in data.candidates %}<option value="{{ c.email }}">{{ c.name }} ({{ c.email }})</option>{% endfor %}
           </select>
+          <div hidden data-support-options-for="tm-pick">
+            {% for c in data.candidates %}<span data-value="{{ c.email }}" data-search="{{ c.email }}">{% render 'modules/support/avatar', name: c.name, email: c.email, size: 'xs', labelled: false, role: 'agent', profile_id: null, presence: false %} <span class="pos-support-richselect-text">{{ c.name }} <span class="pos-supplementary">{{ c.email }}</span></span></span>{% endfor %}
+          </div>
         </fieldset>
       {% endif %}
       <fieldset><label for="tm-email">{{ 'modules/support/team.email' | t }}</label><input id="tm-email" type="email" name="email" required data-support-pick-target></fieldset>

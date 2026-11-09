@@ -124,7 +124,7 @@ test('E. filter dropdowns show markers, work by keyboard, and Reset all clears e
   await expect(list.locator('.pos-support-priority-p0')).toHaveCount(1);
 
   // the open list passes axe
-  const axe = await new AxeBuilder({ page }).include('.pos-support-toolbar').withTags(['wcag2a', 'wcag2aa']).analyze();
+  const axe = await new AxeBuilder({ page }).include('.pos-support-toolbar').include('.pos-support-richselect-pop').withTags(['wcag2a', 'wcag2aa']).analyze();
   expect(axe.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical').map((v) => v.id)).toEqual([]);
 
   await page.keyboard.press('ArrowDown');

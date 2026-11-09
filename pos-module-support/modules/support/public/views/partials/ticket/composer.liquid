@@ -71,7 +71,7 @@
       <span id="pos-support-files-help" class="pos-support-sr-only">{{ 'modules/support/ticket.attach_help' | t }}</span>
       {% if data.saved_replies.size > 0 %}
         <label for="pos-support-saved" class="pos-support-sr-only">{{ 'modules/support/ticket.saved_replies' | t }}</label>
-        <select id="pos-support-saved" data-support-saved>
+        <select id="pos-support-saved" data-support-saved data-support-placeholder>
           <option value="">{{ 'modules/support/ticket.choose_saved' | t }}</option>
           {% for reply in data.saved_replies %}<option value="{{ reply.id }}" data-text="{{ reply.text }}">{{ reply.title }}</option>{% endfor %}
         </select>
@@ -84,6 +84,9 @@
           <option value="">{{ 'modules/support/ticket.then_keep' | t }}</option>
           {% for s in data.statuses.list %}{% if s.active %}<option value="{{ s.key }}" {% if s.key == 'progress' %}selected{% endif %}>{{ s.label }}</option>{% endif %}{% endfor %}
         </select>
+        <div hidden data-support-options-for="pos-support-then">
+          {% for s in data.statuses.list %}{% if s.active %}<span data-value="{{ s.key }}">{% render 'modules/support/badges/status', status: s %}</span>{% endif %}{% endfor %}
+        </div>
         <button type="submit" class="pos-button pos-button-primary" data-support-send title="{{ 'modules/support/ticket.send_shortcut' | t }}">{% render 'modules/support/icon', name: 'send', size: 'sm' %}<span data-support-send-label>{{ 'modules/support/ticket.send' | t }}</span></button>
       </div>
     </div>

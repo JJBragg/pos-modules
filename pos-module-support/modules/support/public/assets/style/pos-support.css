@@ -3492,40 +3492,94 @@
     white-space: nowrap;
   }
 
-  .pos-support-richselect-list {
-    position: absolute;
-    inset-block-start: calc(100% + 0.25rem);
-    inset-inline-start: 0;
-    z-index: 20;
-    min-inline-size: 100%;
-    max-block-size: 18rem;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    margin: 0;
+  /* every select of the desk is replaced by the button; the select stays in the form, hidden */
+  .pos-support select.pos-support-richselect-native {
+    display: none !important;
+  }
+
+  .pos-support-richselect {
+    min-inline-size: 0;
+  }
+
+  .pos-support-richselect[hidden] {
+    display: none;
+  }
+
+  /* the button fills the room the select had: a form field, a toolbar slot, the side panel */
+  .pos-support .pos-support-richselect-box {
+    inline-size: 100%;
+    min-inline-size: 0;
+    justify-content: space-between;
+  }
+
+  .pos-support .pos-support-richselect-box:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .pos-support-richselect-box .pos-support-richselect-value {
+    overflow: hidden;
+  }
+
+  .pos-support-richselect-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* a "Choose…" prompt reads as a placeholder */
+  .pos-support-richselect-prompt {
+    color: var(--pos-color-input-placeholder, var(--pos-support-text-muted));
+  }
+
+  /* the open list, laid over the page next to the button (same look as the board's assignee picker) */
+  .pos-support-richselect-pop {
+    position: fixed;
+    z-index: 60;
+    max-inline-size: min(22rem, calc(100vw - 1rem));
     padding: 0.25rem;
-    list-style: none;
     border: 1px solid var(--pos-support-border);
     border-radius: var(--pos-support-radius-card);
     background: var(--pos-support-bg);
     box-shadow: var(--pos-support-shadow-lg);
+    color: var(--pos-support-text);
+    font-size: var(--pos-support-text-body);
   }
 
-  .pos-support-richselect-list[hidden] {
-    display: none;
+  .pos-support .pos-support-richselect-search {
+    inline-size: 100%;
+    margin-block-end: 0.25rem;
+  }
+
+  .pos-support-richselect-list {
+    max-block-size: min(18rem, 50vh);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 
   .pos-support-richselect-list [role="option"] {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.375rem 0.5rem;
+    min-block-size: 2rem;
+    padding: 0.25rem 0.5rem;
     border-radius: var(--pos-support-radius-control);
-    font-size: var(--pos-support-text-body);
     white-space: nowrap;
     cursor: pointer;
   }
 
-  .pos-support-richselect-list [role="option"]:is(:hover, .pos-support-richselect-active) {
+  .pos-support-richselect-list [role="option"] > .pos-support-richselect-value {
+    flex: 1 1 auto;
+    min-inline-size: 0;
+  }
+
+  .pos-support-richselect-list [role="option"][hidden] {
+    display: none;
+  }
+
+  .pos-support-richselect-list [role="option"]:is(:hover, .pos-support-richselect-active):not([aria-disabled="true"]) {
     background: var(--pos-support-row-hover);
     outline: none;
   }
@@ -3535,24 +3589,114 @@
     font-weight: 600;
   }
 
-  /* the ticket side panel: full width; a long value ends in an ellipsis */
-  .pos-support-richselect-block,
-  .pos-support .pos-support-richselect-block .pos-support-richselect-box {
+  .pos-support-richselect-list [role="option"][aria-disabled="true"] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .pos-support-richselect-check {
+    flex: none;
+    visibility: hidden;
+  }
+
+  .pos-support-richselect-list [aria-selected="true"] > .pos-support-richselect-check {
+    visibility: visible;
+  }
+
+  .pos-support-richselect-group {
+    padding: 0.5rem 0.5rem 0.25rem;
+    color: var(--pos-support-text-muted);
+    font-size: var(--pos-support-text-meta);
+    font-weight: 600;
+  }
+
+  .pos-support-richselect-empty,
+  .pos-support-richselect-title {
+    margin: 0;
+    padding: 0.5rem;
+  }
+
+  .pos-support-richselect-title {
+    font-weight: 600;
+  }
+
+  /* narrow screens: the list is a sheet at the bottom, with full-height rows */
+  .pos-support-richselect-pop.pos-support-richselect-sheet {
+    inset: auto 0 0 0 !important;
+    min-inline-size: 0 !important;
+    max-inline-size: none;
+    padding: 0.5rem 0.5rem calc(0.5rem + env(safe-area-inset-bottom));
+    border-radius: var(--pos-support-radius-panel) var(--pos-support-radius-panel) 0 0;
+  }
+
+  .pos-support-richselect-sheet .pos-support-richselect-list {
+    max-block-size: 60vh;
+  }
+
+  .pos-support-richselect-sheet .pos-support-richselect-list [role="option"] {
+    min-block-size: 2.75rem;
+  }
+
+  .pos-support-richselect-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 59;
+    background: color-mix(in srgb, var(--pos-support-text) 35%, transparent);
+  }
+
+  /* the places that size a select size its dropdown the same way */
+  .pos-support-bulk-bar .pos-support-richselect {
+    flex: 0 1 10rem;
+    --pos-support-control-height: 2rem;
+  }
+
+  .pos-support .pos-support-composer-foot .pos-support-richselect {
+    --pos-support-control-height: 2rem;
+    flex: 0 1 12rem;
+  }
+
+  .pos-support .pos-support-composer-foot .pos-support-richselect-box {
+    font-size: var(--pos-support-text-meta);
+  }
+
+  .pos-support .pos-support-ticket-side .pos-support-richselect {
+    --pos-support-control-height: 2rem;
     inline-size: 100%;
   }
 
-  .pos-support .pos-support-richselect-block .pos-support-richselect-box {
-    justify-content: space-between;
+  .pos-support .pos-support-ticket-side .pos-support-richselect-box {
+    font-size: var(--pos-support-text-meta);
   }
 
-  .pos-support-richselect-block .pos-support-richselect-text {
-    overflow: hidden;
-    text-overflow: ellipsis;
+  .pos-support-side-row > .pos-support-richselect {
+    flex: 1;
   }
 
-  .pos-support-richselect-block .pos-support-richselect-list {
-    inline-size: max-content;
-    max-inline-size: 20rem;
+  /* the ticket side panel: full width; a long value ends in an ellipsis */
+  .pos-support-richselect-block {
+    inline-size: 100%;
+  }
+
+  @media (pointer: coarse) {
+    .pos-support .pos-support-ticket-side .pos-support-richselect,
+    .pos-support .pos-support-composer-foot .pos-support-richselect,
+    .pos-support .pos-support-bulk-bar .pos-support-richselect {
+      --pos-support-control-height: 2.75rem;
+    }
+
+    .pos-support-richselect-list [role="option"] {
+      min-block-size: 2.75rem;
+    }
+  }
+
+  @media (max-width: 48rem) {
+    .pos-support-toolbar .pos-support-richselect {
+      flex: 1 1 calc(50% - 0.25rem);
+    }
+
+    .pos-support-composer-foot .pos-support-composer-send .pos-support-richselect {
+      flex: 1;
+    }
   }
 
   /* 3.32 Reset all filters: a primary icon-only button, square */

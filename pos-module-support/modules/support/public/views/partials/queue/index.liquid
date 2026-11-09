@@ -47,7 +47,7 @@
       <div class="pos-support-bulk-bar" role="group" aria-label="{{ 'modules/support/queue.bulk' | t }}" data-support-bulk-bar>
         <span class="pos-support-bulk-count" data-support-bulk-count aria-live="polite"></span>
         <label for="pos-support-bulk-assignee" class="pos-support-sr-only">{{ 'modules/support/queue.assignee' | t }}</label>
-        <select id="pos-support-bulk-assignee" name="bulk_assignee">
+        <select id="pos-support-bulk-assignee" name="bulk_assignee" data-support-placeholder>
           <option value="">{{ 'modules/support/queue.bulk_assignee' | t }}</option>
           <option value="me">{{ 'modules/support/queue.assign_me' | t }}</option>
           {% if page_data.can_manage %}
@@ -55,16 +55,29 @@
             {% for m in page_data.members %}{% if m.profile_id != member.profile_id %}<option value="{{ m.profile_id }}">{{ m.name }}</option>{% endif %}{% endfor %}
           {% endif %}
         </select>
+        <div hidden data-support-options-for="pos-support-bulk-assignee">
+          <span data-value="me">{% render 'modules/support/avatar', name: null, email: context.current_user.email, size: 'xs', labelled: false, role: null, profile_id: member.profile_id, presence: false %} {{ 'modules/support/queue.assign_me' | t }}</span>
+          {% if page_data.can_manage %}
+            <span data-value="none"><span class="pos-support-avatar pos-support-avatar-xs pos-support-avatar-empty" aria-hidden="true">{% render 'modules/support/icon', name: 'user-x', size: null %}</span> {{ 'modules/support/queue.unassign' | t }}</span>
+            {% for m in page_data.members %}{% if m.profile_id != member.profile_id %}<span data-value="{{ m.profile_id }}" data-search="{{ m.email }}">{% render 'modules/support/avatar', name: m.name, email: m.email, size: 'xs', labelled: false, role: m.role, profile_id: null, presence: false %} {{ m.name }}</span>{% endif %}{% endfor %}
+          {% endif %}
+        </div>
         <label for="pos-support-bulk-status" class="pos-support-sr-only">{{ 'modules/support/queue.status' | t }}</label>
-        <select id="pos-support-bulk-status" name="bulk_status">
+        <select id="pos-support-bulk-status" name="bulk_status" data-support-placeholder>
           <option value="">{{ 'modules/support/queue.bulk_status' | t }}</option>
           {% for s in page_data.statuses %}<option value="{{ s.key }}">{{ s.label }}</option>{% endfor %}
         </select>
+        <div hidden data-support-options-for="pos-support-bulk-status">
+          {% for s in page_data.statuses %}<span data-value="{{ s.key }}">{% render 'modules/support/badges/status', status: s %}</span>{% endfor %}
+        </div>
         <label for="pos-support-bulk-priority" class="pos-support-sr-only">{{ 'modules/support/queue.priority' | t }}</label>
-        <select id="pos-support-bulk-priority" name="bulk_priority">
+        <select id="pos-support-bulk-priority" name="bulk_priority" data-support-placeholder>
           <option value="">{{ 'modules/support/queue.bulk_priority' | t }}</option>
           {% for p in priorities %}<option value="{{ p }}">{{ 'modules/support/priorities.' | append: p | t }}</option>{% endfor %}
         </select>
+        <div hidden data-support-options-for="pos-support-bulk-priority">
+          {% for p in priorities %}<span data-value="{{ p }}">{% render 'modules/support/badges/priority', priority: p %} {{ 'modules/support/priorities.' | append: p | t | split: '· ' | last }}</span>{% endfor %}
+        </div>
         <button type="submit" class="pos-button pos-button-primary">{{ 'modules/support/queue.bulk_apply' | t }}</button>
         <span class="pos-support-bulk-spacer"></span>
         <button type="submit" class="pos-button pos-button-danger" name="bulk_spam" value="1" data-support-confirm="{{ 'modules/support/queue.bulk_spam_confirm' | t }}">{% render 'modules/support/icon', name: 'ban', size: 'sm' %}{{ 'modules/support/blocklist.mark_spam' | t }}</button>
