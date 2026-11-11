@@ -22,8 +22,12 @@ test('F. the desktop sidebar collapses to icons, keeps accessible names and is r
     await expect(shell).toHaveClass(/pos-support-rail-collapsed/);
     await expect(toggle).toHaveAttribute('aria-expanded', 'false');
     await expect(toggle).toHaveAccessibleName('Expand sidebar');
+    // the shell animates grid-template-columns over 200ms, so poll instead of
+    // measuring once: a single read lands mid-transition on a slow machine
+    await expect
+      .poll(async () => (await page.locator('.pos-support-rail').boundingBox())!.width)
+      .toBeLessThan(80);
     const narrow = (await page.locator('.pos-support-rail').boundingBox())!.width;
-    expect(narrow).toBeLessThan(80);
     expect(narrow).toBeLessThan(wide);
     // every link still has its name for screen readers, and a tooltip
     await expect(page.locator('.pos-support-rail').getByRole('link', { name: /Needs reply/ })).toBeVisible();
@@ -78,8 +82,11 @@ test('G. card hover grows the background with a brand ring; overdue: the red "!"
 
   await overdue.locator('.pos-support-card-title').hover();
   await expect.poll(async () => (await badge.boundingBox())!.width).toBeGreaterThan(50);
-  const ring = await overdue.evaluate((el) => getComputedStyle(el, '::before').boxShadow);
-  expect(ring).toMatch(/3px/);
+  // the ::before box-shadow transitions over 160ms, so poll: a single read
+  // catches an interpolated value (e.g. 2.9276px) and fails on /3px/
+  await expect
+    .poll(() => overdue.evaluate((el) => getComputedStyle(el, '::before').boxShadow))
+    .toMatch(/3px/);
   // the content does not move or scale; only the background layer grows
   expect(await overdue.evaluate((el) => getComputedStyle(el).transform)).toBe('none');
   await expect.poll(() => overdue.evaluate((el) => getComputedStyle(el, '::before').inset)).not.toBe('-1px');
